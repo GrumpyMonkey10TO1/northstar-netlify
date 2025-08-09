@@ -96,23 +96,37 @@
     // Welcome line
     addMessage("bot", "Welcome to North Star GPS Lite. Academic or General Training?");
 
-    // ====== AUTO-RESIZE (post height to parent for iframe embeds) ======
-    function postHeight() {
-      try {
-        const h = document.documentElement.scrollHeight || document.body.scrollHeight || 800;
-        window.parent.postMessage({ height: h }, "*");
-      } catch (_) {}
-    }
-    let heightPing;
-    function scheduleHeightPing() {
-      clearTimeout(heightPing);
-      heightPing = setTimeout(postHeight, 50);
-    }
-    window.addEventListener("load", postHeight);
-    window.addEventListener("resize", scheduleHeightPing);
-    const observer = new MutationObserver(scheduleHeightPing);
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-    setInterval(postHeight, 1000); // safety ping
+    // ======== AUTO-RESIZE (post height to parent for iframe embeds) =====
+function postHeight() {
+  try {
+    const h =
+      document.documentElement.scrollHeight ||
+      document.body.scrollHeight ||
+      800;
+    window.parent.postMessage({ height: h }, "*");
+  } catch (_) {}
+}
+
+let heightPing;                           // <-- line ~107: capital P
+
+function scheduleHeightPing() {           // <-- capital P
+  clearTimeout(heightPing);               // <-- capital P
+  heightPing = setTimeout(postHeight, 50);
+}
+
+window.addEventListener("load", postHeight);
+window.addEventListener("resize", scheduleHeightPing);
+
+const observer = new MutationObserver(scheduleHeightPing);
+observer.observe(document.body, {
+  childList: true,
+  subtree: true,
+  characterData: true
+});
+
+setInterval(postHeight, 1000); // safety ping
+// ====================================================================
+
     // ================================================================
 
   </script>
