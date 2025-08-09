@@ -1,5 +1,9 @@
 // netlify/functions/chat.js
-exports.handler = async (event, context) => {
+// Secure server-side function: reads OPENAI_API_KEY from Netlify env vars.
+// The key is NEVER sent to the browser.
+
+exports.handler = async (event) => {
+  // CORS (not strictly needed for same-origin, but harmless and helpful)
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 204,
@@ -13,30 +17,35 @@ exports.handler = async (event, context) => {
   }
 
   if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: JSON.stringify({error: "Method not allowed"}) };
+    return {
+      statusCode: 405,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ error: "Method not allowed" })
+    };
   }
 
   try {
     const body = JSON.parse(event.body || "{}");
-    const message = body.message || "";
+    const message = (body && body.message) || "";
 
     if (!message) {
-      return { statusCode: 400, body: JSON.stringify({error: "Missing message"}) };
+      return {
+        statusCode: 400,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ error: "Missing message" })
+      };
     }
 
-    // Echo reply first to prove wiring
-    return {
-      statusCode: 200,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reply: `Lite bot: you said "${message}"` })
-    };
-
-    /* OpenAI version (switch after echo works)
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      return { statusCode: 500, body: JSON.stringify({ error: "OPENAI_API_KEY is not set" }) };
+      return {
+        statusCode: 500,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ error: "OPENAI_API_KEY is not set" })
+      };
     }
 
+    // Call OpenAI Chat Completions (server-side)
     const r = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -44,9 +53,9 @@ exports.handler = async (event, context) => {
         "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: "You are North Star GPS Lite, focused on IELTS Reading." },
+          { role: "system", content: "You are North Star GPS Lite, focused on IELTS Reading. Be concise and helpful." },
           { role: "user", content: message }
         ],
         temperature: 0.2
@@ -54,14 +63,32 @@ exports.handler = async (event, context) => {
     });
 
     const out = await r.json();
+
     if (!r.ok) {
-      return { statusCode: r.status, body: JSON.stringify({ error: out.error?.message || "Upstream error" }) };
+      return {
+        statusCode: r.status,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          error: out?.error?.message || "Upstream error",
+          details: out
+        })
+      };
     }
 
-    const reply = out.choices?.[0]?.message?.content?.trim() || "No reply from model.";
-    return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reply }) };
-    */
+    const reply =
+      out?.choices?.[0]?.message?.content?.trim() ||
+      "No reply from model.";
+
+    return {
+      statusCode: 200,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reply })
+    };
   } catch (e) {
-    return { statusCode: 500, body: JSON.stringify({error: e.message || "Server error"}) };
+    return {
+      statusCode: 500,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ error: e.message || "Server error" })
+    };
   }
 };
