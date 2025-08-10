@@ -1,142 +1,140 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>North Star GPS Lite</title>
-  <style>
-    :root { --bg:#f7f7f8; --card:#ffffff; --text:#111; --muted:#666; --line:#e6e6e6; }
-    * { box-sizing: border-box; }
-    body { margin:0; background:var(--bg); color:var(--text); font:16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    .wrap { max-width: 800px; margin: 28px auto; padding: 0 16px; }
-    .card { background: var(--card); border:1px solid var(--line); border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
-    .head { padding: 14px 16px; border-bottom:1px solid var(--line); font-weight: 600; }
-    .msgs { height: 440px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
-    .msg { max-width: 85%; padding: 10px 12px; border:1px solid var(--line); border-radius: 10px; white-space: pre-wrap; word-wrap: break-word; }
-    .me   { align-self: flex-end; background:#eef3ff; }
-    .bot  { align-self: flex-start; background:#f6f6f6; }
-    .foot { display:flex; gap:10px; align-items:center; padding: 12px; border-top:1px solid var(--line); }
-    input[type="text"]{ flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:10px; outline: none; }
-    button{ padding:10px 16px; border:1px solid var(--line); background:#0f62fe; color:#fff; border-radius:10px; cursor:pointer; }
-    button:disabled{ opacity:.6; cursor:not-allowed; }
-    .tip { color:var(--muted); font-size: 13px; padding: 0 12px 12px; }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>North Star GPS Lite</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #chat {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ddd;
+        }
+        .message {
+            margin: 5px 0;
+        }
+        .me {
+            text-align: right;
+            color: blue;
+        }
+        .bot {
+            text-align: left;
+            color: green;
+        }
+        #inputArea {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+            background: #f9f9f9;
+        }
+        #box1 {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #send {
+            margin-left: 10px;
+            padding: 0 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #send:disabled {
+            background-color: #aaa;
+        }
+    </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card" id="chatCard">
-      <div class="head">North Star GPS Lite</div>
-      <div id="msgs" class="msgs"></div>
-      <div class="tip">Tip: Short questions get faster answers.</div>
-      <div class="foot">
-        <input id="box" type="text" placeholder="Type your question..." />
-        <button id="send">Send</button>
-      </div>
+    <div id="container">
+        <div id="chat"></div>
+        <div id="inputArea">
+            <input type="text" id="box1" placeholder="Type your question or IELTS answer...">
+            <button id="send">Send</button>
+        </div>
     </div>
-  </div>
 
-  <script>
-    // Minimal client
-    const msgsEl = document.getElementById("msgs");
-    const boxEl  = document.getElementById("box");
-    const sendEl = document.getElementById("send");
-    const ENDPOINT = "/.netlify/functions/chat"; // Netlify function on same origin
+    <script>
+        const chatEl = document.getElementById("chat");
+        const box1 = document.getElementById("box1");
+        const sendEl = document.getElementById("send");
 
-    function addMessage(who, text){
-      const div = document.createElement("div");
-      div.className = "msg " + (who === "me" ? "me" : "bot");
-      div.textContent = text;
-      msgsEl.appendChild(div);
-      msgsEl.scrollTop = msgsEl.scrollHeight;
-      postHeight(); // keep parent iframe sized
-    }
+        function addMessage(sender, text) {
+            const div = document.createElement("div");
+            div.className = "message " + sender;
+            div.textContent = text;
+            chatEl.appendChild(div);
+            chatEl.scrollTop = chatEl.scrollHeight;
+        }
 
-    async function sendMessage(){
-      const text = boxEl.value.trim();
-      if (!text) return;
-      addMessage("me", text);
-      boxEl.value = "";
-      boxEl.focus();
-      sendEl.disabled = true;
+        async function sendMessage() {
+            const text = box1.value.trim();
+            if (!text) return;
 
-      try {
-       const ENDPOINT = "/.netlify/functions/chat";
+            addMessage("me", text);
+            box1.value = "";
+            box1.focus();
+            sendEl.disabled = true;
 
-          method: "POST",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({
-            messages: [{ role: "user", content: text }],
-            stream: false
-          })
+            try {
+                const ENDPOINT = "/.netlify/functions/chat";
+
+                const res = await fetch(ENDPOINT, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        messages: [{ role: "user", content: text }],
+                        stream: false
+                    })
+                });
+
+                if (!res.ok) {
+                    const body = await res.text();
+                    addMessage("bot", "Error " + res.status + ": " + body.slice(0, 500));
+                } else {
+                    const data = await res.json().catch(() => ({}));
+                    const reply =
+                        data.reply ||
+                        data.choices?.[0]?.message?.content ||
+                        "[No reply received]";
+                    addMessage("bot", reply);
+                }
+            } catch (e) {
+                addMessage("bot", "Network error: " + String(e).slice(0, 500));
+            } finally {
+                sendEl.disabled = false;
+            }
+        }
+
+        sendEl.addEventListener("click", sendMessage);
+        box1.addEventListener("keypress", function (e) {
+            if (e.key === "Enter") sendMessage();
         });
-
-        if (!res.ok) {
-          const body = await res.text();
-          addMessage("bot", "Error " + res.status + ": " + body.slice(0, 500));
-        } else {
-          const data = await res.json().catch(() => ({}));
-          const reply =
-            data.reply ||
-            data.choices?.[0]?.message?.content ||
-            "[No reply received]";
-          addMessage("bot", reply);
-        }
-      } catch (e) {
-        addMessage("bot", "Network error: " + String(e).slice(0, 500));
-      } finally {
-        sendEl.disabled = false;
-      }
-    }
-
-    sendEl.addEventListener("click", sendMessage);
-    boxEl.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) sendMessage();
-    });
-
-    // Welcome seed
-    addMessage("bot", "Welcome to North Star GPS Lite. Academic or General Training?");
-  </script>
-
-  <script>
-    // Auto resize to parent
-    function postHeight(){
-      try {
-        const h = Math.max(
-          document.documentElement.scrollHeight,
-          document.body.scrollHeight,
-          document.documentElement.offsetHeight,
-          document.body.offsetHeight
-        );
-        if (window.parent) {
-          window.parent.postMessage({ type: "ns-height", height: h }, "*");
-        }
-      } catch (_) {}
-    }
-
-    let pingTimerId;
-
-    function scheduleHeightPing(){
-      clearTimeout(pingTimerId);
-      pingTimerId = setTimeout(postHeight, 60);
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      postHeight();
-      scheduleHeightPing();
-
-      if ("ResizeObserver" in window) {
-        new ResizeObserver(scheduleHeightPing).observe(document.body);
-      }
-
-      const mo = new MutationObserver(scheduleHeightPing);
-      mo.observe(document.body, { childList:true, subtree:true, characterData:true });
-
-      window.addEventListener("load", postHeight);
-      window.addEventListener("resize", scheduleHeightPing);
-
-      setInterval(postHeight, 1200); // safety ping
-      console.log("NS Lite embed ready");
-    });
-  </script>
+    </script>
 </body>
 </html>
