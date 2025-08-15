@@ -1,3 +1,4 @@
+# netlify.toml (clean)
 [build]
   publish = "."
   functions = "netlify/functions"
@@ -6,7 +7,5 @@
   NODE_VERSION = "18"
 
 [functions]
+  directory = "netlify/functions"
   node_bundler = "esbuild"
-[functions]
-directory = "netlify/functions"
-included_files = ["netlify/functions/prompts/**"]
