@@ -24,17 +24,19 @@ exports.handler = async function (event) {
     return { statusCode: 500, headers, body: JSON.stringify({ error: "Missing OPENAI_API_KEY" }) };
 
   // Load Explore system prompt from file
-  const explorePromptPath = path.join(process.cwd(), "netlify", "functions", "prompts", "explore-system.txt");
-  let EXPLORE_SYSTEM = "";
-  try {
-    EXPLORE_SYSTEM = fs.readFileSync(explorePromptPath, "utf8");
-  } catch (e) {
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: "explore-system.txt not found at netlify/functions/prompts/" })
-    };
-  }
+  // Read from the bundled folder that sits next to this file at runtime
+const explorePromptPath = path.join(__dirname, "prompts", "explore-system.txt");
+let EXPLORE_SYSTEM = "";
+try {
+  EXPLORE_SYSTEM = fs.readFileSync(explorePromptPath, "utf8");
+} catch (e) {
+  return {
+    statusCode: 500,
+    headers,
+    body: JSON.stringify({ error: `explore-system.txt not found at ${explorePromptPath}` })
+  };
+}
+
 
   // Parse payload
   let payload;
