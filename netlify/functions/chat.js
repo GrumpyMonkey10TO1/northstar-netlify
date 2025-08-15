@@ -1,10 +1,10 @@
 // netlify/functions/chat.js
 
 exports.handler = async function (event) {
-  // --- CORS ---
+  // --- CORS: lock to your domain (plus localhost for dev) ---
   const origin = event.headers.origin || "";
-  const ALLOWED_ORIGINS = ["https://migratenorth.ca", "http://localhost:8888"];
-  const CORS_ORIGIN = ALLOWED_ORIGINS.includes(origin) ? origin : "*";
+  const ALLOWED_ORIGINS = new Set(["https://migratenorth.ca", "http://localhost:8888"]);
+  const CORS_ORIGIN = ALLOWED_ORIGINS.has(origin) ? origin : "https://migratenorth.ca";
   const headers = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": CORS_ORIGIN,
