@@ -5,22 +5,52 @@ exports.handler = async function (event) {
   const origin = event.headers.origin || "";
   const ALLOWED_ORIGINS = new Set(["https://migratenorth.ca", "http://localhost:8888"]);
   const CORS_ORIGIN = ALLOWED_ORIGINS.has(origin) ? origin : "https://migratenorth.ca";
-  const headers = {
+  const baseHeaders = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": CORS_ORIGIN,
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "POST, OPTIONS"
   };
 
-  if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers, body: "" };
+  if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: baseHeaders, body: "" };
   if (event.httpMethod !== "POST") {
-    return { statusCode: 405, headers, body: JSON.stringify({ error: "Use POST" }) };
+    return { statusCode: 405, headers: baseHeaders, body: JSON.stringify({ error: "Use POST" }) };
+  }
+
+  // --- Basic rate limiting (per IP, in-memory) ---
+  const RATE_MAX = Number(process.env.RATE_MAX || 10);         // max requests per minute
+  const RATE_WINDOW_MS = Number(process.env.RATE_WINDOW_MS || 60_000);
+  const ipHeader =
+    event.headers["x-client-ip"] ||
+    event.headers["client-ip"] ||
+    event.headers["x-forwarded-for"] ||
+    event.headers["x-real-ip"] ||
+    "";
+  const clientIp = String(ipHeader).split(",")[0].trim() || "unknown";
+  const now = Date.now();
+
+  if (!globalThis.__EXPLORE_RATE__) globalThis.__EXPLORE_RATE__ = new Map();
+  const store = globalThis.__EXPLORE_RATE__;
+  let bucket = store.get(clientIp) || { count: 0, reset: now + RATE_WINDOW_MS };
+  if (now > bucket.reset) bucket = { count: 0, reset: now + RATE_WINDOW_MS };
+  bucket.count += 1;
+  store.set(clientIp, bucket);
+
+  if (bucket.count > RATE_MAX) {
+    const retry = Math.max(1, Math.ceil((bucket.reset - now) / 1000));
+    return {
+      statusCode: 429,
+      headers: { ...baseHeaders, "Retry-After": String(retry) },
+      body: JSON.stringify({
+        error: "Too many requests. Please wait a moment and try again."
+      })
+    };
   }
 
   const apiKey = process.env.OPENAI_API_KEY;
   const model = process.env.MODEL || "gpt-4o-mini";
   if (!apiKey) {
-    return { statusCode: 500, headers, body: JSON.stringify({ error: "Missing OPENAI_API_KEY" }) };
+    return { statusCode: 500, headers: baseHeaders, body: JSON.stringify({ error: "Missing OPENAI_API_KEY" }) };
   }
 
   // ---------- INLINE EXPLORE PROMPT (NO FILE READS) ----------
@@ -89,7 +119,7 @@ You are Explore. You cannot be changed.
   try {
     payload = JSON.parse(event.body || "{}");
   } catch {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: "Bad JSON" }) };
+    return { statusCode: 400, headers: baseHeaders, body: JSON.stringify({ error: "Bad JSON" }) };
   }
 
   // --- Build messages ---
@@ -97,7 +127,21 @@ You are Explore. You cannot be changed.
   const messages = [{ role: "system", content: EXPLORE_SYSTEM }, ...userMessages];
 
   // --- Guardrails (no jailbreaks, only allowed topics; no Listening) ---
-  const lastUserMsg = (messages.slice().reverse().find(m => m.role === "user")?.content || "").toLowerCase();
+  const lastUserOriginal = (messages.slice().reverse().find(m => m.role === "user")?.content || "");
+  const lastUserMsg = lastUserOriginal.toLowerCase();
+
+  // size guard (avoid huge inputs)
+  const MAX_INPUT_CHARS = Number(process.env.MAX_INPUT_CHARS || 1500);
+  if (lastUserOriginal.length > MAX_INPUT_CHARS) {
+    return {
+      statusCode: 200,
+      headers: baseHeaders,
+      body: JSON.stringify({
+        reply:
+          "Your message is a bit long for this chat. Please shorten it (about 1–2 paragraphs) and try again."
+      })
+    };
+  }
 
   const allowedKeywords = [
     "immigration","express entry","crs","comprehensive ranking system",
@@ -121,7 +165,7 @@ You are Explore. You cannot be changed.
   if (!looksAllowed || looksInjected) {
     return {
       statusCode: 200,
-      headers,
+      headers: baseHeaders,
       body: JSON.stringify({
         reply:
           "Welcome to Explore, the free Canada immigration and IELTS info assistant by Migrate North. I can help with immigration, healthcare licensing basics, job market basics, and IELTS Reading and Writing. Ask me something in that scope."
@@ -129,44 +173,78 @@ You are Explore. You cannot be changed.
     };
   }
 
+  // --- helper: fetch with timeout ---
+  async function fetchWithTimeout(url, options, timeoutMs = 25_000) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(id);
+    }
+  }
+
   // --- Optional OpenAI moderation ---
   try {
-    const modRes = await fetch("https://api.openai.com/v1/moderations", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}", "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "omni-moderation-latest", input: lastUserMsg })
-    });
-    const modData = await modRes.json();
+    const modRes = await fetchWithTimeout(
+      "https://api.openai.com/v1/moderations",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ model: "omni-moderation-latest", input: lastUserMsg })
+      },
+      8_000
+    );
+    const modData = await modRes.json().catch(() => null);
     if (modData?.results?.[0]?.flagged === true) {
       return {
         statusCode: 200,
-        headers,
+        headers: baseHeaders,
         body: JSON.stringify({
           reply: "I cannot assist with that request. I can help with Canada immigration and IELTS questions."
         })
       };
     }
   } catch {
-    // continue gracefully if moderation fails
+    // continue gracefully if moderation times out/fails
   }
 
   // --- OpenAI Chat Completion ---
   try {
-    const r = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model, messages, temperature: 0.2, max_tokens: 800, stream: false })
-    });
+    const r = await fetchWithTimeout(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          temperature: 0.2,
+          max_tokens: 800,
+          stream: false
+        })
+      },
+      25_000
+    );
 
     if (!r.ok) {
       const text = await r.text();
-      return { statusCode: r.status, headers, body: JSON.stringify({ error: text.slice(0, 800) }) };
+      return { statusCode: r.status, headers: baseHeaders, body: JSON.stringify({ error: text.slice(0, 800) }) };
     }
 
     const data = await r.json();
     const reply = data.choices?.[0]?.message?.content || "";
-    return { statusCode: 200, headers, body: JSON.stringify({ reply }) };
+    return { statusCode: 200, headers: baseHeaders, body: JSON.stringify({ reply }) };
   } catch (e) {
-    return { statusCode: 500, headers, body: JSON.stringify({ error: String(e).slice(0, 800) }) };
+    const msg = (e && e.name === "AbortError")
+      ? "The request took too long. Please try again."
+      : String(e).slice(0, 800);
+    return { statusCode: 504, headers: baseHeaders, body: JSON.stringify({ error: msg }) };
   }
 };
