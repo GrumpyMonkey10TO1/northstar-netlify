@@ -105,6 +105,7 @@
         ALLOWED_ATTR: ['href','target','rel']
       });
       div.innerHTML = safe;
+      // ensure links open safely in a new tab
       div.querySelectorAll('a').forEach(a => {
         a.setAttribute('target','_blank');
         a.setAttribute('rel','noopener');
@@ -119,46 +120,4 @@
 
     async function sendMessage() {
       const text = box1.value.trim();
-      if (!text) return;
-
-      addMessage("me", text);
-      box1.value = "";
-      box1.focus();
-      sendEl.disabled = true;
-      showTyping(true);
-
-      try {
-        const ENDPOINT = "/.netlify/functions/chat";
-        const res = await fetch(ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            messages: [{ role: "user", content: text }],
-            stream: false
-          })
-        });
-
-        if (!res.ok) {
-          const body = await res.text();
-          addMessage("bot", "Error " + res.status + ": " + body.slice(0, 500));
-        } else {
-          const data = await res.json().catch(() => ({}));
-          const reply =
-            data.reply ||
-            data.choices?.[0]?.message?.content ||
-            "[No reply received]";
-          addBotHtml(reply);
-        }
-      } catch (e) {
-        addMessage("bot", "Network error: " + String(e).slice(0, 500));
-      } finally {
-        showTyping(false);
-        sendEl.disabled = false;
-      }
-    }
-
-    sendEl.addEventListener("click", sendMessage);
-    box1.addEventListener("keypress", (e) => { if (e.key === "Enter") sendMessage(); });
-  </script>
-</body>
-</html>
+      if (!t
