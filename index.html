@@ -1,140 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>North Star GPS Lite</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        #container {
-            width: 100%;
-            max-width: 600px;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            height: 80vh;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        #chat {
-            flex: 1;
-            padding: 10px;
-            overflow-y: auto;
-            border-bottom: 1px solid #ddd;
-        }
-        .message {
-            margin: 5px 0;
-        }
-        .me {
-            text-align: right;
-            color: blue;
-        }
-        .bot {
-            text-align: left;
-            color: green;
-        }
-        #inputArea {
-            display: flex;
-            padding: 10px;
-            border-top: 1px solid #ddd;
-            background: #f9f9f9;
-        }
-        #box1 {
-            flex: 1;
-            padding: 10px;
-            font-size: 14px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        #send {
-            margin-left: 10px;
-            padding: 0 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        #send:disabled {
-            background-color: #aaa;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>North Star GPS Lite</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    #container {
+      width: 100%;
+      max-width: 600px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 80vh;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    #chat {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      border-bottom: 1px solid #ddd;
+    }
+    .message { margin: 5px 0; }
+    .me { text-align: right; color: blue; }
+    .bot { text-align: left; color: green; }
+    #inputArea {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+      background: #f9f9f9;
+    }
+    #box1 {
+      flex: 1;
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    #send {
+      margin-left: 10px;
+      padding: 0 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #send:disabled { background-color: #aaa; }
+    /* optional: underline links in bot replies */
+    .bot a { text-decoration: underline; }
+  </style>
+
+  <!-- Allow safe HTML in bot replies -->
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
 </head>
 <body>
-    <div id="container">
-        <div id="chat"></div>
-        <div id="inputArea">
-            <input type="text" id="box1" placeholder="Type your question or IELTS answer...">
-            <button id="send">Send</button>
-        </div>
+  <div id="container">
+    <div id="chat"></div>
+    <div id="inputArea">
+      <input type="text" id="box1" placeholder="Type your question or IELTS answer...">
+      <button id="send">Send</button>
     </div>
+  </div>
 
-    <script>
-        const chatEl = document.getElementById("chat");
-        const box1 = document.getElementById("box1");
-        const sendEl = document.getElementById("send");
+  <script>
+    const chatEl = document.getElementById("chat");
+    const box1 = document.getElementById("box1");
+    const sendEl = document.getElementById("send");
 
-        function addMessage(sender, text) {
-            const div = document.createElement("div");
-            div.className = "message " + sender;
-            div.textContent = text;
-            chatEl.appendChild(div);
-            chatEl.scrollTop = chatEl.scrollHeight;
-        }
+    // user bubble (plain text)
+    function addMessage(sender, text) {
+      const div = document.createElement("div");
+      div.className = "message " + sender;
+      div.textContent = text;
+      chatEl.appendChild(div);
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
 
-        async function sendMessage() {
-            const text = box1.value.trim();
-            if (!text) return;
+    // bot bubble (safe HTML so links are clickable)
+    function addBotHtml(replyHtml) {
+      const div = document.createElement("div");
+      div.className = "message bot";
 
-            addMessage("me", text);
-            box1.value = "";
-            box1.focus();
-            sendEl.disabled = true;
+      const safe = DOMPurify.sanitize(replyHtml, {
+        ALLOWED_TAGS: ['a','b','i','strong','em','p','br'],
+        ALLOWED_ATTR: ['href','target','rel']
+      });
 
-            try {
-                const ENDPOINT = "/.netlify/functions/chat";
+      div.innerHTML = safe;
+      // ensure links open safely in a new tab
+      div.querySelectorAll('a').forEach(a => {
+        a.setAttribute('target','_blank');
+        a.setAttribute('rel','noopener');
+      });
 
-                const res = await fetch(ENDPOINT, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        messages: [{ role: "user", content: text }],
-                        stream: false
-                    })
-                });
+      chatEl.appendChild(div);
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
 
-                if (!res.ok) {
-                    const body = await res.text();
-                    addMessage("bot", "Error " + res.status + ": " + body.slice(0, 500));
-                } else {
-                    const data = await res.json().catch(() => ({}));
-                    const reply =
-                        data.reply ||
-                        data.choices?.[0]?.message?.content ||
-                        "[No reply received]";
-                    addMessage("bot", reply);
-                }
-            } catch (e) {
-                addMessage("bot", "Network error: " + String(e).slice(0, 500));
-            } finally {
-                sendEl.disabled = false;
-            }
-        }
+    async function sendMessage() {
+      const text = box1.value.trim();
+      if (!text) return;
 
-        sendEl.addEventListener("click", sendMessage);
-        box1.addEventListener("keypress", function (e) {
-            if (e.key === "Enter") sendMessage();
+      addMessage("me", text);
+      box1.value = "";
+      box1.focus();
+      sendEl.disabled = true;
+
+      try {
+        const ENDPOINT = "/.netlify/functions/chat";
+
+        const res = await fetch(ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [{ role: "user", content: text }],
+            stream: false
+          })
         });
-    </script>
+
+        if (!res.ok) {
+          const body = await res.text();
+          addMessage("bot", "Error " + res.status + ": " + body.slice(0, 500));
+        } else {
+          const data = await res.json().catch(() => ({}));
+          const reply =
+            data.reply ||
+            data.choices?.[0]?.message?.content ||
+            "[No reply received]";
+          // render as safe HTML so Evolve link is clickable
+          addBotHtml(reply);
+        }
+      } catch (e) {
+        addMessage("bot", "Network error: " + String(e).slice(0, 500));
+      } finally {
+        sendEl.disabled = false;
+      }
+    }
+
+    sendEl.addEventListener("click", sendMessage);
+    box1.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
 </body>
 </html>
