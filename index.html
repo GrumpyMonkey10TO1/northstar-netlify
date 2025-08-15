@@ -35,6 +35,13 @@
     .message { margin: 5px 0; }
     .me { text-align: right; color: blue; }
     .bot { text-align: left; color: green; }
+    #typing {
+      font-size: 12px;
+      color: #666;
+      padding: 6px 10px;
+      border-bottom: 1px solid #eee;
+      display: none;
+    }
     #inputArea {
       display: flex;
       padding: 10px;
@@ -57,8 +64,7 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    #send:disabled { background-color: #aaa; }
-    /* optional: underline links in bot replies */
+    #send:disabled { background-color: #aaa; cursor: not-allowed; }
     .bot a { text-decoration: underline; }
   </style>
 
@@ -68,6 +74,7 @@
 <body>
   <div id="container">
     <div id="chat"></div>
+    <div id="typing">Explore is typing…</div>
     <div id="inputArea">
       <input type="text" id="box1" placeholder="Type your question or IELTS answer...">
       <button id="send">Send</button>
@@ -78,6 +85,7 @@
     const chatEl = document.getElementById("chat");
     const box1 = document.getElementById("box1");
     const sendEl = document.getElementById("send");
+    const typingEl = document.getElementById("typing");
 
     // user bubble (plain text)
     function addMessage(sender, text) {
@@ -92,21 +100,21 @@
     function addBotHtml(replyHtml) {
       const div = document.createElement("div");
       div.className = "message bot";
-
       const safe = DOMPurify.sanitize(replyHtml, {
         ALLOWED_TAGS: ['a','b','i','strong','em','p','br'],
         ALLOWED_ATTR: ['href','target','rel']
       });
-
       div.innerHTML = safe;
-      // ensure links open safely in a new tab
       div.querySelectorAll('a').forEach(a => {
         a.setAttribute('target','_blank');
         a.setAttribute('rel','noopener');
       });
-
       chatEl.appendChild(div);
       chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    function showTyping(on) {
+      typingEl.style.display = on ? "block" : "none";
     }
 
     async function sendMessage() {
@@ -117,10 +125,10 @@
       box1.value = "";
       box1.focus();
       sendEl.disabled = true;
+      showTyping(true);
 
       try {
         const ENDPOINT = "/.netlify/functions/chat";
-
         const res = await fetch(ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -139,20 +147,18 @@
             data.reply ||
             data.choices?.[0]?.message?.content ||
             "[No reply received]";
-          // render as safe HTML so Evolve link is clickable
           addBotHtml(reply);
         }
       } catch (e) {
         addMessage("bot", "Network error: " + String(e).slice(0, 500));
       } finally {
+        showTyping(false);
         sendEl.disabled = false;
       }
     }
 
     sendEl.addEventListener("click", sendMessage);
-    box1.addEventListener("keypress", function (e) {
-      if (e.key === "Enter") sendMessage();
-    });
+    box1.addEventListener("keypress", (e) => { if (e.key === "Enter") sendMessage(); });
   </script>
 </body>
 </html>
