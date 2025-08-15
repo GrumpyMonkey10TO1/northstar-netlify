@@ -35,6 +35,7 @@
     .message { margin: 5px 0; }
     .me { text-align: right; color: blue; }
     .bot { text-align: left; color: green; }
+    .error { color: #b00020; }
     #typing {
       font-size: 12px;
       color: #666;
@@ -69,55 +70,4 @@
   </style>
 
   <!-- Allow safe HTML in bot replies -->
-  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
-</head>
-<body>
-  <div id="container">
-    <div id="chat"></div>
-    <div id="typing">Explore is typing…</div>
-    <div id="inputArea">
-      <input type="text" id="box1" placeholder="Type your question or IELTS answer...">
-      <button id="send">Send</button>
-    </div>
-  </div>
-
-  <script>
-    const chatEl = document.getElementById("chat");
-    const box1 = document.getElementById("box1");
-    const sendEl = document.getElementById("send");
-    const typingEl = document.getElementById("typing");
-
-    // user bubble (plain text)
-    function addMessage(sender, text) {
-      const div = document.createElement("div");
-      div.className = "message " + sender;
-      div.textContent = text;
-      chatEl.appendChild(div);
-      chatEl.scrollTop = chatEl.scrollHeight;
-    }
-
-    // bot bubble (safe HTML so links are clickable)
-    function addBotHtml(replyHtml) {
-      const div = document.createElement("div");
-      div.className = "message bot";
-      const safe = DOMPurify.sanitize(replyHtml, {
-        ALLOWED_TAGS: ['a','b','i','strong','em','p','br'],
-        ALLOWED_ATTR: ['href','target','rel']
-      });
-      div.innerHTML = safe;
-      // ensure links open safely in a new tab
-      div.querySelectorAll('a').forEach(a => {
-        a.setAttribute('target','_blank');
-        a.setAttribute('rel','noopener');
-      });
-      chatEl.appendChild(div);
-      chatEl.scrollTop = chatEl.scrollHeight;
-    }
-
-    function showTyping(on) {
-      typingEl.style.display = on ? "block" : "none";
-    }
-
-    async function sendMessage() {
-      const text = box1.value.trim();
-      if (!t
+  <script src="ht
