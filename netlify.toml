@@ -1,4 +1,4 @@
-# netlify.toml (clean)
+# netlify.toml
 [build]
   publish = "."
   functions = "netlify/functions"
@@ -6,6 +6,8 @@
 [build.environment]
   NODE_VERSION = "18"
 
-[functions]
-  directory = "netlify/functions"
-  node_bundler = "esbuild"
+# Send any route to index.html so you never get a blank page
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
