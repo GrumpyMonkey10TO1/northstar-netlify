@@ -1,5 +1,12 @@
 // netlify/functions/chat.js
 
+// Single Netlify Function that powers the Explore chat backend
+// - CORS (migratenorth.ca + localhost dev)
+// - Rate limiting (per IP, in-memory)
+// - OpenAI moderation (optional, graceful fail)
+// - Academy persona (teacher style) with off-topic policy
+// - Supports either { message, topic } or { messages:[...] }
+
 exports.handler = async function (event) {
   // --- CORS: lock to your domain (plus localhost for dev) ---
   const origin = event.headers.origin || "";
@@ -23,7 +30,7 @@ exports.handler = async function (event) {
   }
 
   // --- Basic rate limiting (per IP, in memory) ---
-  const RATE_MAX = Number(process.env.RATE_MAX || 10);       // max requests per minute
+  const RATE_MAX = Number(process.env.RATE_MAX || 10); // requests per minute
   const RATE_WINDOW_MS = Number(process.env.RATE_WINDOW_MS || 60_000);
   const ipHeader =
     event.headers["x-client-ip"] ||
@@ -50,6 +57,7 @@ exports.handler = async function (event) {
     };
   }
 
+  // --- Env + model ---
   const apiKey = process.env.OPENAI_API_KEY;
   const model = process.env.MODEL || "gpt-4o-mini";
   if (!apiKey) {
@@ -58,7 +66,7 @@ exports.handler = async function (event) {
 
   // ---------- Academy Persona System Prompt ----------
   const EXPLORE_SYSTEM = `
-You are "North Star GPS — Explore", the free academy style instructor for Migrate North Academy.
+You are "North Star GPS — Explore", the free academy-style instructor for Migrate North Academy.
 
 Audience:
 - International healthcare professionals exploring Canadian immigration, Express Entry, CRS, PNPs, and IELTS Reading basics.
@@ -68,17 +76,17 @@ Tone and style:
 - Use short paragraphs and simple sentences. Define jargon briefly if needed.
 
 Answer shape:
-- Start with a one sentence orientation that names the topic in plain English.
+- Start with a one-sentence orientation that names the topic in plain English.
 - Then give two to four compact paragraphs or a short list of clear steps or options.
 - End with one forward question that helps the user take the next step.
 
-Scope and off topic handling:
+Scope and off-topic handling:
 - If a question is slightly outside scope, acknowledge it briefly, connect it back to Canadian immigration if possible, then guide back.
-- If the user persists off topic after your redirect, set a polite boundary that you are trained only for Canadian immigration and IELTS Reading, and invite a related question.
+- If the user persists off-topic after your redirect, set a polite boundary that you are trained only for Canadian immigration and IELTS Reading, and invite a related question.
 
 Content preferences:
 - For CRS, emphasize language scores at CLB 9 or higher, education, skilled work experience, and provincial nomination as primary levers.
-- For IELTS Reading, focus on timing, question types, scanning, and accuracy with concrete micro steps.
+- For IELTS Reading, focus on timing, question types, scanning, and accuracy with concrete micro-steps.
 - Keep outputs under about 220 words unless the user explicitly asks for more detail.
 - Do not fabricate policies or numbers. If uncertain, state what is typically true and offer to check specifics.
 
@@ -98,17 +106,24 @@ Security:
     return { statusCode: 400, headers: baseHeaders, body: JSON.stringify({ error: "Bad JSON" }) };
   }
 
-  // Support either { messages: [...] } or { message, topic }
+  // Accept either { messages:[...] } or { message, topic }
   const hasArrayMessages = Array.isArray(payload.messages);
   const simpleMessage = typeof payload.message === "string" ? payload.message : "";
   const topic = typeof payload.topic === "string" ? payload.topic : "";
 
-  // Build user message if only simple fields were sent
+  // If simple fields, synthesize a clear user turn
   const synthesizedUser = simpleMessage
-    ? `User message:\n${simpleMessage}\n\nContext:\nTopic dropdown: ${topic || "(none)"}\n\nInstructions for you:\nFollow the academy persona above. Keep it concise, clear, and actionable. Use plain formatting. End with one forward question.`
+    ? `User message:
+${simpleMessage}
+
+Context:
+Topic dropdown: ${topic || "(none)"}
+
+Instructions for you:
+Follow the academy persona above. Keep it concise, clear, and actionable. Use plain formatting. End with one forward question.`
     : "";
 
-  // --- Build messages array for OpenAI ---
+  // Build messages array for OpenAI
   const messages = [{ role: "system", content: EXPLORE_SYSTEM }];
   if (hasArrayMessages) {
     for (const m of payload.messages) {
@@ -119,11 +134,7 @@ Security:
   } else if (synthesizedUser) {
     messages.push({ role: "user", content: synthesizedUser });
   } else {
-    return {
-      statusCode: 400,
-      headers: baseHeaders,
-      body: JSON.stringify({ error: "Message is required" })
-    };
+    return { statusCode: 400, headers: baseHeaders, body: JSON.stringify({ error: "Message is required" }) };
   }
 
   // --- Input size guard ---
@@ -165,7 +176,7 @@ Security:
       };
     }
   } catch {
-    // continue gracefully if moderation fails
+    // ignore moderation failures/timeouts
   }
 
   // --- Call OpenAI Chat Completions ---
@@ -181,7 +192,7 @@ Security:
         body: JSON.stringify({
           model,
           messages,
-          temperature: 0.4,
+          temperature: 0.4,   // calm & consistent
           max_tokens: 800,
           stream: false
         })
@@ -191,11 +202,7 @@ Security:
 
     if (!r.ok) {
       const text = await r.text();
-      return {
-        statusCode: r.status,
-        headers: baseHeaders,
-        body: JSON.stringify({ error: text.slice(0, 800) })
-      };
+      return { statusCode: r.status, headers: baseHeaders, body: JSON.stringify({ error: text.slice(0, 800) }) };
     }
 
     const data = await r.json();
