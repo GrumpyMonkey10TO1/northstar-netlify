@@ -1,6 +1,6 @@
 // netlify/functions/chat.js
 
-// Optional: tiny logger that never throws in prod
+// Optional console logger, disabled by default
 const log = (...args) => {
   if (process.env.LOG_REQUESTS === "1") {
     try { console.log(...args); } catch {}
@@ -28,24 +28,25 @@ exports.handler = async function (event) {
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: baseHeaders, body: "" };
   }
-
   // Method guard
   if (event.httpMethod !== "POST") {
     return json(405, baseHeaders, { error: "Use POST" });
   }
 
-  // ---------- Rate limiting (per-IP, in-memory) ----------
-  const RATE_MAX = toNum(process.env.RATE_MAX, 10);
+  // ---------- Basic rate limiting (per IP, in memory) ----------
+  const RATE_MAX = toNum(process.env.RATE_MAX, 10);           // requests per minute
   const RATE_WINDOW_MS = toNum(process.env.RATE_WINDOW_MS, 60_000);
+
   const ipHeader =
+    event.headers["cf-connecting-ip"] ||       // Cloudflare, if used
     event.headers["x-client-ip"] ||
     event.headers["client-ip"] ||
     event.headers["x-forwarded-for"] ||
     event.headers["x-real-ip"] ||
     "";
   const clientIp = String(ipHeader).split(",")[0].trim() || "unknown";
-  const now = Date.now();
 
+  const now = Date.now();
   if (!globalThis.__EXPLORE_RATE__) globalThis.__EXPLORE_RATE__ = new Map();
   const store = globalThis.__EXPLORE_RATE__;
   let bucket = store.get(clientIp) || { count: 0, reset: now + RATE_WINDOW_MS };
@@ -63,6 +64,8 @@ exports.handler = async function (event) {
   // ---------- Env ----------
   const apiKey = process.env.OPENAI_API_KEY;
   const model = process.env.MODEL || "gpt-4o-mini";
+  const temperature = toNum(process.env.TEMP, 0.4);
+  const maxTokens = toNum(process.env.MAX_TOKENS, 800);
   if (!apiKey) return json(500, baseHeaders, { error: "Missing OPENAI_API_KEY" });
 
   // ---------- Persona ----------
@@ -73,7 +76,7 @@ Audience:
 - International healthcare professionals exploring Canadian immigration (Express Entry, CRS, PNPs, permits) and IELTS Reading.
 
 Voice and style:
-- Calm, patient, structured; professional and encouraging.
+- Calm, patient, structured, professional and encouraging.
 - Use short paragraphs and simple sentences. Briefly define jargon when useful.
 - No emojis. No slang.
 
@@ -96,13 +99,10 @@ Scope:
     return json(400, baseHeaders, { error: "Bad JSON" });
   }
 
-  // Accept:
-  // { messages:[{role,content}...], stream?:boolean }
-  // or { message: string, topic?: string, stream?: boolean }
+  // Accept either { messages:[{role,content}...] } or { message, topic }
   const hasArrayMessages = Array.isArray(payload.messages);
   const simpleMessage = typeof payload.message === "string" ? payload.message : "";
   const topic = typeof payload.topic === "string" ? payload.topic : "";
-  const wantStream = Boolean(payload.stream);
 
   const synthesizedUser = simpleMessage
     ? `User message:
@@ -161,38 +161,8 @@ Follow the academy persona. Use the default answer shape. Keep it action oriente
     // ignore moderation errors
   }
 
-  // ---------- Chat call ----------
+  // ---------- Chat call (JSON only, no streaming) ----------
   try {
-    if (wantStream) {
-      // Server-Sent Events streaming
-      const r = await fetchWithTimeout(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            model,
-            messages,
-            temperature: toNum(process.env.TEMP, 0.4),
-            max_tokens: toNum(process.env.MAX_TOKENS, 800),
-            stream: true
-          })
-        },
-        60_000
-      );
-
-      if (!r.ok || !r.body) {
-        const text = await r.text().catch(() => "");
-        return json(r.status || 502, baseHeaders, { error: firstN(cleanErr(text), 800) });
-      }
-
-      return sse(r.body, CORS_ORIGIN);
-    }
-
-    // Non streaming
     const r = await fetchWithTimeout(
       "https://api.openai.com/v1/chat/completions",
       {
@@ -204,27 +174,34 @@ Follow the academy persona. Use the default answer shape. Keep it action oriente
         body: JSON.stringify({
           model,
           messages,
-          temperature: toNum(process.env.TEMP, 0.4),
-          max_tokens: toNum(process.env.MAX_TOKENS, 800),
+          temperature,
+          max_tokens: maxTokens,
           stream: false
         })
       },
       25_000
     );
 
+    const rawText = await r.text().catch(() => "");
     if (!r.ok) {
-      const text = await r.text().catch(() => "");
-      return json(r.status, baseHeaders, { error: firstN(cleanErr(text), 800) });
+      // Clean HTML if an upstream gateway returned a page
+      return json(r.status, baseHeaders, { error: cleanErr(rawText).slice(0, 800) });
     }
 
-    const data = await r.json();
-    const choice = data.choices?.[0]?.message || {};
-    const reply = String(choice.content || "").trim();
+    // Validate JSON
+    let data;
+    try { data = JSON.parse(rawText); }
+    catch { return json(502, baseHeaders, { error: "Upstream returned non JSON", preview: rawText.slice(0, 200) }); }
 
-    // basic usage bubble up if present
-    const usage = data.usage || null;
+    const reply = String(data?.choices?.[0]?.message?.content || "").trim();
+    const usage = data?.usage || null;
 
-    return json(200, baseHeaders, { reply, usage });
+    if (!reply) {
+      return json(502, baseHeaders, { error: "Empty model reply" });
+    }
+
+    // Stable success envelope
+    return json(200, baseHeaders, { ok: true, reply, usage });
   } catch (e) {
     const msg = e && e.name === "AbortError"
       ? "The request took too long. Please try again."
@@ -252,27 +229,9 @@ function firstN(s, n) {
 }
 
 function cleanErr(s) {
-  // Strip HTML if upstream returned a full page (WP 404, etc.)
   return String(s || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
 
-// Server Sent Events response for streaming
-function sse(readable, corsOrigin) {
-  return {
-    statusCode: 200,
-    headers: {
-      "Content-Type": "text/event-stream; charset=utf-8",
-      "Cache-Control": "no-cache, no-transform",
-      "Connection": "keep-alive",
-      "Access-Control-Allow-Origin": corsOrigin,
-      "Vary": "Origin"
-    },
-    body: readable,
-    isBase64Encoded: false
-  };
-}
-
-// Fetch with timeout
 async function fetchWithTimeout(url, options, timeoutMs = 25_000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
