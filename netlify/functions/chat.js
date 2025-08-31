@@ -10,17 +10,33 @@ const log = (...args) => {
 exports.handler = async function (event) {
   // ---------- CORS ----------
   const origin = event.headers.origin || "";
-  const ALLOWED_ORIGINS = new Set([
+
+  // Allow your WP site(s) + your Netlify sites + any *.netlify.app (for previews)
+  const ORIGIN_WHITELIST = new Set([
     "https://migratenorth.ca",
     "https://www.migratenorth.ca",
-    "http://localhost:8888"
+    "http://localhost:8888",
+    "https://startling-faun-f9dddb.netlify.app",
+    "https://northstar-netlify.netlify.app"
   ]);
-  const CORS_ORIGIN = ALLOWED_ORIGINS.has(origin) ? origin : "https://migratenorth.ca";
+
+  const isAllowedOrigin = (o) => {
+    try {
+      if (ORIGIN_WHITELIST.has(o)) return true;
+      const { hostname, protocol } = new URL(o);
+      // allow any https://<anything>.netlify.app (helpful for deploy previews)
+      return protocol === "https:" && /\.netlify\.app$/.test(hostname);
+    } catch { return false; }
+  };
+
+  const CORS_ORIGIN = isAllowedOrigin(origin) ? origin : "https://migratenorth.ca";
+
   const baseHeaders = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": CORS_ORIGIN,
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Expose-Headers": "Retry-After",
     "Vary": "Origin"
   };
 
@@ -28,6 +44,13 @@ exports.handler = async function (event) {
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: baseHeaders, body: "" };
   }
+
+  // Simple health check (useful when debugging 404 vs. function errors)
+  const qs = event.queryStringParameters || {};
+  if (event.httpMethod === "GET" && (qs.health === "1" || qs.health === "true")) {
+    return { statusCode: 200, headers: baseHeaders, body: JSON.stringify({ ok: true, health: "chat function alive" }) };
+  }
+
   // Method guard
   if (event.httpMethod !== "POST") {
     return json(405, baseHeaders, { error: "Use POST" });
