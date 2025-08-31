@@ -1,13 +1,17 @@
 [build]
-  functions = "netlify/functions"
+  publish   = "netlify"            # <- your static files live here (index.html in screenshot)
+  functions = "netlify/functions"  # <- where chat.js & hello.js live
+  command   = ""                   # no framework build; file-based deploy
 
 [functions]
   node_bundler = "esbuild"
 
+# Helpful CORS headers even on 404/500 responses for the function path
 [[headers]]
-  for = "/.netlify/functions/chat"
+  for = "/.netlify/functions/*"
   [headers.values]
-    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Origin = "https://migratenorth.ca"
     Access-Control-Allow-Methods = "POST, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type, Authorization"
     Access-Control-Max-Age = "86400"
+
