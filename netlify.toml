@@ -1,14 +1,13 @@
 [build]
-  # 👇 If your index.html lives inside the "netlify" folder, keep this.
-  # If index.html is at the repo root instead, change this to "."
+  # 👇 Your index.html is inside the "netlify" folder, so keep this
   publish   = "netlify"
   functions = "netlify/functions"
-  command   = ""   # no framework build; file-based deploy
+  command   = "echo Deploying..."   # <- forces a build step so functions get picked up
 
 [functions]
   node_bundler = "esbuild"
 
-# ✅ Helpful CORS headers even on 404/500 responses for the function path
+# ✅ Helpful CORS headers for functions
 [[headers]]
   for = "/.netlify/functions/*"
   [headers.values]
@@ -16,5 +15,6 @@
     Access-Control-Allow-Methods = "POST, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type, Authorization"
     Access-Control-Max-Age = "86400"
+
 
 
