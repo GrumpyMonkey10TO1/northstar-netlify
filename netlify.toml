@@ -1,7 +1,7 @@
 [build]
-  publish   = "."                  # serve from repo root (where index.html lives)
+  publish   = "."                  # root (where index.html lives)
   functions = "netlify/functions"  # where chat.js & hello.js live
-  command   = ""                   # no framework build
+  command   = ""
 
 [functions]
   node_bundler = "esbuild"
@@ -13,6 +13,7 @@
     Access-Control-Allow-Methods = "POST, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type, Authorization"
     Access-Control-Max-Age = "86400"
+
 
 
 
