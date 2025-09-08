@@ -1,7 +1,7 @@
 [build]
-  publish   = "netlify"             # where your index.html lives
-  functions = "netlify/functions"   # where chat.js & hello.js live
-  command   = ""                    # no framework build
+  publish   = "netlify"            # index.html is here
+  functions = "netlify/functions"  # chat.js & hello.js live here
+  command   = ""                   # no framework build
 
 [functions]
   node_bundler = "esbuild"
@@ -13,6 +13,7 @@
     Access-Control-Allow-Methods = "POST, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type, Authorization"
     Access-Control-Max-Age = "86400"
+
 
 
 
