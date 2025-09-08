@@ -1,7 +1,6 @@
 [build]
-  publish   = "."                  # serve root (where index.html lives)
-  functions = "netlify/functions"  # chat.js & hello.js live here
-  command   = ""                   # no framework build
+  publish   = "netlify"
+  functions = "netlify/functions"
 
 [functions]
   node_bundler = "esbuild"
@@ -13,11 +12,6 @@
     Access-Control-Allow-Methods = "POST, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type, Authorization"
     Access-Control-Max-Age = "86400"
-
-[[redirects]]
-  from = "/.netlify/functions/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
 
 
 
