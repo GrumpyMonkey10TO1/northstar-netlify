@@ -1,13 +1,12 @@
 [build]
-  # 👇 Your index.html is inside the "netlify" folder, so keep this
-  publish   = "netlify"
-  functions = "netlify/functions"
-  command   = "echo Deploying..."   # <- forces a build step so functions get picked up
+  publish   = "."                 # serve from repo root
+  functions = "netlify/functions" # where chat.js & hello.js live
+  command   = ""                  # no framework build
 
 [functions]
   node_bundler = "esbuild"
 
-# ✅ Helpful CORS headers for functions
+# Helpful CORS headers
 [[headers]]
   for = "/.netlify/functions/*"
   [headers.values]
@@ -15,6 +14,7 @@
     Access-Control-Allow-Methods = "POST, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type, Authorization"
     Access-Control-Max-Age = "86400"
+
 
 
 
