@@ -24,7 +24,6 @@ exports.handler = async function (event) {
     try {
       if (ORIGIN_WHITELIST.has(o)) return true;
       const { hostname, protocol } = new URL(o);
-      // allow any https://<anything>.netlify.app (helpful for deploy previews)
       return protocol === "https:" && /\.netlify\.app$/.test(hostname);
     } catch { return false; }
   };
@@ -45,7 +44,7 @@ exports.handler = async function (event) {
     return { statusCode: 204, headers: baseHeaders, body: "" };
   }
 
-  // Simple health check (useful when debugging 404 vs. function errors)
+  // Health check
   const qs = event.queryStringParameters || {};
   if (event.httpMethod === "GET" && (qs.health === "1" || qs.health === "true")) {
     return { statusCode: 200, headers: baseHeaders, body: JSON.stringify({ ok: true, health: "chat function alive" }) };
@@ -56,12 +55,12 @@ exports.handler = async function (event) {
     return json(405, baseHeaders, { error: "Use POST" });
   }
 
-  // ---------- Basic rate limiting (per IP, in memory) ----------
-  const RATE_MAX = toNum(process.env.RATE_MAX, 10);           // requests per minute
+  // ---------- Rate limiting ----------
+  const RATE_MAX = toNum(process.env.RATE_MAX, 10);
   const RATE_WINDOW_MS = toNum(process.env.RATE_WINDOW_MS, 60_000);
 
   const ipHeader =
-    event.headers["cf-connecting-ip"] ||       // Cloudflare, if used
+    event.headers["cf-connecting-ip"] ||
     event.headers["x-client-ip"] ||
     event.headers["client-ip"] ||
     event.headers["x-forwarded-for"] ||
@@ -122,7 +121,6 @@ Scope:
     return json(400, baseHeaders, { error: "Bad JSON" });
   }
 
-  // Accept either { messages:[{role,content}...] } or { message, topic }
   const hasArrayMessages = Array.isArray(payload.messages);
   const simpleMessage = typeof payload.message === "string" ? payload.message : "";
   const topic = typeof payload.topic === "string" ? payload.topic : "";
@@ -160,7 +158,7 @@ Follow the academy persona. Use the default answer shape. Keep it action oriente
     });
   }
 
-  // ---------- Optional moderation (fail soft) ----------
+  // ---------- Optional moderation ----------
   try {
     const modRes = await fetchWithTimeout(
       "https://api.openai.com/v1/moderations",
@@ -184,7 +182,7 @@ Follow the academy persona. Use the default answer shape. Keep it action oriente
     // ignore moderation errors
   }
 
-  // ---------- Chat call (JSON only, no streaming) ----------
+  // ---------- Chat call ----------
   try {
     const r = await fetchWithTimeout(
       "https://api.openai.com/v1/chat/completions",
@@ -207,11 +205,9 @@ Follow the academy persona. Use the default answer shape. Keep it action oriente
 
     const rawText = await r.text().catch(() => "");
     if (!r.ok) {
-      // Clean HTML if an upstream gateway returned a page
       return json(r.status, baseHeaders, { error: cleanErr(rawText).slice(0, 800) });
     }
 
-    // Validate JSON
     let data;
     try { data = JSON.parse(rawText); }
     catch { return json(502, baseHeaders, { error: "Upstream returned non JSON", preview: rawText.slice(0, 200) }); }
@@ -223,7 +219,7 @@ Follow the academy persona. Use the default answer shape. Keep it action oriente
       return json(502, baseHeaders, { error: "Empty model reply" });
     }
 
-    // Stable success envelope
+    // ✅ Return reply in a stable envelope
     return json(200, baseHeaders, { ok: true, reply, usage });
   } catch (e) {
     const msg = e && e.name === "AbortError"
