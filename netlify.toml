@@ -1,7 +1,7 @@
 [build]
-  publish   = "."                 # serve from repo root
-  functions = "netlify/functions" # where chat.js & hello.js live
-  command   = ""                  # no framework build
+  publish   = "."                  # serve from repo root
+  functions = "netlify/functions"  # where chat.js & hello.js live
+  command   = ""                   # no framework build
 
 [functions]
   node_bundler = "esbuild"
@@ -14,6 +14,13 @@
     Access-Control-Allow-Methods = "POST, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type, Authorization"
     Access-Control-Max-Age = "86400"
+
+# Redirect so migratenorth.ca/.netlify/functions/* works
+[[redirects]]
+  from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
 
 
 
