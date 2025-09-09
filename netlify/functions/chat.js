@@ -1,5 +1,3 @@
-import fetch from "node-fetch";
-
 export async function handler(event, context) {
   try {
     const body = JSON.parse(event.body || "{}");
@@ -13,7 +11,7 @@ export async function handler(event, context) {
         "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",   // you can swap model if needed
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: "You are North Star GPS – immigration and IELTS assistant." },
           { role: "user", content: userMessage }
@@ -32,11 +30,12 @@ export async function handler(event, context) {
       statusCode: 200,
       body: JSON.stringify({ reply })
     };
+
   } catch (err) {
-    console.error("Error in chat function:", err);
+    console.error("Function error:", err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ reply: "Server error, please try again later." })
+      body: JSON.stringify({ error: "Server error", details: err.message })
     };
   }
 }
