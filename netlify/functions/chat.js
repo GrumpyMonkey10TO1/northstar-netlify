@@ -1,21 +1,11 @@
-export async function handler(event, context) {
-  // Handle CORS preflight requests
-  if (event.httpMethod === "OPTIONS") {
-    return {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "https://migratenorth.ca", // change to * for testing if needed
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
-      },
-      body: "Preflight OK"
-    };
-  }
+// netlify/functions/chat.js
+import { withCORS } from "../utils/corsResponse.js";
+
+async function baseHandler(event, context) {
+  const body = JSON.parse(event.body || "{}");
+  const userMessage = body.message || "Hello";
 
   try {
-    const body = JSON.parse(event.body || "{}");
-    const userMessage = body.message || "Hello";
-
     // Call OpenAI API
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -34,18 +24,10 @@ export async function handler(event, context) {
     });
 
     const data = await response.json();
-
-    const reply =
-      data.choices?.[0]?.message?.content ||
-      "Sorry, I couldn’t generate a reply.";
+    const reply = data.choices?.[0]?.message?.content || "Sorry, I couldn’t generate a reply.";
 
     return {
       statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "https://migratenorth.ca",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
-      },
       body: JSON.stringify({ reply })
     };
 
@@ -53,12 +35,10 @@ export async function handler(event, context) {
     console.error("Function error:", err);
     return {
       statusCode: 500,
-      headers: {
-        "Access-Control-Allow-Origin": "https://migratenorth.ca",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
-      },
       body: JSON.stringify({ error: "Server error", details: err.message })
     };
   }
 }
+
+// ✅ Wrap the handler with CORS logic
+export const handler = withCORS(baseHandler);
