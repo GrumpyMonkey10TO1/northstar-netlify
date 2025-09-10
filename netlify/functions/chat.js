@@ -1,4 +1,17 @@
 export async function handler(event, context) {
+  // Handle CORS preflight requests
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "https://migratenorth.ca", // change to * for testing if needed
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      },
+      body: "Preflight OK"
+    };
+  }
+
   try {
     const body = JSON.parse(event.body || "{}");
     const userMessage = body.message || "Hello";
@@ -28,6 +41,11 @@ export async function handler(event, context) {
 
     return {
       statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "https://migratenorth.ca",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      },
       body: JSON.stringify({ reply })
     };
 
@@ -35,6 +53,11 @@ export async function handler(event, context) {
     console.error("Function error:", err);
     return {
       statusCode: 500,
+      headers: {
+        "Access-Control-Allow-Origin": "https://migratenorth.ca",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      },
       body: JSON.stringify({ error: "Server error", details: err.message })
     };
   }
