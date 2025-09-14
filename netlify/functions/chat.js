@@ -1,4 +1,6 @@
 // netlify/functions/chat.js
+import fs from "fs";
+import path from "path";
 
 // ✅ Inline CORS wrapper
 function withCORS(handler) {
@@ -21,6 +23,10 @@ async function baseHandler(event, context) {
   const userMessage = body.message || "Hello";
 
   try {
+    // ✅ Load system prompt dynamically from explore-system.txt
+    const promptPath = path.resolve("netlify/functions/prompts/explore-system.txt");
+    const systemPrompt = fs.readFileSync(promptPath, "utf8");
+
     // Call OpenAI API
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -31,10 +37,7 @@ async function baseHandler(event, context) {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          {
-            role: "system",
-            content: "You are Explore, the free immigration and IELTS guide for Migrate North Academy. Follow all rules in explore-system.txt strictly."
-          },
+          { role: "system", content: systemPrompt },
           { role: "user", content: userMessage }
         ],
         max_tokens: 200
