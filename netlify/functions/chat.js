@@ -25,9 +25,14 @@ async function baseHandler(event, context) {
   try {
     // ✅ Load system prompt dynamically from explore-system.txt
     const promptPath = path.resolve("netlify/functions/prompts/explore-system.txt");
-    const systemPrompt = fs.readFileSync(promptPath, "utf8");
+    let systemPrompt = "You are North Star GPS, immigration and IELTS assistant."; // fallback
+    try {
+      systemPrompt = fs.readFileSync(promptPath, "utf8");
+    } catch (readErr) {
+      console.warn("⚠️ Could not read explore-system.txt, using fallback prompt.");
+    }
 
-    // Call OpenAI API
+    // ✅ Call OpenAI API
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
