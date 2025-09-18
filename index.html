@@ -5,21 +5,92 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>North Star GPS Lite</title>
   <style>
-    body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; padding:0; display:flex; justify-content:center; align-items:center; min-height:100vh; }
-    #container { width:100%; max-width:600px; background:#fff; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1); overflow:hidden; display:flex; flex-direction:column; height:80vh; }
-    #chat { flex:1; padding:10px; overflow-y:auto; border-bottom:1px solid #ddd; }
+    body {
+      font-family: Arial, sans-serif;
+      background:#f5f5f5;
+      margin:0;
+      padding:0;
+    }
+
+    header.custom-header, footer.custom-footer {
+      background:#007bff;
+      color:#fff;
+      text-align:center;
+      padding:12px;
+      position:fixed;
+      width:100%;
+      left:0;
+      z-index:1000;
+      transition: transform 0.3s ease;
+    }
+
+    header.custom-header { top:0; }
+    footer.custom-footer { bottom:0; }
+
+    #container {
+      width:100%;
+      max-width:600px;
+      background:#fff;
+      border-radius:8px;
+      box-shadow:0 0 10px rgba(0,0,0,0.1);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      height:80vh;
+      margin:80px auto; /* leaves space for header/footer */
+    }
+
+    #chat {
+      flex:1;
+      padding:10px;
+      overflow-y:auto;
+      border-bottom:1px solid #ddd;
+    }
+
     .message { margin:6px 0; }
     .me { text-align:right; color:#0057b8; }
     .bot { text-align:left; color:#2b7a0b; }
     .error { color:#b00020; }
-    #typing { font-size:12px; color:#666; padding:6px 10px; border-bottom:1px solid #eee; display:none; }
-    #inputArea { display:flex; padding:10px; border-top:1px solid #ddd; background:#fafafa; }
-    #box1 { flex:1; padding:10px; font-size:14px; border:1px solid #ddd; border-radius:4px; }
-    #send { margin-left:10px; padding:0 20px; background:#007bff; color:#fff; border:none; border-radius:4px; cursor:pointer; }
+
+    #typing {
+      font-size:12px;
+      color:#666;
+      padding:6px 10px;
+      border-bottom:1px solid #eee;
+      display:none;
+    }
+
+    #inputArea {
+      display:flex;
+      padding:10px;
+      border-top:1px solid #ddd;
+      background:#fafafa;
+    }
+
+    #box1 {
+      flex:1;
+      padding:10px;
+      font-size:14px;
+      border:1px solid #ddd;
+      border-radius:4px;
+    }
+
+    #send {
+      margin-left:10px;
+      padding:0 20px;
+      background:#007bff;
+      color:#fff;
+      border:none;
+      border-radius:4px;
+      cursor:pointer;
+    }
+
     #send:disabled { background:#aaa; cursor:not-allowed; }
   </style>
 </head>
 <body>
+  <header class="custom-header">North Star GPS Lite</header>
+
   <div id="container">
     <div id="chat"></div>
     <div id="typing">Explore is typing…</div>
@@ -29,7 +100,10 @@
     </div>
   </div>
 
+  <footer class="custom-footer">© 2025 North Star GPS</footer>
+
   <script>
+    // Chat logic
     const chat = document.getElementById("chat");
     const input = document.getElementById("box1");
     const sendBtn = document.getElementById("send");
@@ -71,6 +145,28 @@
 
     sendBtn.addEventListener("click", sendMessage);
     input.addEventListener("keypress", e => { if (e.key === "Enter") sendMessage(); });
+
+    // Hide header/footer on scroll for mobile only
+    if (window.innerWidth <= 768) {
+      let lastScrollTop = 0;
+      const header = document.querySelector("header.custom-header");
+      const footer = document.querySelector("footer.custom-footer");
+
+      window.addEventListener("scroll", function() {
+        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+        if (scrollTop > lastScrollTop) {
+          // scrolling down → hide
+          header.style.transform = "translateY(-100%)";
+          footer.style.transform = "translateY(100%)";
+        } else {
+          // scrolling up → show
+          header.style.transform = "translateY(0)";
+          footer.style.transform = "translateY(0)";
+        }
+        lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+      });
+    }
   </script>
 </body>
 </html>
