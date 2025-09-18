@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>North Star GPS Lite</title>
   <style>
+    :root { --chrome-pad: 100px; }
+
     body {
       font-family: Arial, sans-serif;
       background:#f5f5f5;
@@ -12,7 +14,9 @@
       padding:0;
     }
 
-    header.custom-header, footer.custom-footer {
+    /* Your site header and footer, demo only. If you already have them in WP, you do not need these tags. */
+    header.custom-header, footer.custom-footer,
+    header.elementor-location-header, footer.elementor-location-footer {
       background:#007bff;
       color:#fff;
       text-align:center;
@@ -21,11 +25,17 @@
       width:100%;
       left:0;
       z-index:1000;
-      transition: transform 0.3s ease;
+      transition: transform 0.3s ease, opacity 0.2s ease;
+      will-change: transform;
     }
+    header.custom-header, header.elementor-location-header { top:0; }
+    footer.custom-footer, footer.elementor-location-footer { bottom:0; }
 
-    header.custom-header { top:0; }
-    footer.custom-footer { bottom:0; }
+    /* Hidden state */
+    .chrome-hidden header.custom-header,
+    .chrome-hidden header.elementor-location-header { transform: translateY(-100%); opacity:0; pointer-events:none; }
+    .chrome-hidden footer.custom-footer,
+    .chrome-hidden footer.elementor-location-footer { transform: translateY(100%); opacity:0; pointer-events:none; }
 
     #container {
       width:100%;
@@ -37,14 +47,16 @@
       display:flex;
       flex-direction:column;
       height:80vh;
-      margin:80px auto; /* leaves space for header/footer */
+      margin:80px auto; /* desktop default spacing */
+      transition: margin 0.3s ease, height 0.2s ease;
     }
 
     #chat {
       flex:1;
       padding:10px;
-      overflow-y:auto;
+      overflow-y:auto;     /* this is the scroller in your UI */
       border-bottom:1px solid #ddd;
+      -webkit-overflow-scrolling: touch;
     }
 
     .message { margin:6px 0; }
@@ -86,9 +98,20 @@
     }
 
     #send:disabled { background:#aaa; cursor:not-allowed; }
+
+    /* Mobile sizing that reacts to header/footer visibility */
+    @media (max-width: 768px) {
+      /* Header and footer are fixed, so leave room by default */
+      body.chrome-visible #container { height: calc(100dvh - var(--chrome-pad)); margin: 60px auto; }
+      body.chrome-hidden  #container { height: 100dvh; margin: 10px auto; }
+
+      /* Start in visible state */
+      body:not(.chrome-hidden):not(.chrome-visible) #container { height: calc(100dvh - var(--chrome-pad)); margin: 60px auto; }
+    }
   </style>
 </head>
-<body>
+<body class="chrome-visible">
+  <!-- If you already have a theme header/footer, you can remove these two demo tags -->
   <header class="custom-header">North Star GPS Lite</header>
 
   <div id="container">
@@ -100,6 +123,7 @@
     </div>
   </div>
 
+  <!-- If you already have a theme header/footer, you can remove this demo tag -->
   <footer class="custom-footer">© 2025 North Star GPS</footer>
 
   <script>
@@ -146,27 +170,76 @@
     sendBtn.addEventListener("click", sendMessage);
     input.addEventListener("keypress", e => { if (e.key === "Enter") sendMessage(); });
 
-    // Hide header/footer on scroll for mobile only
-    if (window.innerWidth <= 768) {
-      let lastScrollTop = 0;
-      const header = document.querySelector("header.custom-header");
-      const footer = document.querySelector("footer.custom-footer");
+    // Hide header and footer on scroll, mobile only, works with window or chat scroller
+    (function hideOnScrollMobile() {
+      const mq = window.matchMedia('(max-width: 768px)');
+      const header = document.querySelector('header.custom-header') ||
+                     document.querySelector('header.elementor-location-header') ||
+                     document.querySelector('header');
+      const footer = document.querySelector('footer.custom-footer') ||
+                     document.querySelector('footer.elementor-location-footer') ||
+                     document.querySelector('footer');
 
-      window.addEventListener("scroll", function() {
-        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      if (!header || !footer) return;
 
-        if (scrollTop > lastScrollTop) {
-          // scrolling down → hide
-          header.style.transform = "translateY(-100%)";
-          footer.style.transform = "translateY(100%)";
-        } else {
-          // scrolling up → show
-          header.style.transform = "translateY(0)";
-          footer.style.transform = "translateY(0)";
-        }
-        lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-      });
-    }
+      let enabled = false;
+      let last = 0;
+      let ticking = false;
+
+      const getY = () =>
+        (chat && chat.scrollHeight > chat.clientHeight ? chat.scrollTop : 0) ||
+        window.pageYOffset ||
+        document.documentElement.scrollTop ||
+        document.body.scrollTop ||
+        0;
+
+      const onScroll = () => {
+        if (!enabled) return;
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          const y = getY();
+          const goingDown = y > last;
+          last = y < 0 ? 0 : y;
+
+          if (goingDown && y > 5) {
+            document.body.classList.add('chrome-hidden');
+            document.body.classList.remove('chrome-visible');
+          } else {
+            document.body.classList.add('chrome-visible');
+            document.body.classList.remove('chrome-hidden');
+          }
+          ticking = false;
+        });
+      };
+
+      const attach = () => {
+        if (enabled) return;
+        enabled = true;
+        last = getY();
+        document.body.classList.add('chrome-visible');
+        document.body.classList.remove('chrome-hidden');
+
+        // Listen to both window and chat scroller
+        window.addEventListener('scroll', onScroll, { passive: true });
+        if (chat) chat.addEventListener('scroll', onScroll, { passive: true });
+      };
+
+      const detach = () => {
+        if (!enabled) return;
+        enabled = false;
+        window.removeEventListener('scroll', onScroll);
+        if (chat) chat.removeEventListener('scroll', onScroll);
+        // Ensure visible on desktop
+        document.body.classList.add('chrome-visible');
+        document.body.classList.remove('chrome-hidden');
+      };
+
+      mq.addEventListener ? mq.addEventListener('change', e => e.matches ? attach() : detach())
+                          : mq.addListener(e => e.matches ? attach() : detach());
+
+      if (mq.matches) attach(); else detach();
+    })();
   </script>
 </body>
 </html>
