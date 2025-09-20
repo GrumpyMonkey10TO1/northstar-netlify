@@ -14,7 +14,6 @@
       padding:0;
     }
 
-    /* Your site header and footer, demo only. If you already have them in WP, you do not need these tags. */
     header.custom-header, footer.custom-footer,
     header.elementor-location-header, footer.elementor-location-footer {
       background:#007bff;
@@ -31,7 +30,6 @@
     header.custom-header, header.elementor-location-header { top:0; }
     footer.custom-footer, footer.elementor-location-footer { bottom:0; }
 
-    /* Hidden state */
     .chrome-hidden header.custom-header,
     .chrome-hidden header.elementor-location-header { transform: translateY(-100%); opacity:0; pointer-events:none; }
     .chrome-hidden footer.custom-footer,
@@ -47,14 +45,14 @@
       display:flex;
       flex-direction:column;
       height:80vh;
-      margin:80px auto; /* desktop default spacing */
+      margin:80px auto;
       transition: margin 0.3s ease, height 0.2s ease;
     }
 
     #chat {
       flex:1;
       padding:10px;
-      overflow-y:auto;     /* this is the scroller in your UI */
+      overflow-y:auto;
       border-bottom:1px solid #ddd;
       -webkit-overflow-scrolling: touch;
     }
@@ -99,19 +97,14 @@
 
     #send:disabled { background:#aaa; cursor:not-allowed; }
 
-    /* Mobile sizing that reacts to header/footer visibility */
     @media (max-width: 768px) {
-      /* Header and footer are fixed, so leave room by default */
       body.chrome-visible #container { height: calc(100dvh - var(--chrome-pad)); margin: 60px auto; }
       body.chrome-hidden  #container { height: 100dvh; margin: 10px auto; }
-
-      /* Start in visible state */
       body:not(.chrome-hidden):not(.chrome-visible) #container { height: calc(100dvh - var(--chrome-pad)); margin: 60px auto; }
     }
   </style>
 </head>
 <body class="chrome-visible">
-  <!-- If you already have a theme header/footer, you can remove these two demo tags -->
   <header class="custom-header">North Star GPS Lite</header>
 
   <div id="container">
@@ -123,11 +116,9 @@
     </div>
   </div>
 
-  <!-- If you already have a theme header/footer, you can remove this demo tag -->
   <footer class="custom-footer">© 2025 North Star GPS</footer>
 
   <script>
-    // Chat logic
     const chat = document.getElementById("chat");
     const input = document.getElementById("box1");
     const sendBtn = document.getElementById("send");
@@ -149,7 +140,8 @@
       sendBtn.disabled = true; typing.style.display = "block";
 
       try {
-        const r = await fetch("/.netlify/functions/chat", {
+        // ✅ Pointed to chat-explore function
+        const r = await fetch("/.netlify/functions/chat-explore", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ messages: [{ role: "user", content: msg }] })
@@ -170,7 +162,6 @@
     sendBtn.addEventListener("click", sendMessage);
     input.addEventListener("keypress", e => { if (e.key === "Enter") sendMessage(); });
 
-    // Hide header and footer on scroll, mobile only, works with window or chat scroller
     (function hideOnScrollMobile() {
       const mq = window.matchMedia('(max-width: 768px)');
       const header = document.querySelector('header.custom-header') ||
@@ -219,8 +210,6 @@
         last = getY();
         document.body.classList.add('chrome-visible');
         document.body.classList.remove('chrome-hidden');
-
-        // Listen to both window and chat scroller
         window.addEventListener('scroll', onScroll, { passive: true });
         if (chat) chat.addEventListener('scroll', onScroll, { passive: true });
       };
@@ -230,7 +219,6 @@
         enabled = false;
         window.removeEventListener('scroll', onScroll);
         if (chat) chat.removeEventListener('scroll', onScroll);
-        // Ensure visible on desktop
         document.body.classList.add('chrome-visible');
         document.body.classList.remove('chrome-hidden');
       };
