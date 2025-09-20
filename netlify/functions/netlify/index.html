@@ -1,1 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>North Star GPS Lite</title>
+  <style>
+    :root { --chrome-pad: 100px; }
 
+    body {
+      font-family: Arial, sans-serif;
+      background:#f5f5f5;
+      margin:0;
+      padding:0;
+    }
+
+    /* Your site header and footer, demo only. If you already have them in WP, you do not need these tags. */
+    header.custom-header, footer.custom-footer,
+    header.elementor-location-header, footer.elementor-location-footer {
+      background:#007bff;
+      color:#fff;
+      text-align:center;
+      padding:12px;
+      position:fixed;
+      width:100%;
+      left:0;
+      z-index:1000;
+      transition: transform 0.3s ease, opacity 0.2s ease;
+      will-change: transform;
+    }
+    header.custom-header, header.elementor-location-header { top:0; }
+    footer.custom-footer, footer.elementor-location-footer { bottom:0; }
+
+    /* Hidden state */
+    .chrome-hidden header.custom-header,
+    .chrome-hidden header.elementor-location-header { transform: translateY(-100%); opacity:0; pointer-events:none; }
+    .chrome-hidden footer.custom-footer,
+    .chrome-hidden footer.elementor-location-footer { transform: translateY(100%); opacity:0; pointer-events:none; }
+
+    #container {
+      width:100%;
+      max-width:600px;
+      background:#fff;
+      border-radius:8px;
+      box-shadow:0 0 10px rgba(0,0,0,0.1);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      height:80vh;
+      margin:80px auto; /* desktop default spacing */
+      transition: margin 0.3s ease, height 0.2s ease;
+    }
+
+    #chat {
+      flex:1;
+      padding:10px;
+      overflow-y:auto;     /* this is the scroller in your UI */
+      border-bottom:1px solid #ddd;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .message { margin:6px 0; }
+    .me { text-align:right; color:#0057b8; }
+    .bot { text-align:left; color:#2b7a0b; }
+    .error { color:#b00020; }
+
+    #typing {
+      font-size:12px;
+      color:#666;
+      padding:6px 10px;
+      border-bottom:1px solid #eee;
+      display:none;
+    }
+
+    #inputArea {
+      display:flex;
+      padding:10px;
+      border-top:1px solid #ddd;
+      background:#fafafa;
+    }
+
+    #box1 {
+      flex:1;
+      padding:10px;
+      font-size:14px;
+      border:1px solid #ddd;
+      border-radius:4px;
+    }
+
+    #send {
+      margin-left:10px;
+      padding:0 20px;
+      background:#007bff;
+      color:#fff;
+      border:none;
+      border-radius:4px;
+      cursor:pointer;
+    }
+
+    #send:disabled { background:#aaa; cursor:not-allowed; }
+
+    /* Mobile sizing that reacts to header/footer visibility */
+    @media (max-width: 768px) {
+      /* Header and footer are fixed, so leave room by default */
+      body.chrome-visible #container { height: calc(100dvh - var(--chrome-pad)); margin: 60px auto; }
+      body.chrome-hidden  #container { height: 100dvh; margin: 10px auto; }
+
+      /* Start in visible state */
+      body:not(.chrome-hidden):not(.chrome-visible) #container { height: calc(100dvh - var(--chrome-pad)); margin: 60px auto; }
+    }
+  </style>
+</head>
+<body class="chrome-visible">
+  <!-- If you already have a theme header/footer, you can remove these two demo tags -->
+  <header class="custom-header">North Star GPS Lite</header>
+
+  <div id="container">
+    <div id="chat"></div>
+    <div id="typing">Explore is typing…</div>
+    <div id="inputArea">
+      <input id="box1" type="text" placeholder="Ask about Canada immigration or IELTS Reading..." />
+      <button id="send">Send</button>
+    </div>
+  </div>
+
+  <!-- If you already have a theme header/footer, you can remove this demo tag -->
+  <footer class="custom-footer">© 2025 North Star GPS</footer>
+
+  <script>
+    // Chat logic
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("box1");
+    const sendBtn = document.getElementById("send");
+    const typing = document.getElementById("typing");
+
+    function print(role, text, cls) {
+      const div = document.createElement("div");
+      div.className = "message " + (cls || "");
+      div.innerHTML = `<b>${role}:</b> ${text}`;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const msg = input.value.trim();
+      if (!msg) return;
+      print("You", msg, "me");
+      input.value = "";
+      sendBtn.disabled = true; typing.style.display = "block";
+
+      try {
+        const r = await fetch("/.netlify/functions/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: [{ role: "user", content: msg }] })
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          print("Error", data.error || "Request failed", "error");
+        } else {
+          print("Explore", data.reply || "(empty)", "bot");
+        }
+      } catch (e) {
+        print("Error", String(e), "error");
+      } finally {
+        sendBtn.disabled = false; typing.style.display = "none";
+      }
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    input.addEventListener("keypress", e => { if (e.key === "Enter") sendMessage(); });
+
+    // Hide header and footer on scroll, mobile only, works with window or chat scroller
+    (function hideOnScrollMobile() {
+      const mq = window.matchMedia('(max-width: 768px)');
+      const header = document.querySelector('header.custom-header') ||
+                     document.querySelector('header.elementor-location-header') ||
+                     document.querySelector('header');
+      const footer = document.querySelector('footer.custom-footer') ||
+                     document.querySelector('footer.elementor-location-footer') ||
+                     document.querySelector('footer');
+
+      if (!header || !footer) return;
+
+      let enabled = false;
+      let last = 0;
+      let ticking = false;
+
+      const getY = () =>
+        (chat && chat.scrollHeight > chat.clientHeight ? chat.scrollTop : 0) ||
+        window.pageYOffset ||
+        document.documentElement.scrollTop ||
+        document.body.scrollTop ||
+        0;
+
+      const onScroll = () => {
+        if (!enabled) return;
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          const y = getY();
+          const goingDown = y > last;
+          last = y < 0 ? 0 : y;
+
+          if (goingDown && y > 5) {
+            document.body.classList.add('chrome-hidden');
+            document.body.classList.remove('chrome-visible');
+          } else {
+            document.body.classList.add('chrome-visible');
+            document.body.classList.remove('chrome-hidden');
+          }
+          ticking = false;
+        });
+      };
+
+      const attach = () => {
+        if (enabled) return;
+        enabled = true;
+        last = getY();
+        document.body.classList.add('chrome-visible');
+        document.body.classList.remove('chrome-hidden');
+
+        // Listen to both window and chat scroller
+        window.addEventListener('scroll', onScroll, { passive: true });
+        if (chat) chat.addEventListener('scroll', onScroll, { passive: true });
+      };
+
+      const detach = () => {
+        if (!enabled) return;
+        enabled = false;
+        window.removeEventListener('scroll', onScroll);
+        if (chat) chat.removeEventListener('scroll', onScroll);
+        // Ensure visible on desktop
+        document.body.classList.add('chrome-visible');
+        document.body.classList.remove('chrome-hidden');
+      };
+
+      mq.addEventListener ? mq.addEventListener('change', e => e.matches ? attach() : detach())
+                          : mq.addListener(e => e.matches ? attach() : detach());
+
+      if (mq.matches) attach(); else detach();
+    })();
+  </script>
+</body>
+</html>
