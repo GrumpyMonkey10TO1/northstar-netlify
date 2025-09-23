@@ -1,7 +1,6 @@
 // netlify/functions/chat-explore.js
 import fs from "fs";
 import path from "path";
-import fetch from "node-fetch"; // ✅ Ensure fetch works in Netlify Node runtime
 
 // ✅ Inline CORS wrapper
 function withCORS(handler) {
@@ -44,7 +43,7 @@ function chunkResponse(text) {
   );
 }
 
-// ✅ Toggle test mode for quick verification
+// ✅ Toggle test mode
 const TEST_MODE = false;
 
 async function baseHandler(event, context) {
