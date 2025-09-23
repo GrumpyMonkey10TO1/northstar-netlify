@@ -1,6 +1,7 @@
 // netlify/functions/chat-explore.js
 import fs from "fs";
 import path from "path";
+import fetch from "node-fetch"; // ✅ Ensure fetch works in Netlify Node runtime
 
 // ✅ Inline CORS wrapper
 function withCORS(handler) {
@@ -43,12 +44,30 @@ function chunkResponse(text) {
   );
 }
 
+// ✅ Toggle test mode for quick verification
+const TEST_MODE = false;
+
 async function baseHandler(event, context) {
   const body = JSON.parse(event.body || "{}");
   const userMessage = body.message || "Hello";
 
   try {
-    // ✅ Load Explore system prompt dynamically
+    // ----------------------------
+    // TEST MODE
+    // ----------------------------
+    if (TEST_MODE) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          reply: "✅ Function is alive and returning data (TEST MODE).",
+          remaining: []
+        })
+      };
+    }
+
+    // ----------------------------
+    // Load Explore system prompt
+    // ----------------------------
     const promptPath = path.resolve("netlify/functions/prompts/explore-system.txt");
     let systemPrompt = "You are North Star GPS, the Explore bot."; // fallback
     try {
@@ -57,7 +76,22 @@ async function baseHandler(event, context) {
       console.warn("⚠️ Could not read explore-system.txt, using fallback prompt.");
     }
 
-    // ✅ Call OpenAI API
+    // ----------------------------
+    // Check API key
+    // ----------------------------
+    if (!process.env.OPENAI_API_KEY) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({
+          reply: "⚠️ Missing OPENAI_API_KEY in Netlify environment variables.",
+          remaining: []
+        })
+      };
+    }
+
+    // ----------------------------
+    // Call OpenAI API
+    // ----------------------------
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -75,24 +109,29 @@ async function baseHandler(event, context) {
     });
 
     const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content || "Sorry, I couldn’t generate a reply.";
 
-    // ✅ Chunk the response
+    // ----------------------------
+    // Build reply safely
+    // ----------------------------
+    const reply = data?.choices?.[0]?.message?.content || "⚠️ No content returned from OpenAI.";
     const chunks = chunkResponse(reply);
 
     return {
       statusCode: 200,
       body: JSON.stringify({
-        reply: chunks[0],          // first chunk
-        remaining: chunks.slice(1) // rest for follow-up
+        reply: chunks[0],
+        remaining: chunks.slice(1)
       })
     };
 
   } catch (err) {
-    console.error("Function error:", err);
+    console.error("❌ Function error:", err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Server error", details: err.message })
+      body: JSON.stringify({
+        reply: `❌ Server error: ${err.message}`,
+        remaining: []
+      })
     };
   }
 }
