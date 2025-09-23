@@ -5,16 +5,23 @@ import path from "path";
 // ✅ Inline CORS wrapper
 function withCORS(handler) {
   return async (event, context) => {
-    const result = await handler(event, context);
-    return {
-      ...result,
-      headers: {
-        "Access-Control-Allow-Origin": "https://migratenorth.ca",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        ...result.headers,
-      },
-    };
+    try {
+      const result = await handler(event, context);
+      return {
+        ...result,
+        headers: {
+          "Access-Control-Allow-Origin": "https://migratenorth.ca",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          ...result.headers,
+        },
+      };
+    } catch (err) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ reply: `❌ CORS wrapper error: ${err.message}` }),
+      };
+    }
   };
 }
 
@@ -109,10 +116,18 @@ async function baseHandler(event, context) {
 
     const data = await response.json();
 
+    if (!data.choices) {
+      console.error("❌ OpenAI API error:", data);
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ reply: "⚠️ OpenAI API returned an error.", details: data })
+      };
+    }
+
     // ----------------------------
     // Build reply safely
     // ----------------------------
-    const reply = data?.choices?.[0]?.message?.content || "⚠️ No content returned from OpenAI.";
+    const reply = data.choices[0].message?.content || "⚠️ No content returned from OpenAI.";
     const chunks = chunkResponse(reply);
 
     return {
@@ -137,3 +152,4 @@ async function baseHandler(event, context) {
 
 // ✅ Export handler with CORS enabled
 export const handler = withCORS(baseHandler);
+
