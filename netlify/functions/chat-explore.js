@@ -51,7 +51,7 @@ function chunkResponse(text) {
 }
 
 // ✅ Toggle test mode
-const TEST_MODE = true;
+const TEST_MODE = false;
 
 async function baseHandler(event, context) {
   const body = JSON.parse(event.body || "{}");
