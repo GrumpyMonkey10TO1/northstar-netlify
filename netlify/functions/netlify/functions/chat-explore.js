@@ -18,6 +18,31 @@ function withCORS(handler) {
   };
 }
 
+// ✅ Break response into 3–4 sentence chunks
+function chunkResponse(text) {
+  const sentences = text.split(/(?<=[.!?])\s+/);
+  const chunks = [];
+  let current = [];
+
+  sentences.forEach(sentence => {
+    current.push(sentence);
+    if (current.length >= 3) {
+      chunks.push(current.join(" "));
+      current = [];
+    }
+  });
+
+  if (current.length > 0) {
+    chunks.push(current.join(" "));
+  }
+
+  return chunks.map((chunk, i) =>
+    i < chunks.length - 1
+      ? `${chunk}\n\nWould you like me to continue?`
+      : chunk
+  );
+}
+
 async function baseHandler(event, context) {
   const body = JSON.parse(event.body || "{}");
   const userMessage = body.message || "Hello";
@@ -52,9 +77,15 @@ async function baseHandler(event, context) {
     const data = await response.json();
     const reply = data.choices?.[0]?.message?.content || "Sorry, I couldn’t generate a reply.";
 
+    // ✅ Chunk the response
+    const chunks = chunkResponse(reply);
+
     return {
       statusCode: 200,
-      body: JSON.stringify({ reply })
+      body: JSON.stringify({
+        reply: chunks[0],          // first chunk
+        remaining: chunks.slice(1) // rest for follow-up
+      })
     };
 
   } catch (err) {
