@@ -2,36 +2,6 @@
 import fs from "fs";
 import path from "path";
 
-// ✅ Inline CORS wrapper (handles JSON errors etc.)
-function withCORS(handler) {
-  return async (event, context) => {
-    try {
-      const result = await handler(event, context);
-
-      // If handler already set headers (like for streaming), keep them
-      return {
-        ...result,
-        headers: {
-          "Access-Control-Allow-Origin": "https://migratenorth.ca",
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          ...(result.headers || {}),
-        },
-      };
-    } catch (err) {
-      return {
-        statusCode: 500,
-        headers: {
-          "Access-Control-Allow-Origin": "https://migratenorth.ca",
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        },
-        body: JSON.stringify({ reply: `CORS wrapper error: ${err.message}` }),
-      };
-    }
-  };
-}
-
 async function baseHandler(event, context) {
   if (event.httpMethod === "OPTIONS") {
     return {
@@ -52,16 +22,13 @@ async function baseHandler(event, context) {
     // Load Explore system prompt
     // ----------------------------
     const promptPath = path.resolve("netlify/functions/prompts/explore-system.txt");
-    let systemPrompt = "You are North Star GPS, the Explore bot."; // fallback
+    let systemPrompt = "You are North Star GPS, the Explore bot.";
     try {
       systemPrompt = fs.readFileSync(promptPath, "utf8");
-    } catch (readErr) {
+    } catch {
       console.warn("⚠️ Could not read explore-system.txt, using fallback prompt.");
     }
 
-    // ----------------------------
-    // Check API key
-    // ----------------------------
     if (!process.env.OPENAI_API_KEY) {
       return {
         statusCode: 500,
@@ -70,9 +37,7 @@ async function baseHandler(event, context) {
           "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
           "Access-Control-Allow-Headers": "Content-Type, Authorization",
         },
-        body: JSON.stringify({
-          reply: "⚠️ Missing OPENAI_API_KEY in Netlify environment variables.",
-        }),
+        body: JSON.stringify({ reply: "⚠️ Missing OPENAI_API_KEY." }),
       };
     }
 
@@ -97,7 +62,7 @@ async function baseHandler(event, context) {
     });
 
     // ----------------------------
-    // Return streaming response + CORS headers
+    // Always include CORS headers
     // ----------------------------
     return {
       statusCode: 200,
@@ -111,7 +76,6 @@ async function baseHandler(event, context) {
       },
       body: response.body,
     };
-
   } catch (err) {
     console.error("❌ Function error:", err);
     return {
@@ -121,12 +85,9 @@ async function baseHandler(event, context) {
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
       },
-      body: JSON.stringify({
-        reply: `❌ Server error: ${err.message}`,
-      }),
+      body: JSON.stringify({ reply: `❌ Server error: ${err.message}` }),
     };
   }
 }
 
-// ✅ Export handler with CORS enabled
-export const handler = withCORS(baseHandler);
+export const handler = baseHandler;
