@@ -117,3 +117,4 @@ async function baseHandler(event, context) {
 }
 
 export const handler = withCORS(baseHandler);
+
