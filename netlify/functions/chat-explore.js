@@ -52,7 +52,6 @@ async function baseHandler(event, context) {
       throw new Error("Missing OPENAI_API_KEY");
     }
 
-    // Call OpenAI API
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -78,14 +77,14 @@ async function baseHandler(event, context) {
     const data = await response.json();
     const fullReply = data.choices?.[0]?.message?.content || "No reply";
 
-    // ✅ Split into chunks (about 180 words per chunk)
+    // ✅ Smaller chunk size (~400 characters ≈ ~80 words)
     const words = fullReply.split(/\s+/);
     const chunks = [];
     let current = [];
 
     for (let w of words) {
       current.push(w);
-      if (current.join(" ").length > 900) { // ~180 words
+      if (current.join(" ").length > 400) { // ~80 words cutoff
         chunks.push(current.join(" "));
         current = [];
       }
@@ -96,14 +95,8 @@ async function baseHandler(event, context) {
     let remaining = [];
 
     if (chunks.length === 1) {
-      // ✅ Short answer: send directly
       reply = chunks[0];
-    } else if (chunks.length === 2) {
-      // ✅ Medium-long answer: ask once
-      reply = chunks[0] + " … Would you like me to continue?";
-      remaining = [chunks[1]];
     } else {
-      // ✅ Long answer: ask once, then deliver rest if user says yes
       reply = chunks[0] + " … Would you like me to continue?";
       remaining = chunks.slice(1);
     }
@@ -124,8 +117,3 @@ async function baseHandler(event, context) {
 }
 
 export const handler = withCORS(baseHandler);
-
-
-
-
-  
