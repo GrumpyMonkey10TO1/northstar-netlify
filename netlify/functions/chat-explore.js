@@ -52,7 +52,7 @@ async function baseHandler(event, context) {
       throw new Error("Missing OPENAI_API_KEY");
     }
 
-    // ⚠️ Disabled streaming for now to avoid crashing Netlify response
+    // Call OpenAI API
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -66,7 +66,7 @@ async function baseHandler(event, context) {
           { role: "system", content: systemPrompt },
           { role: "user", content: userMessage },
         ],
-        max_tokens: 400,
+        max_tokens: 500,
       }),
     });
 
@@ -76,11 +76,42 @@ async function baseHandler(event, context) {
     }
 
     const data = await response.json();
+    const fullReply = data.choices?.[0]?.message?.content || "No reply";
+
+    // ✅ Split into chunks (about 180 words per chunk)
+    const words = fullReply.split(/\s+/);
+    const chunks = [];
+    let current = [];
+
+    for (let w of words) {
+      current.push(w);
+      if (current.join(" ").length > 900) { // ~180 words
+        chunks.push(current.join(" "));
+        current = [];
+      }
+    }
+    if (current.length > 0) chunks.push(current.join(" "));
+
+    let reply = "";
+    let remaining = [];
+
+    if (chunks.length === 1) {
+      // ✅ Short answer: send directly
+      reply = chunks[0];
+    } else if (chunks.length === 2) {
+      // ✅ Medium-long answer: ask once
+      reply = chunks[0] + " … Would you like me to continue?";
+      remaining = [chunks[1]];
+    } else {
+      // ✅ Long answer: ask once, then deliver rest if user says yes
+      reply = chunks[0] + " … Would you like me to continue?";
+      remaining = chunks.slice(1);
+    }
 
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reply: data.choices?.[0]?.message?.content || "No reply" }),
+      body: JSON.stringify({ reply, remaining }),
     };
   } catch (err) {
     console.error("❌ Function error:", err);
@@ -93,6 +124,7 @@ async function baseHandler(event, context) {
 }
 
 export const handler = withCORS(baseHandler);
+
 
 
 
