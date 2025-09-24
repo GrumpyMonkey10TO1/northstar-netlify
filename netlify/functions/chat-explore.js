@@ -7,7 +7,7 @@ async function baseHandler(event, context) {
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": "https://migratenorth.ca",
+        "Access-Control-Allow-Origin": "*", // ✅ TEMP FIX
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
       },
@@ -18,9 +18,6 @@ async function baseHandler(event, context) {
   const userMessage = body.message || "Hello";
 
   try {
-    // ----------------------------
-    // Load Explore system prompt
-    // ----------------------------
     const promptPath = path.resolve("netlify/functions/prompts/explore-system.txt");
     let systemPrompt = "You are North Star GPS, the Explore bot.";
     try {
@@ -33,7 +30,7 @@ async function baseHandler(event, context) {
       return {
         statusCode: 500,
         headers: {
-          "Access-Control-Allow-Origin": "https://migratenorth.ca",
+          "Access-Control-Allow-Origin": "*", // ✅ TEMP FIX
           "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
           "Access-Control-Allow-Headers": "Content-Type, Authorization",
         },
@@ -41,9 +38,6 @@ async function baseHandler(event, context) {
       };
     }
 
-    // ----------------------------
-    // Call OpenAI API with streaming
-    // ----------------------------
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -61,13 +55,10 @@ async function baseHandler(event, context) {
       }),
     });
 
-    // ----------------------------
-    // Always include CORS headers
-    // ----------------------------
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": "https://migratenorth.ca",
+        "Access-Control-Allow-Origin": "*", // ✅ TEMP FIX
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Content-Type": "text/event-stream",
@@ -81,7 +72,7 @@ async function baseHandler(event, context) {
     return {
       statusCode: 500,
       headers: {
-        "Access-Control-Allow-Origin": "https://migratenorth.ca",
+        "Access-Control-Allow-Origin": "*", // ✅ TEMP FIX
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
       },
@@ -91,3 +82,4 @@ async function baseHandler(event, context) {
 }
 
 export const handler = baseHandler;
+
