@@ -9,7 +9,7 @@ function withCORS(handler) {
       return {
         ...result,
         headers: {
-          "Access-Control-Allow-Origin": "https://migratenorth.ca", // restrict to your domain
+          "Access-Control-Allow-Origin": "https://migratenorth.ca",
           "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
           "Access-Control-Allow-Headers": "Content-Type, Authorization",
           ...result.headers,
@@ -23,8 +23,9 @@ function withCORS(handler) {
           "Access-Control-Allow-Origin": "https://migratenorth.ca",
           "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
           "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ reply: `❌ Server error: ${err.message}` }),
+        body: JSON.stringify({ reply: `❌ Server crash: ${err.message}` }),
       };
     }
   };
@@ -32,20 +33,13 @@ function withCORS(handler) {
 
 async function baseHandler(event, context) {
   if (event.httpMethod === "OPTIONS") {
-    return {
-      statusCode: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ ok: true }),
-    };
+    return { statusCode: 200, body: "ok" };
   }
 
   const body = JSON.parse(event.body || "{}");
   const userMessage = body.message || "Hello";
 
   try {
-    // Load system prompt
     const promptPath = path.resolve("netlify/functions/prompts/explore-system.txt");
     let systemPrompt = "You are North Star GPS, the Explore bot.";
     try {
@@ -58,7 +52,7 @@ async function baseHandler(event, context) {
       throw new Error("Missing OPENAI_API_KEY");
     }
 
-    // Call OpenAI
+    // ⚠️ Disabled streaming for now to avoid crashing Netlify response
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -67,7 +61,7 @@ async function baseHandler(event, context) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        stream: true,
+        stream: false,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userMessage },
@@ -81,28 +75,25 @@ async function baseHandler(event, context) {
       throw new Error(`OpenAI API error: ${response.status} ${errText}`);
     }
 
+    const data = await response.json();
+
     return {
       statusCode: 200,
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
-      },
-      body: response.body, // stream directly
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reply: data.choices?.[0]?.message?.content || "No reply" }),
     };
   } catch (err) {
     console.error("❌ Function error:", err);
     return {
       statusCode: 500,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ reply: `❌ Server error: ${err.message}` }),
     };
   }
 }
 
 export const handler = withCORS(baseHandler);
+
 
 
   
