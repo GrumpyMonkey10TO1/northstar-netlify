@@ -60,7 +60,7 @@ async function baseHandler(event, context) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        stream: false,
+        stream: false, // still no streaming, but faster chunking
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userMessage },
@@ -77,14 +77,14 @@ async function baseHandler(event, context) {
     const data = await response.json();
     const fullReply = data.choices?.[0]?.message?.content || "No reply";
 
-    // ✅ Smaller chunk size (~400 characters ≈ ~80 words)
+    // ✅ Smaller chunks (~400 characters ≈ ~80 words) for faster first response
     const words = fullReply.split(/\s+/);
     const chunks = [];
     let current = [];
 
     for (let w of words) {
       current.push(w);
-      if (current.join(" ").length > 400) { // ~80 words cutoff
+      if (current.join(" ").length > 400) { 
         chunks.push(current.join(" "));
         current = [];
       }
