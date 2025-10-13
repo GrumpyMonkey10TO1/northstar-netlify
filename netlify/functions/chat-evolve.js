@@ -5,9 +5,11 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-export default async function handler(req, res) {
+export default async (req) => {
   try {
-    const { message } = await req.json();
+    // Parse incoming JSON safely
+    const body = await req.text();
+    const { message } = JSON.parse(body);
 
     // ----------------------------
     // EVOLVE SYSTEM PROMPT
@@ -29,7 +31,7 @@ Rules:
    - Elevate = Advanced immigration profile builder that includes everything from Evolve.
 5. Keep responses short and conversational unless the user explicitly requests depth.
 6. For every answer, you can suggest one follow-up action or question to keep engagement going.
-    `;
+`;
 
     // ----------------------------
     // OPENAI CHAT CALL
@@ -53,14 +55,27 @@ Rules:
 
     return new Response(
       JSON.stringify({ reply: firstChunk, remaining }),
-      { headers: { "Content-Type": "application/json" } }
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type"
+        }
+      }
     );
 
   } catch (error) {
     console.error("Evolve Function Error:", error);
     return new Response(
       JSON.stringify({ reply: "Sorry, something went wrong with Evolve chat." }),
-      { headers: { "Content-Type": "application/json" }, status: 500 }
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        status: 500
+      }
     );
   }
-}
+};
