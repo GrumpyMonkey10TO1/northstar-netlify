@@ -1,6 +1,5 @@
 [build]
-  base = "northstar-netlify"
-  publish = "northstar-netlify"
+  publish = "."
   functions = "netlify/functions"
 
 [functions]
@@ -18,6 +17,7 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
 
 
 
