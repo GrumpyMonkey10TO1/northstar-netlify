@@ -38,6 +38,28 @@ export default async (req) => {
     }
 
     // ----------------------------
+    // HANDLE WRITING TASK REQUESTS
+    // ----------------------------
+    if (message.toLowerCase().includes("writing task") || message.toLowerCase().includes("writing test")) {
+      try {
+        const res = await fetch("https://startling-faun-f9dddb.netlify.app/assets/tests/evolve/writing/E-W-001.json");
+        const testData = await res.json();
+
+        return new Response(
+          JSON.stringify({
+            reply: `📝 ${testData.prompt}\n\nWord limit: ${testData.word_limit}\n\nScoring focus: ${Object.keys(testData.rubric).join(", ")}.`
+          }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err) {
+        return new Response(
+          JSON.stringify({ reply: "Sorry, I couldn't load the writing task right now." }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // ----------------------------
     // EVOLVE SYSTEM PROMPT
     // ----------------------------
     const systemPrompt = `
@@ -92,3 +114,4 @@ Rules:
     );
   }
 };
+
