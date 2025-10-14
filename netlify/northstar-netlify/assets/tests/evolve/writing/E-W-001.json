@@ -1,0 +1,46 @@
+{
+  "test_id": "E-W-001",
+  "skill": "Writing",
+  "title": "Writing Test 1 – Workplace Communication",
+  "duration_minutes": 60,
+  "tasks": [
+    {
+      "task_id": "T1",
+      "task_type": "Letter",
+      "prompt": "You are facing ongoing communication problems between departments at your workplace. Write a letter to your manager describing the issue.\n\n- Explain the nature of the communication problem\n- Describe how it is affecting the company\n- Suggest two possible solutions and request a meeting to discuss them",
+      "word_limit": "150–200",
+      "context": "Formal",
+      "rubric": {
+        "task_achievement": "Addresses all bullet points clearly and presents a realistic workplace scenario.",
+        "coherence_cohesion": "Paragraphs are logically organized and use connectors such as 'firstly', 'as a result', and 'in addition'.",
+        "lexical_resource": "Uses workplace-related vocabulary such as 'coordination', 'reporting structure', 'team leads'.",
+        "grammar_range_accuracy": "Maintains proper tense, tone, and sentence variety throughout."
+      },
+      "sample_outline": [
+        "Paragraph 1: Introduce yourself and state the issue",
+        "Paragraph 2: Explain the effects on workflow or productivity",
+        "Paragraph 3: Suggest solutions and propose a meeting",
+        "Closing: Polite ending and signature line"
+      ]
+    },
+    {
+      "task_id": "T2",
+      "task_type": "Essay",
+      "prompt": "Some people believe modern workplaces rely too much on emails and messaging apps, which reduces effective face-to-face communication. Others argue that digital tools increase productivity. Discuss both views and give your own opinion.",
+      "word_limit": "250+",
+      "context": "Discussion / Opinion",
+      "rubric": {
+        "task_response": "Covers both perspectives and presents a clear personal stance supported by examples.",
+        "coherence_cohesion": "Effective use of linking phrases such as 'on the other hand', 'for instance', and 'in conclusion'.",
+        "lexical_resource": "Employs topic-specific vocabulary like 'collaboration platforms', 'remote workflows', 'team dynamics'.",
+        "grammar_range_accuracy": "Accurate use of complex structures (e.g., conditional and relative clauses)."
+      },
+      "band_estimation_guidelines": {
+        "CLB6": "Ideas relevant but limited; repetitive vocabulary.",
+        "CLB7": "Cohesive argument with clear structure; minor grammar slips.",
+        "CLB8": "Balanced discussion with a wide vocabulary range.",
+        "CLB9": "Sophisticated reasoning, seamless cohesion, precise grammar and tone."
+      }
+    }
+  ]
+}
