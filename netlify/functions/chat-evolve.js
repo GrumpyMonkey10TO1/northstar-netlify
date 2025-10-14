@@ -5,9 +5,21 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+const CORS_HEADERS = {
+  "Content-Type": "application/json",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type"
+};
+
 export default async (req) => {
   try {
-    // Safely read and parse incoming body
+    // --- Handle CORS preflight (OPTIONS) ---
+    if (req.method && req.method.toUpperCase() === "OPTIONS") {
+      return new Response(null, { status: 204, headers: CORS_HEADERS });
+    }
+
+    // --- Safely read and parse incoming body ---
     const bodyText = await req.text();
     let message = "";
     try {
@@ -17,19 +29,11 @@ export default async (req) => {
       message = "";
     }
 
-    // Handle empty input gracefully
+    // --- Handle empty input gracefully ---
     if (!message) {
       return new Response(
         JSON.stringify({ reply: "No message received by Evolve function." }),
-        {
-          status: 400,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
-          }
-        }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
 
@@ -68,7 +72,7 @@ Rules:
       temperature: 0.8
     });
 
-    const reply = completion.choices[0].message.content.trim();
+    const reply = (completion.choices?.[0]?.message?.content || "").trim();
 
     // Split long replies into manageable chunks
     const sentences = reply.split(/(?<=[.!?])\s+/);
@@ -77,29 +81,14 @@ Rules:
 
     return new Response(
       JSON.stringify({ reply: firstChunk, remaining }),
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type"
-        }
-      }
+      { status: 200, headers: CORS_HEADERS }
     );
 
   } catch (error) {
     console.error("Evolve Function Error:", error);
     return new Response(
       JSON.stringify({ reply: "Sorry, something went wrong with Evolve chat." }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type"
-        }
-      }
+      { status: 500, headers: CORS_HEADERS }
     );
   }
 };
