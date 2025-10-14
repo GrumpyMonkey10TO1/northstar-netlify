@@ -7,9 +7,31 @@ const client = new OpenAI({
 
 export default async (req) => {
   try {
-    // Parse incoming JSON safely
-    const body = await req.text();
-    const { message } = JSON.parse(body);
+    // Safely read and parse incoming body
+    const bodyText = await req.text();
+    let message = "";
+    try {
+      const parsed = JSON.parse(bodyText || "{}");
+      message = parsed.message || "";
+    } catch {
+      message = "";
+    }
+
+    // Handle empty input gracefully
+    if (!message) {
+      return new Response(
+        JSON.stringify({ reply: "No message received by Evolve function." }),
+        {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+          }
+        }
+      );
+    }
 
     // ----------------------------
     // EVOLVE SYSTEM PROMPT
@@ -48,7 +70,7 @@ Rules:
 
     const reply = completion.choices[0].message.content.trim();
 
-    // Split long replies into smaller chunks
+    // Split long replies into manageable chunks
     const sentences = reply.split(/(?<=[.!?])\s+/);
     const firstChunk = sentences.slice(0, 3).join(" ");
     const remaining = sentences.slice(3);
@@ -70,11 +92,13 @@ Rules:
     return new Response(
       JSON.stringify({ reply: "Sorry, something went wrong with Evolve chat." }),
       {
+        status: 500,
         headers: {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*"
-        },
-        status: 500
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type"
+        }
       }
     );
   }
