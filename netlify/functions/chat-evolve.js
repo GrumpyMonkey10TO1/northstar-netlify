@@ -42,16 +42,28 @@ export default async (req) => {
     // ----------------------------
     if (message.toLowerCase().includes("writing task") || message.toLowerCase().includes("writing test")) {
       try {
-        const res = await fetch("https://startling-faun-f9dddb.netlify.app/assets/tests/evolve/writing/E-W-001.json");
+        // List of available writing tasks (expand this as you create more)
+        const tasks = [
+          "E-W-001.json",
+          "E-W-002.json",
+          "E-W-003.json",
+          "E-W-004.json",
+          "E-W-005.json"
+        ];
+
+        // Randomly pick one
+        const randomTask = tasks[Math.floor(Math.random() * tasks.length)];
+
+        // Fetch the selected JSON file from your Netlify assets
+        const res = await fetch(`https://startling-faun-f9dddb.netlify.app/assets/tests/evolve/writing/${randomTask}`);
         const testData = await res.json();
 
-        return new Response(
-          JSON.stringify({
-            reply: `📝 ${testData.prompt}\n\nWord limit: ${testData.word_limit}\n\nScoring focus: ${Object.keys(testData.rubric).join(", ")}.`
-          }),
-          { status: 200, headers: CORS_HEADERS }
-        );
+        // Build response message
+        const reply = `📝 Writing Task: ${testData.task_id}\n\n${testData.prompt}\n\nWord limit: ${testData.word_limit}\n\nScoring focus: ${Object.keys(testData.rubric).join(", ")}.`;
+
+        return new Response(JSON.stringify({ reply }), { status: 200, headers: CORS_HEADERS });
       } catch (err) {
+        console.error("Error loading writing test:", err);
         return new Response(
           JSON.stringify({ reply: "Sorry, I couldn't load the writing task right now." }),
           { status: 500, headers: CORS_HEADERS }
@@ -114,4 +126,3 @@ Rules:
     );
   }
 };
-
