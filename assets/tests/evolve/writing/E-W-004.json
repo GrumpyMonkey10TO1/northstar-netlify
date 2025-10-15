@@ -1,0 +1,19 @@
+{
+  "task_id": "E-W-004",
+  "task_type": "Writing Task 2",
+  "prompt": "Some believe international tourism creates tension between countries instead of understanding among people. Discuss both views and give your opinion.",
+  "word_limit": "250+",
+  "context": "Discussion Essay",
+  "rubric": {
+    "task_response": "Explores both sides thoroughly and presents a justified personal view.",
+    "coherence_cohesion": "Smooth paragraphing with appropriate linking phrases (however, on the other hand).",
+    "lexical_resource": "Shows range of vocabulary related to travel, culture, and globalization.",
+    "grammar_range_accuracy": "Good control of complex and compound sentences; minor slips acceptable."
+  },
+  "band_estimation_guidelines": {
+    "CLB6": "Presents both sides but lacks clear development or examples.",
+    "CLB7": "Generally balanced with occasional unclear reasoning.",
+    "CLB8": "Strong cohesion and well-structured argument.",
+    "CLB9": "Insightful and sophisticated discussion with excellent control of grammar and tone."
+  }
+}
