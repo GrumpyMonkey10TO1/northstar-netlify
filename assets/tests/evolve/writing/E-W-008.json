@@ -1,0 +1,19 @@
+{
+  "task_id": "E-W-008",
+  "task_type": "Writing Task 1 (Academic)",
+  "prompt": "The table below gives information about changes in modes of transport used by people in a European city between 1990 and 2010. Summarize the information by selecting and reporting the main features, and make comparisons where relevant.",
+  "word_limit": "150+",
+  "context": "Data Report",
+  "rubric": {
+    "task_achievement": "Presents main trends and comparisons clearly, highlighting increases and decreases accurately.",
+    "coherence_cohesion": "Organized logically by transport type or year, using connectors such as 'whereas', 'in contrast', 'on the other hand'.",
+    "lexical_resource": "Accurate use of terms like 'proportion', 'percentage', 'decline', 'rise'.",
+    "grammar_range_accuracy": "Good control of tense consistency and comparative structures."
+  },
+  "band_estimation_guidelines": {
+    "CLB6": "Shows basic understanding but omits key details or misuses comparison structures.",
+    "CLB7": "Reasonably clear organization with minor language slips.",
+    "CLB8": "Fluent and cohesive summary with accurate data comparisons.",
+    "CLB9": "Exceptionally clear, concise, and precise analytical writing with full grammatical control."
+  }
+}
