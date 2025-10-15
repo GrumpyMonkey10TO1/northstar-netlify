@@ -1,0 +1,19 @@
+{
+  "task_id": "E-W-002",
+  "task_type": "Writing Task 2",
+  "prompt": "Some people think that the government should provide free university education for all students, while others believe students should pay their own fees. Discuss both views and give your opinion.",
+  "word_limit": "250+",
+  "context": "Argument / Opinion Essay",
+  "rubric": {
+    "task_response": "Presents a balanced discussion of both sides and provides a clear personal opinion.",
+    "coherence_cohesion": "Uses clear paragraphing, logical connectors, and well-developed ideas.",
+    "lexical_resource": "Demonstrates range of academic vocabulary relevant to education and policy.",
+    "grammar_range_accuracy": "Accurate use of complex sentences with minimal errors."
+  },
+  "band_estimation_guidelines": {
+    "CLB6": "Ideas are relevant but limited in range or support.",
+    "CLB7": "Covers both sides clearly, with some weaknesses in linking or grammar.",
+    "CLB8": "Good structure, natural transitions, and mostly accurate grammar.",
+    "CLB9": "Sophisticated argumentation, seamless cohesion, and excellent accuracy."
+  }
+}
