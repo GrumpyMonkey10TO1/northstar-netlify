@@ -1,0 +1,19 @@
+{
+  "task_id": "E-W-010",
+  "task_type": "Writing Task 1 (General Training)",
+  "prompt": "You recently bought an electronic item online and received the wrong product. Write a letter to the company explaining the issue and requesting a replacement.",
+  "word_limit": "150+",
+  "context": "Complaint Letter",
+  "rubric": {
+    "task_achievement": "Explains the problem clearly and proposes a solution politely.",
+    "coherence_cohesion": "Logical paragraphing and appropriate transitions (firstly, furthermore, therefore).",
+    "lexical_resource": "Accurate vocabulary for complaints and customer service (refund, replacement, faulty).",
+    "grammar_range_accuracy": "Uses past tense accurately, polite modals, and correct punctuation."
+  },
+  "band_estimation_guidelines": {
+    "CLB6": "Provides general explanation but may miss detail or clarity.",
+    "CLB7": "Covers all points with minor errors in tone or structure.",
+    "CLB8": "Clear, polite, and concise letter with good cohesion.",
+    "CLB9": "Natural and professional tone with perfect grammatical control."
+  }
+}
