@@ -1,0 +1,19 @@
+{
+  "task_id": "E-W-011",
+  "task_type": "Writing Task 1 (General Training)",
+  "prompt": "A friend has asked you to help plan their visit to your country. Write a letter suggesting places to visit, activities to do, and explaining how you can assist during their stay.",
+  "word_limit": "150+",
+  "context": "Informal / Friendly Letter",
+  "rubric": {
+    "task_achievement": "Addresses all parts of the question in a natural and friendly tone.",
+    "coherence_cohesion": "Uses smooth transitions between suggestions and explanations.",
+    "lexical_resource": "Variety of expressions related to travel, hospitality, and personal tone.",
+    "grammar_range_accuracy": "Uses informal but grammatically correct forms, contractions, and complex structures."
+  },
+  "band_estimation_guidelines": {
+    "CLB6": "Covers points but may sound unnatural or incomplete.",
+    "CLB7": "Generally clear and friendly with occasional grammar slips.",
+    "CLB8": "Engaging tone with appropriate range of informal vocabulary.",
+    "CLB9": "Fluent, natural, and fully cohesive friendly letter."
+  }
+}
