@@ -13,18 +13,19 @@
     Access-Control-Allow-Headers = "Content-Type, Authorization"
     Access-Control-Max-Age = "86400"
 
-# Allow JSON and other assets to load directly
+# Allow JSON and static assets to load directly from /assets/
 [[redirects]]
   from = "/assets/*"
   to = "/assets/:splat"
   status = 200
-  force = false
+  force = true
 
-# Default redirect for all other routes
+# Default fallback redirect for all other routes
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
 
 
 
