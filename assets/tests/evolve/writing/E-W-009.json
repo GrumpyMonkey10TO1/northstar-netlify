@@ -1,0 +1,19 @@
+{
+  "task_id": "E-W-009",
+  "task_type": "Writing Task 1 (General Training)",
+  "prompt": "Write a letter to your employer to request a few days off work for personal reasons. Explain why you need time off, how long you will be away, and how you plan to cover your duties while absent.",
+  "word_limit": "150+",
+  "context": "Formal Letter",
+  "rubric": {
+    "task_achievement": "Covers all three bullet points with clear purpose and tone.",
+    "coherence_cohesion": "Uses appropriate paragraphing and polite linking expressions.",
+    "lexical_resource": "Shows range of polite and professional expressions for requests and work-related context.",
+    "grammar_range_accuracy": "Uses formal structures (would like to, could you please) with accurate tense and punctuation."
+  },
+  "band_estimation_guidelines": {
+    "CLB6": "Covers main points but tone or grammar may be inconsistent.",
+    "CLB7": "Appropriate structure with occasional awkward phrasing.",
+    "CLB8": "Polite, professional, and well-organized throughout.",
+    "CLB9": "Fluent and natural tone with excellent grammatical control."
+  }
+}
