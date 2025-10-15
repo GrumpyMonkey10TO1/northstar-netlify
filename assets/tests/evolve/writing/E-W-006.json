@@ -1,0 +1,19 @@
+{
+  "task_id": "E-W-006",
+  "task_type": "Writing Task 1 (Academic)",
+  "prompt": "The chart below shows the percentage of households in different income groups that had access to the Internet between 2002 and 2010. Summarize the information by selecting and reporting the main features, and make comparisons where relevant.",
+  "word_limit": "150+",
+  "context": "Data Report",
+  "rubric": {
+    "task_achievement": "Summarizes key trends without copying from the prompt.",
+    "coherence_cohesion": "Logical grouping of data, clear comparisons, and progression of ideas.",
+    "lexical_resource": "Accurate use of data-related expressions and comparative structures.",
+    "grammar_range_accuracy": "Good control of tenses and quantifiers, few grammatical slips."
+  },
+  "band_estimation_guidelines": {
+    "CLB6": "Covers main trends but misses details or misinterprets data.",
+    "CLB7": "Organized response with some inconsistency in detail selection.",
+    "CLB8": "Good clarity, well-chosen comparisons, and accurate language.",
+    "CLB9": "Fully cohesive, precise report with excellent control of structure and grammar."
+  }
+}
