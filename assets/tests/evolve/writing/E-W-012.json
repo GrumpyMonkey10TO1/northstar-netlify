@@ -1,0 +1,12 @@
+{
+  "task_type": "Writing Task 2",
+  "prompt": "Some people believe that governments should make public transport free to reduce environmental pollution. To what extent do you agree or disagree?",
+  "time_limit": 40,
+  "word_limit": 250,
+  "rubric": {
+    "Task Response": "Addresses all parts of the prompt and presents a clear position.",
+    "Coherence and Cohesion": "Ideas are logically organized with effective transitions.",
+    "Lexical Resource": "Uses a wide range of vocabulary naturally and accurately.",
+    "Grammatical Range and Accuracy": "Uses complex structures with few errors."
+  }
+}
