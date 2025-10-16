@@ -2,18 +2,20 @@
   "task_id": "E-W-007",
   "task_type": "Writing Task 1 (Academic)",
   "prompt": "The diagram below shows how rainwater is collected and used in an Australian town. Summarize the information by describing the main stages and making comparisons where relevant.",
-  "word_limit": "150+",
+  "time_limit": 20,
+  "word_limit": 150,
   "context": "Process Description",
   "rubric": {
-    "task_achievement": "Describes process stages clearly and in sequence, avoiding unnecessary detail.",
-    "coherence_cohesion": "Uses linking devices like 'after that', 'following this', 'finally'.",
-    "lexical_resource": "Employs vocabulary for processes and stages (e.g., filtered, stored, distributed).",
-    "grammar_range_accuracy": "Good control of passive voice and sequence connectors."
+    "Task Achievement": "Describes all key stages clearly and in correct sequence, avoiding unnecessary detail or repetition.",
+    "Coherence and Cohesion": "Uses linking devices effectively (after that, following this, finally) and maintains logical flow.",
+    "Lexical Resource": "Employs accurate vocabulary related to processes and stages (filtered, stored, distributed, treated).",
+    "Grammatical Range and Accuracy": "Demonstrates strong control of passive voice, sequence connectors, and varied sentence structures."
   },
   "band_estimation_guidelines": {
-    "CLB6": "Basic description, lacks clarity in sequence or language accuracy.",
-    "CLB7": "Covers stages clearly with some issues in linking or vocabulary.",
-    "CLB8": "Smooth progression with accurate process language and minimal errors.",
-    "CLB9": "Fluent and precise process description with full control of complex grammar."
+    "CLB6": "Covers the process but may lack sequence clarity or consistent accuracy.",
+    "CLB7": "Describes main stages clearly with some lapses in linking or vocabulary precision.",
+    "CLB8": "Smooth progression with accurate use of process language and few grammatical errors.",
+    "CLB9": "Fluent, precise process description with excellent control of structure, vocabulary, and grammar."
   }
 }
+
