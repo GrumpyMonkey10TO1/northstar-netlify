@@ -2,18 +2,19 @@
   "task_id": "E-W-003",
   "task_type": "Writing Task 2",
   "prompt": "Many people believe that technological progress has made our lives more complex. To what extent do you agree or disagree?",
-  "word_limit": "250+",
+  "time_limit": 40,
+  "word_limit": 250,
   "context": "Opinion Essay",
   "rubric": {
-    "task_response": "Addresses the question with a clear position throughout the essay.",
-    "coherence_cohesion": "Logical progression with effective paragraph structure.",
-    "lexical_resource": "Uses vocabulary related to technology and society naturally and precisely.",
-    "grammar_range_accuracy": "Uses varied complex sentence forms accurately and fluently."
+    "Task Response": "Addresses the question with a clear and consistent position throughout the essay.",
+    "Coherence and Cohesion": "Demonstrates logical progression with effective paragraph structure and clear linking devices.",
+    "Lexical Resource": "Uses vocabulary related to technology and society naturally, precisely, and with appropriate variety.",
+    "Grammatical Range and Accuracy": "Employs a wide range of complex sentence forms accurately and fluently."
   },
   "band_estimation_guidelines": {
     "CLB6": "Simple argument with repetitive vocabulary and limited transitions.",
-    "CLB7": "Clear stance but may have inconsistent paragraph unity.",
-    "CLB8": "Strong control of cohesion and lexical range.",
-    "CLB9": "Fully developed argument, precise word choice, and excellent control of tone."
+    "CLB7": "Clear stance but may show minor lapses in cohesion or paragraph unity.",
+    "CLB8": "Strong control of cohesion, varied sentence structures, and effective lexical range.",
+    "CLB9": "Fully developed argument, precise word choice, and excellent control of tone and accuracy."
   }
 }
