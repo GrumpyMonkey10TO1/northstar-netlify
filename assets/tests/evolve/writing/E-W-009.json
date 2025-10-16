@@ -2,18 +2,19 @@
   "task_id": "E-W-009",
   "task_type": "Writing Task 1 (General Training)",
   "prompt": "Write a letter to your employer to request a few days off work for personal reasons. Explain why you need time off, how long you will be away, and how you plan to cover your duties while absent.",
-  "word_limit": "150+",
+  "time_limit": 20,
+  "word_limit": 150,
   "context": "Formal Letter",
   "rubric": {
-    "task_achievement": "Covers all three bullet points with clear purpose and tone.",
-    "coherence_cohesion": "Uses appropriate paragraphing and polite linking expressions.",
-    "lexical_resource": "Shows range of polite and professional expressions for requests and work-related context.",
-    "grammar_range_accuracy": "Uses formal structures (would like to, could you please) with accurate tense and punctuation."
+    "Task Achievement": "Addresses all three bullet points with clear purpose, tone, and adequate detail.",
+    "Coherence and Cohesion": "Organized into logical paragraphs, using polite linking phrases (e.g., 'I would appreciate it if', 'in my absence', 'upon my return').",
+    "Lexical Resource": "Demonstrates range of formal and polite expressions suitable for a workplace setting.",
+    "Grammatical Range and Accuracy": "Uses correct tense, modal verbs, and punctuation within formal structures (would like to, could you please)."
   },
   "band_estimation_guidelines": {
-    "CLB6": "Covers main points but tone or grammar may be inconsistent.",
-    "CLB7": "Appropriate structure with occasional awkward phrasing.",
-    "CLB8": "Polite, professional, and well-organized throughout.",
-    "CLB9": "Fluent and natural tone with excellent grammatical control."
+    "CLB6": "Covers main points but tone or grammar may be inconsistent or informal at times.",
+    "CLB7": "Appropriate structure and tone with occasional awkward phrasing or minor grammar slips.",
+    "CLB8": "Polite, professional, and clearly organized with natural language flow.",
+    "CLB9": "Fluent and natural tone, excellent grammatical control, and consistent formality throughout."
   }
 }
