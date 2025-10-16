@@ -2,18 +2,19 @@
   "task_id": "E-W-005",
   "task_type": "Writing Task 2",
   "prompt": "The increase in food production owes much to fertilizers and machinery, but some people think it has a negative effect on human health and the environment. Discuss both views and give your opinion.",
-  "word_limit": "250+",
+  "time_limit": 40,
+  "word_limit": 250,
   "context": "Discussion / Opinion Essay",
   "rubric": {
-    "task_response": "Discusses both benefits and drawbacks clearly, and presents a reasoned opinion.",
-    "coherence_cohesion": "Logical flow between paragraphs with clear linking words.",
-    "lexical_resource": "Shows flexibility with environmental and agricultural vocabulary.",
-    "grammar_range_accuracy": "Uses complex grammatical structures accurately with minimal errors."
+    "Task Response": "Discusses both benefits and drawbacks clearly and presents a reasoned opinion supported by relevant examples.",
+    "Coherence and Cohesion": "Demonstrates logical flow between paragraphs with clear and varied linking words.",
+    "Lexical Resource": "Shows flexibility and precision with environmental, technological, and agricultural vocabulary.",
+    "Grammatical Range and Accuracy": "Uses a wide range of complex sentence forms accurately with minimal errors."
   },
   "band_estimation_guidelines": {
-    "CLB6": "Ideas relevant but not fully extended or supported.",
-    "CLB7": "Covers both sides, but transitions or examples may be weak.",
-    "CLB8": "Clear organization, strong vocabulary control, and few grammar issues.",
-    "CLB9": "Highly developed argument with natural cohesion and precise expression."
+    "CLB6": "Addresses both sides but with limited explanation or support.",
+    "CLB7": "Covers both sides with generally clear structure but occasional weak transitions or examples.",
+    "CLB8": "Organized essay with strong vocabulary control and few grammatical issues.",
+    "CLB9": "Highly developed argument with natural cohesion, precise expression, and excellent grammatical accuracy."
   }
 }
