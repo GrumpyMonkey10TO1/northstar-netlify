@@ -1,0 +1,12 @@
+{
+  "task_type": "Writing Task 2",
+  "prompt": "Some people think that schools should teach financial literacy, while others believe it is the parents’ responsibility. Discuss both views and give your opinion.",
+  "time_limit": 40,
+  "word_limit": 250,
+  "rubric": {
+    "Task Response": "Addresses all parts of the task with a well-developed position. Presents clear and relevant arguments supported by examples.",
+    "Coherence and Cohesion": "Ideas are logically organized with clear progression. Uses cohesive devices appropriately and effectively.",
+    "Lexical Resource": "Uses a wide range of vocabulary naturally and accurately. Avoids repetition and demonstrates awareness of collocations.",
+    "Grammatical Range and Accuracy": "Uses a variety of complex structures with frequent error-free sentences and good control of grammar and punctuation."
+  }
+}
