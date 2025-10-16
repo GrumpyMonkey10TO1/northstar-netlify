@@ -2,18 +2,19 @@
   "task_id": "E-W-004",
   "task_type": "Writing Task 2",
   "prompt": "Some believe international tourism creates tension between countries instead of understanding among people. Discuss both views and give your opinion.",
-  "word_limit": "250+",
+  "time_limit": 40,
+  "word_limit": 250,
   "context": "Discussion Essay",
   "rubric": {
-    "task_response": "Explores both sides thoroughly and presents a justified personal view.",
-    "coherence_cohesion": "Smooth paragraphing with appropriate linking phrases (however, on the other hand).",
-    "lexical_resource": "Shows range of vocabulary related to travel, culture, and globalization.",
-    "grammar_range_accuracy": "Good control of complex and compound sentences; minor slips acceptable."
+    "Task Response": "Explores both sides thoroughly and presents a clear, justified personal view.",
+    "Coherence and Cohesion": "Shows smooth paragraphing with effective transitions (for example, however, on the other hand).",
+    "Lexical Resource": "Displays a strong range of vocabulary related to travel, culture, and globalization.",
+    "Grammatical Range and Accuracy": "Demonstrates good control of complex and compound sentences with minor errors only."
   },
   "band_estimation_guidelines": {
-    "CLB6": "Presents both sides but lacks clear development or examples.",
-    "CLB7": "Generally balanced with occasional unclear reasoning.",
-    "CLB8": "Strong cohesion and well-structured argument.",
-    "CLB9": "Insightful and sophisticated discussion with excellent control of grammar and tone."
+    "CLB6": "Addresses both sides but lacks clear development or specific examples.",
+    "CLB7": "Generally balanced discussion with occasional unclear reasoning or weak transitions.",
+    "CLB8": "Well-structured argument with strong cohesion and accurate vocabulary.",
+    "CLB9": "Insightful, balanced, and sophisticated discussion with excellent control of grammar and tone."
   }
 }
