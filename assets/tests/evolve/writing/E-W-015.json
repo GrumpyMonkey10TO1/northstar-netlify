@@ -1,0 +1,20 @@
+{
+  "task_id": "E-W-015",
+  "task_type": "Writing Task 2 (Academic / General)",
+  "prompt": "Online education is becoming increasingly popular. Some people believe it has more advantages than disadvantages. Discuss the advantages and disadvantages of online learning and give your own opinion.",
+  "time_limit": 40,
+  "word_limit": 250,
+  "context": "Advantages and Disadvantages Essay",
+  "rubric": {
+    "Task Response": "Addresses both advantages and disadvantages with a clear opinion supported by relevant examples.",
+    "Coherence and Cohesion": "Uses effective paragraphing and logical connectors (on the one hand, in contrast, overall) to maintain flow.",
+    "Lexical Resource": "Demonstrates flexibility with vocabulary related to education, technology, and learning methods.",
+    "Grammatical Range and Accuracy": "Uses complex and compound sentences with strong control of tense, punctuation, and subject-verb agreement."
+  },
+  "band_estimation_guidelines": {
+    "CLB6": "Presents both sides but lacks clarity or balance in argumentation.",
+    "CLB7": "Generally clear with some lapses in linking or sentence structure.",
+    "CLB8": "Well-developed and cohesive discussion with accurate vocabulary and grammar.",
+    "CLB9": "Insightful, balanced essay with precise structure and excellent linguistic control."
+  }
+}
