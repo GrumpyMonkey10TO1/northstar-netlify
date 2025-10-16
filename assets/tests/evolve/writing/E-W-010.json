@@ -2,18 +2,19 @@
   "task_id": "E-W-010",
   "task_type": "Writing Task 1 (General Training)",
   "prompt": "You recently bought an electronic item online and received the wrong product. Write a letter to the company explaining the issue and requesting a replacement.",
-  "word_limit": "150+",
+  "time_limit": 20,
+  "word_limit": 150,
   "context": "Complaint Letter",
   "rubric": {
-    "task_achievement": "Explains the problem clearly and proposes a solution politely.",
-    "coherence_cohesion": "Logical paragraphing and appropriate transitions (firstly, furthermore, therefore).",
-    "lexical_resource": "Accurate vocabulary for complaints and customer service (refund, replacement, faulty).",
-    "grammar_range_accuracy": "Uses past tense accurately, polite modals, and correct punctuation."
+    "Task Achievement": "Clearly explains the issue, includes relevant purchase details, and politely requests an appropriate resolution.",
+    "Coherence and Cohesion": "Uses clear paragraphing and smooth transitions (firstly, furthermore, therefore) to organize ideas logically.",
+    "Lexical Resource": "Accurate and natural use of vocabulary for consumer issues (refund, replacement, faulty, defective, customer service).",
+    "Grammatical Range and Accuracy": "Uses past and present perfect tenses correctly, applies polite modal forms, and maintains correct punctuation throughout."
   },
   "band_estimation_guidelines": {
-    "CLB6": "Provides general explanation but may miss detail or clarity.",
-    "CLB7": "Covers all points with minor errors in tone or structure.",
-    "CLB8": "Clear, polite, and concise letter with good cohesion.",
-    "CLB9": "Natural and professional tone with perfect grammatical control."
+    "CLB6": "Provides a basic explanation but may lack detail, clarity, or formal tone.",
+    "CLB7": "Covers all points with minor issues in tone, grammar, or organization.",
+    "CLB8": "Polite, cohesive, and well-structured response with accurate vocabulary and grammar.",
+    "CLB9": "Fully developed, professional, and natural letter with perfect tone and grammatical accuracy."
   }
 }
