@@ -13,18 +13,27 @@
     Access-Control-Allow-Headers = "Content-Type, Authorization"
     Access-Control-Max-Age = "86400"
 
-# Allow JSON and static assets to load directly from /assets/
+# Allow JSON and other static assets (tests, images, etc.) to load directly
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type"
+
+# Ensure JSON and media assets can be fetched directly without redirect issues
 [[redirects]]
   from = "/assets/*"
   to = "/assets/:splat"
   status = 200
   force = true
 
-# Default fallback redirect for all other routes
+# Default fallback redirect for single-page apps (your Elementor setup)
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
 
 
 
