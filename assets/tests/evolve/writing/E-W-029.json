@@ -1,0 +1,20 @@
+{
+  "task_id": "E-W-029",
+  "task_type": "Writing Task 2 (Academic / General)",
+  "prompt": "Smartphones have greatly changed the way people communicate with each other. Do the advantages of this development outweigh the disadvantages?",
+  "time_limit": 40,
+  "word_limit": 250,
+  "context": "Technology and Communication – Advantages vs. Disadvantages Essay",
+  "rubric": {
+    "Task Response": "Presents a clear argument discussing both the benefits and drawbacks of smartphone-based communication and provides a balanced conclusion.",
+    "Coherence and Cohesion": "Maintains logical flow with clear transitions such as 'on the positive side', 'in contrast', and 'overall'.",
+    "Lexical Resource": "Uses vocabulary related to technology, communication, and social behavior naturally and precisely.",
+    "Grammatical Range and Accuracy": "Demonstrates accurate and flexible use of complex sentences, including relative clauses and contrastive structures."
+  },
+  "band_estimation_guidelines": {
+    "CLB6": "Identifies some advantages and disadvantages but lacks balance or detail.",
+    "CLB7": "Covers both sides clearly but may have inconsistent structure or examples.",
+    "CLB8": "Balanced and well-organized discussion with accurate vocabulary and grammar.",
+    "CLB9": "Insightful analysis with nuanced reasoning, advanced cohesion, and excellent grammatical control."
+  }
+}
