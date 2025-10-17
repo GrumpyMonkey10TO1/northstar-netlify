@@ -1,0 +1,20 @@
+{
+  "task_id": "E-W-028",
+  "task_type": "Writing Task 2 (Academic / General)",
+  "prompt": "Modern diets and sedentary lifestyles are leading to serious health problems in many parts of the world. What are the causes of this situation, and what measures can be taken to improve people’s health?",
+  "time_limit": 40,
+  "word_limit": 250,
+  "context": "Health and Lifestyle – Cause and Solution Essay",
+  "rubric": {
+    "Task Response": "Explains the main causes and proposes practical solutions to improve public health with examples and reasoning.",
+    "Coherence and Cohesion": "Logical flow between causes and solutions using linking words such as 'as a result', 'to address this issue', 'therefore'.",
+    "Lexical Resource": "Uses topic-specific vocabulary related to diet, fitness, and healthcare accurately.",
+    "Grammatical Range and Accuracy": "Uses a range of complex and compound structures, including conditionals and participial phrases, with high accuracy."
+  },
+  "band_estimation_guidelines": {
+    "CLB6": "Identifies basic causes or solutions but lacks clear development.",
+    "CLB7": "Covers both sides adequately with some unevenness in detail or cohesion.",
+    "CLB8": "Well-developed and logically structured essay with accurate vocabulary.",
+    "CLB9": "Insightful, cohesive, and linguistically precise with excellent control of complex grammar."
+  }
+}
