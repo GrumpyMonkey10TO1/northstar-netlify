@@ -1,0 +1,20 @@
+{
+  "task_id": "E-W-026",
+  "task_type": "Writing Task 2 (Academic / General)",
+  "prompt": "Some people think schools should focus more on teaching practical skills for employment, while others believe academic subjects are more important. Discuss both views and give your opinion.",
+  "time_limit": 40,
+  "word_limit": 250,
+  "context": "Education Reform – Discussion + Opinion Essay",
+  "rubric": {
+    "Task Response": "Examines both perspectives on education focus and provides a clear, well-supported opinion.",
+    "Coherence and Cohesion": "Uses balanced paragraphing with effective transitions (on one side, however, in conclusion).",
+    "Lexical Resource": "Accurate and flexible use of vocabulary related to education, skills, and the job market.",
+    "Grammatical Range and Accuracy": "Uses a range of complex sentences, conditionals, and relative clauses accurately with appropriate punctuation."
+  },
+  "band_estimation_guidelines": {
+    "CLB6": "Addresses both views but may be uneven or lack strong examples.",
+    "CLB7": "Reasonably balanced discussion with some lapses in linking or clarity.",
+    "CLB8": "Well-developed argument with accurate vocabulary and natural cohesion.",
+    "CLB9": "Insightful, logically structured essay with sophisticated control of grammar and tone."
+  }
+}
