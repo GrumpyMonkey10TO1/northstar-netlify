@@ -1,0 +1,20 @@
+{
+  "task_id": "E-W-031",
+  "task_type": "Writing Task 2 (Academic / General)",
+  "prompt": "Social media platforms are changing the way people form and maintain relationships. Do the advantages of this trend outweigh the disadvantages?",
+  "time_limit": 40,
+  "word_limit": 250,
+  "context": "Social Media and Society – Advantages vs. Disadvantages Essay",
+  "rubric": {
+    "Task Response": "Evaluates both positive and negative effects of social media on relationships, presenting a clear and well-supported opinion.",
+    "Coherence and Cohesion": "Maintains logical organization with connectors like 'on one hand', 'in contrast', and 'to conclude'.",
+    "Lexical Resource": "Uses vocabulary related to communication, social networking, and interpersonal relationships accurately and naturally.",
+    "Grammatical Range and Accuracy": "Shows accurate control over complex structures including conditionals, contrastive clauses, and participial phrases."
+  },
+  "band_estimation_guidelines": {
+    "CLB6": "Covers both sides but lacks depth or clear examples.",
+    "CLB7": "Explains main ideas clearly with occasional lapses in precision or balance.",
+    "CLB8": "Balanced and fluent essay with appropriate vocabulary and cohesive devices.",
+    "CLB9": "Insightful, well-developed argument with excellent cohesion and precise language control."
+  }
+}
