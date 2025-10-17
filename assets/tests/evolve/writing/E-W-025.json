@@ -1,0 +1,20 @@
+{
+  "task_id": "E-W-025",
+  "task_type": "Writing Task 2 (Academic / General)",
+  "prompt": "Some people believe that governments should prioritize environmental protection even if it means slowing down economic growth. Do you agree or disagree?",
+  "time_limit": 40,
+  "word_limit": 250,
+  "context": "Opinion Essay – Environment vs. Economy",
+  "rubric": {
+    "Task Response": "Presents a clear position on whether environmental protection should take priority over economic growth, supported by relevant and balanced arguments.",
+    "Coherence and Cohesion": "Uses logical structure and cohesive devices such as 'while', 'although', 'on balance', and 'nevertheless'.",
+    "Lexical Resource": "Employs topic-specific vocabulary related to sustainability, economics, and governance accurately.",
+    "Grammatical Range and Accuracy": "Shows consistent control of complex grammatical forms including concessive clauses and passive constructions."
+  },
+  "band_estimation_guidelines": {
+    "CLB6": "States an opinion but may lack full development or balance.",
+    "CLB7": "Covers both sides but lacks depth or precise cohesion.",
+    "CLB8": "Develops ideas clearly with accurate academic tone and vocabulary.",
+    "CLB9": "Sophisticated argumentation with nuanced reasoning and excellent language control."
+  }
+}
