@@ -1,0 +1,20 @@
+{
+  "task_id": "E-W-020",
+  "task_type": "Writing Task 2 (Academic / General)",
+  "prompt": "In many large cities around the world, traffic congestion is becoming a major problem. What are the causes of this issue, and what solutions can be implemented to address it?",
+  "time_limit": 40,
+  "word_limit": 250,
+  "context": "Problem–Solution Essay",
+  "rubric": {
+    "Task Response": "Identifies at least one clear cause and one practical solution, explaining both with examples and logical reasoning.",
+    "Coherence and Cohesion": "Presents ideas in a clear cause–solution structure using connectors such as 'as a result', 'therefore', 'to tackle this problem'.",
+    "Lexical Resource": "Demonstrates range of vocabulary related to urban development, transport, and public policy accurately.",
+    "Grammatical Range and Accuracy": "Uses complex sentence forms, conditionals, and passive structures effectively with minimal grammatical errors."
+  },
+  "band_estimation_guidelines": {
+    "CLB6": "Identifies basic problems and solutions but lacks clarity or development.",
+    "CLB7": "Explains causes and solutions with some lapses in cohesion or detail.",
+    "CLB8": "Well-organized and logically developed essay with accurate vocabulary and grammar.",
+    "CLB9": "Fully cohesive and insightful analysis with precise control of structure and advanced expressions."
+  }
+}
