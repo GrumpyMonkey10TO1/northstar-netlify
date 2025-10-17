@@ -1,0 +1,20 @@
+{
+  "task_id": "E-W-018",
+  "task_type": "Writing Task 2 (Academic / General)",
+  "prompt": "In recent years, fewer young people are reading books for pleasure. What are the main causes of this trend, and what effects might it have on individuals and society?",
+  "time_limit": 40,
+  "word_limit": 250,
+  "context": "Cause–Effect Essay",
+  "rubric": {
+    "Task Response": "Clearly explains at least one major cause and one significant effect with relevant examples and analysis.",
+    "Coherence and Cohesion": "Ideas are logically organized with smooth transitions between causes and effects (as a result, consequently, therefore).",
+    "Lexical Resource": "Uses vocabulary related to reading habits, education, technology, and culture accurately and naturally.",
+    "Grammatical Range and Accuracy": "Employs a range of complex sentence forms and cohesive devices with good control of tense and punctuation."
+  },
+  "band_estimation_guidelines": {
+    "CLB6": "Identifies basic causes and effects but lacks detailed explanation or structure.",
+    "CLB7": "Covers causes and effects clearly but may have some repetitive phrasing or minor grammar issues.",
+    "CLB8": "Well-developed essay with logical progression and accurate language use.",
+    "CLB9": "Sophisticated and fully cohesive discussion with excellent control of grammar and vocabulary."
+  }
+}
