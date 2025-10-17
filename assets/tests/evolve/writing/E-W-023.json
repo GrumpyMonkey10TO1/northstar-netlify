@@ -1,0 +1,20 @@
+{
+  "task_id": "E-W-023",
+  "task_type": "Writing Task 2 (Academic / General)",
+  "prompt": "Children today spend much more time looking at screens than in the past. What are the causes of this trend, and what effects does it have on their development?",
+  "time_limit": 40,
+  "word_limit": 250,
+  "context": "Cause and Effect Essay",
+  "rubric": {
+    "Task Response": "Explains at least one major cause and one significant effect with clear examples and reasoning.",
+    "Coherence and Cohesion": "Maintains logical flow between causes and effects using connectors such as 'as a result', 'because of', 'this leads to'.",
+    "Lexical Resource": "Uses precise vocabulary related to technology, education, and child psychology.",
+    "Grammatical Range and Accuracy": "Employs a variety of complex structures including conditionals and relative clauses accurately."
+  },
+  "band_estimation_guidelines": {
+    "CLB6": "Describes causes or effects briefly without clear linkage.",
+    "CLB7": "Identifies both sides but may lack depth or smooth transitions.",
+    "CLB8": "Clear, balanced, and cohesive explanation with accurate vocabulary.",
+    "CLB9": "Insightful analysis with seamless cohesion, precise lexical choice, and excellent grammatical control."
+  }
+}
