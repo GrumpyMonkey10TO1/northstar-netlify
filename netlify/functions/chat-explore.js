@@ -2,6 +2,9 @@ import OpenAI from "openai";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// --- Conversation memory (keeps recent exchanges per session) ---
+let conversationMemory = [];
+
 export const handler = async (event) => {
   // --- Handle preflight CORS ---
   if (event.httpMethod === "OPTIONS") {
@@ -44,21 +47,32 @@ When users ask about immigration, reference IRCC procedures accurately. When abo
 Keep replies factual and friendly, as if explaining to someone abroad preparing to immigrate to Canada.
     `.trim();
 
-    // --- Query OpenAI model ---
+    // --- Add user message to memory ---
+    conversationMemory.push({ role: "user", content: userMessage });
+
+    // --- Keep last 10 exchanges to prevent overload ---
+    if (conversationMemory.length > 10) {
+      conversationMemory = conversationMemory.slice(-10);
+    }
+
+    // --- Query OpenAI model with full memory ---
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.7,
       max_tokens: 900,
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: userMessage },
+        ...conversationMemory,
       ],
     });
 
     // --- Extract and clean model output ---
     let reply = completion.choices?.[0]?.message?.content?.trim() || "No response.";
 
-    // --- Split response into manageable chunks ---
+    // --- Add assistant reply to memory for continuity ---
+    conversationMemory.push({ role: "assistant", content: reply });
+
+    // --- Split into manageable chunks for frontend display ---
     const chunks = chunkText(reply, 400);
     const first = chunks.shift() || "No reply.";
     const remaining = chunks;
@@ -81,7 +95,7 @@ Keep replies factual and friendly, as if explaining to someone abroad preparing 
   }
 };
 
-// --- Chunk long text into smaller replies ---
+// --- Helper: Split long replies into chunks ---
 function chunkText(text, maxLen) {
   const words = text.split(/\s+/);
   const chunks = [];
@@ -95,11 +109,12 @@ function chunkText(text, maxLen) {
       current += " " + w;
     }
   }
+
   if (current.trim()) chunks.push(current.trim());
   return chunks;
 }
 
-// --- CORS headers ---
+// --- Helper: CORS headers ---
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": "https://migratenorth.ca",
