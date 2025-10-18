@@ -31,7 +31,6 @@ export const handler = async (event) => {
     const THIRTY_MINUTES = 1800000;
     const now = Date.now();
     const isExpired = now - sessionTime > THIRTY_MINUTES;
-
     let conversationMemory = isExpired ? [] : previousMemory;
 
     if (!userMessage) {
@@ -53,19 +52,19 @@ When users ask about immigration, reference IRCC procedures accurately. When abo
 Keep replies factual and friendly, as if explaining to someone abroad preparing to immigrate to Canada.
     `.trim();
 
-    // --- Add new user message ---
+    // --- Add new user message to memory ---
     conversationMemory.push({ role: "user", content: userMessage });
 
-    // --- Trim memory to last 12 messages ---
+    // --- Keep memory concise (last 12 messages) ---
     if (conversationMemory.length > 12) {
       conversationMemory = conversationMemory.slice(-12);
     }
 
-    // --- Query model ---
+    // --- Query OpenAI model ---
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.7,
-      max_tokens: 900,
+      max_tokens: 1200, // increased from 900 for longer complete answers
       messages: [
         { role: "system", content: systemPrompt },
         ...conversationMemory,
@@ -73,28 +72,22 @@ Keep replies factual and friendly, as if explaining to someone abroad preparing 
     });
 
     let reply = completion.choices?.[0]?.message?.content?.trim() || "No response.";
+    console.log("✅ Explore bot full reply (first 200 chars):", reply.slice(0, 200));
 
-    // --- Add assistant reply ---
+    // --- Save reply in memory ---
     conversationMemory.push({ role: "assistant", content: reply });
 
-    // --- Split into chunks ---
-    const chunks = chunkText(reply, 400);
-    const first = chunks.shift() || "No reply.";
-    const remaining = chunks;
-
-    console.log("✅ Explore bot:", first.slice(0, 200), "...");
-    if (remaining.length > 0) console.log("➡ Remaining chunks:", remaining.length);
-
+    // --- Return full reply (no truncation) ---
     return {
       statusCode: 200,
       headers: corsHeaders(),
       body: JSON.stringify({
-        reply: first,
-        remaining,
+        reply,
         memory: conversationMemory,
         timestamp: now,
       }),
     };
+
   } catch (err) {
     console.error("❌ Explore bot error:", err);
     return {
@@ -104,23 +97,6 @@ Keep replies factual and friendly, as if explaining to someone abroad preparing 
     };
   }
 };
-
-// --- Helper: Split long replies into chunks ---
-function chunkText(text, maxLen) {
-  const words = text.split(/\s+/);
-  const chunks = [];
-  let current = "";
-  for (const w of words) {
-    if ((current + " " + w).length > maxLen) {
-      chunks.push(current.trim());
-      current = w;
-    } else {
-      current += " " + w;
-    }
-  }
-  if (current.trim()) chunks.push(current.trim());
-  return chunks;
-}
 
 // --- Helper: CORS headers ---
 function corsHeaders() {
