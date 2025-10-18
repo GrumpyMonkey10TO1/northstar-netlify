@@ -30,12 +30,12 @@ export const handler = async (event, context) => {
     // --- SYSTEM PROMPT ---
     const systemPrompt = `
 You are North Star GPS, the official AI guide of Migrate North Academy.
-You assist users on immigration and IELTS matters with accuracy, clarity, and professionalism.
-Your responses are factual, concise, and written in clear English.
-Do not use filler phrases like "Show more", "TShow more", or "---".
+You provide factual, professional, and encouraging answers about immigration and IELTS.
+Respond clearly, conversationally, and never include phrases like “TShow more”, “EShow more”, “Show more”, or any token artifacts.
+Keep your tone calm, helpful, and complete your explanations naturally.
 `.trim();
 
-    // --- CALL OPENAI ---
+    // --- OPENAI CALL ---
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.7,
@@ -46,17 +46,17 @@ Do not use filler phrases like "Show more", "TShow more", or "---".
       ],
     });
 
-    // --- CLEAN RAW REPLY ---
     let fullReply = completion.choices?.[0]?.message?.content?.trim() || "";
 
-    // Remove any garbage prefixes like “TShow more”, “Show more —”, or similar artifacts
+    // ✅ STRONG SANITATION FIX — removes “TShow more”, “EShow more”, “Show more”, etc., anywhere in text
     fullReply = fullReply
-      .replace(/^T?Show\s*more[—:\-]*/gi, "")
-      .replace(/^["'\-\s]+|["'\-\s]+$/g, "")
-      .replace(/\s{2,}/g, " ")
+      .replace(/\b[TE]?Show\s*more[—:\-\s]*/gi, "") // remove TShow more, EShow more, etc.
+      .replace(/—+/g, " ") // remove stray em dashes or artifacts
+      .replace(/\s{2,}/g, " ") // compress double spaces
+      .replace(/^[\-\s]+|[\-\s]+$/g, "") // trim leftover punctuation
       .trim();
 
-    // --- SPLIT LONG REPLIES INTO CHUNKS ---
+    // --- SPLIT INTO CHUNKS FOR CONTINUATION ---
     const chunks = [];
     const sentences = fullReply.split(/(?<=[.!?])\s+/);
     let current = "";
@@ -89,7 +89,7 @@ Do not use filler phrases like "Show more", "TShow more", or "---".
   }
 };
 
-// --- CORS HEADERS ---
+// --- CORS ---
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": "https://migratenorth.ca",
