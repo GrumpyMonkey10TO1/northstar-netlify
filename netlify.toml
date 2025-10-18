@@ -4,6 +4,7 @@
 
 [functions]
   node_bundler = "esbuild"
+  directory = "netlify/functions"
 
 [[headers]]
   for = "/.netlify/functions/*"
@@ -12,6 +13,7 @@
     Access-Control-Allow-Methods = "GET, POST, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type, Authorization"
     Access-Control-Max-Age = "86400"
+    Cache-Control = "no-cache, no-store, must-revalidate"
 
 # Allow JSON and other static assets (tests, images, etc.) to load directly
 [[headers]]
@@ -33,7 +35,6 @@
   from = "/*"
   to = "/index.html"
   status = 200
-
 
 
 
