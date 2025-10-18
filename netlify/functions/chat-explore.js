@@ -2,9 +2,6 @@ import OpenAI from "openai";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// --- Conversation memory (keeps recent exchanges per session) ---
-let conversationMemory = [];
-
 export const handler = async (event) => {
   // --- Handle preflight CORS ---
   if (event.httpMethod === "OPTIONS") {
@@ -27,6 +24,15 @@ export const handler = async (event) => {
   try {
     const body = JSON.parse(event.body || "{}");
     const userMessage = (body.message || "").trim();
+    const previousMemory = body.memory || [];
+    const sessionTime = body.timestamp || Date.now();
+
+    // Expire memory after 30 minutes (1800000 ms)
+    const THIRTY_MINUTES = 1800000;
+    const now = Date.now();
+    const isExpired = now - sessionTime > THIRTY_MINUTES;
+
+    let conversationMemory = isExpired ? [] : previousMemory;
 
     if (!userMessage) {
       return {
@@ -47,15 +53,15 @@ When users ask about immigration, reference IRCC procedures accurately. When abo
 Keep replies factual and friendly, as if explaining to someone abroad preparing to immigrate to Canada.
     `.trim();
 
-    // --- Add user message to memory ---
+    // --- Add new user message ---
     conversationMemory.push({ role: "user", content: userMessage });
 
-    // --- Keep last 10 exchanges to prevent overload ---
-    if (conversationMemory.length > 10) {
-      conversationMemory = conversationMemory.slice(-10);
+    // --- Trim memory to last 12 messages ---
+    if (conversationMemory.length > 12) {
+      conversationMemory = conversationMemory.slice(-12);
     }
 
-    // --- Query OpenAI model with full memory ---
+    // --- Query model ---
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.7,
@@ -66,24 +72,28 @@ Keep replies factual and friendly, as if explaining to someone abroad preparing 
       ],
     });
 
-    // --- Extract and clean model output ---
     let reply = completion.choices?.[0]?.message?.content?.trim() || "No response.";
 
-    // --- Add assistant reply to memory for continuity ---
+    // --- Add assistant reply ---
     conversationMemory.push({ role: "assistant", content: reply });
 
-    // --- Split into manageable chunks for frontend display ---
+    // --- Split into chunks ---
     const chunks = chunkText(reply, 400);
     const first = chunks.shift() || "No reply.";
     const remaining = chunks;
 
-    console.log("✅ Explore bot response:", first.slice(0, 200), "...");
+    console.log("✅ Explore bot:", first.slice(0, 200), "...");
     if (remaining.length > 0) console.log("➡ Remaining chunks:", remaining.length);
 
     return {
       statusCode: 200,
       headers: corsHeaders(),
-      body: JSON.stringify({ reply: first, remaining }),
+      body: JSON.stringify({
+        reply: first,
+        remaining,
+        memory: conversationMemory,
+        timestamp: now,
+      }),
     };
   } catch (err) {
     console.error("❌ Explore bot error:", err);
@@ -100,7 +110,6 @@ function chunkText(text, maxLen) {
   const words = text.split(/\s+/);
   const chunks = [];
   let current = "";
-
   for (const w of words) {
     if ((current + " " + w).length > maxLen) {
       chunks.push(current.trim());
@@ -109,7 +118,6 @@ function chunkText(text, maxLen) {
       current += " " + w;
     }
   }
-
   if (current.trim()) chunks.push(current.trim());
   return chunks;
 }
