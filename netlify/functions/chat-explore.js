@@ -1,9 +1,10 @@
 import OpenAI from "openai";
 
+// Initialize OpenAI client
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export const handler = async (event) => {
-  // --- Handle preflight CORS ---
+  // --- Handle CORS preflight ---
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -12,7 +13,7 @@ export const handler = async (event) => {
     };
   }
 
-  // --- Allow only POST requests ---
+  // --- Reject non-POST requests ---
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -33,16 +34,18 @@ export const handler = async (event) => {
       };
     }
 
-    // --- System personality ---
+    // --- System prompt / personality definition ---
     const systemPrompt = `
 You are North Star GPS, an AI immigration and IELTS assistant for Migrate North Academy.
-You explain things in clear, friendly English that is easy for international audiences to follow.
-Avoid robotic tone. Use short paragraphs, examples, and transitions.
-You are accurate, calm, and professional, speaking like a Canadian immigration consultant (RCIC #R712582),
-but approachable and encouraging. Always assume the user is abroad and might be learning English.
+You are calm, clear, and professional, like a licensed RCIC consultant (RCIC #R712582).
+Your goal is to help international users understand Canadian immigration and IELTS systems.
+Explain concepts in simple English with natural flow, short paragraphs, and smooth transitions.
+Avoid robotic tone, avoid filler like "Sure!" or "Of course!", and never show system tags like "Show more".
+When users ask about immigration, reference IRCC procedures accurately. When about IELTS, be educational.
+Keep replies factual and friendly, as if explaining to someone abroad preparing to immigrate to Canada.
     `.trim();
 
-    // --- Call OpenAI ---
+    // --- Query OpenAI model ---
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.7,
@@ -53,33 +56,19 @@ but approachable and encouraging. Always assume the user is abroad and might be 
       ],
     });
 
+    // --- Extract and clean model output ---
     let reply = completion.choices?.[0]?.message?.content?.trim() || "No response.";
 
-    // --- Clean text (strip artifacts like TShow more) ---
-    reply = reply
-      .replace(/[\u0000-\u001F\u007F-\u009F]/g, "")
-      .replace(/\b[TE]?Show\s*more[—:\-\s]*/gi, "")
-      .replace(/—+/g, " ")
-      .replace(/\s{2,}/g, " ")
-      .trim();
+    reply = sanitizeText(reply);
 
-    // --- Split into chunks safely ---
-    const words = reply.split(/\s+/);
-    const chunks = [];
-    let current = "";
-
-    for (const w of words) {
-      if ((current + " " + w).length > 400) {
-        chunks.push(current.trim());
-        current = w;
-      } else {
-        current += " " + w;
-      }
-    }
-    if (current.trim()) chunks.push(current.trim());
-
+    // --- Split response into manageable chunks ---
+    const chunks = chunkText(reply, 400);
     const first = chunks.shift() || "No reply.";
     const remaining = chunks;
+
+    // --- Debug log (not shown to users) ---
+    console.log("✅ Explore bot response (cleaned):", first.slice(0, 200), "...");
+    if (remaining.length > 0) console.log("➡ Remaining chunks:", remaining.length);
 
     return {
       statusCode: 200,
@@ -96,6 +85,40 @@ but approachable and encouraging. Always assume the user is abroad and might be 
   }
 };
 
+// --- Text cleanup utility ---
+function sanitizeText(text) {
+  if (!text) return "";
+
+  return text
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, "")            // invisible characters
+    .replace(/[A-Z]?\s?Show\s*more[^\w]*/gi, "")             // remove "Show more", "TShow more", etc.
+    .replace(/\b[Ss]?ure!?/g, "")                            // remove stray "Sure!"
+    .replace(/^[\-\s\_]+|[\-\s\_]+$/g, "")                   // trim leftover hyphens/spaces
+    .replace(/—+/g, " ")                                     // replace em dashes
+    .replace(/\s{2,}/g, " ")                                 // collapse double spaces
+    .replace(/^\W+/, "")                                     // strip weird symbols at start
+    .trim();
+}
+
+// --- Chunk long text into smaller replies ---
+function chunkText(text, maxLen) {
+  const words = text.split(/\s+/);
+  const chunks = [];
+  let current = "";
+
+  for (const w of words) {
+    if ((current + " " + w).length > maxLen) {
+      chunks.push(current.trim());
+      current = w;
+    } else {
+      current += " " + w;
+    }
+  }
+  if (current.trim()) chunks.push(current.trim());
+  return chunks;
+}
+
+// --- CORS headers ---
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": "https://migratenorth.ca",
