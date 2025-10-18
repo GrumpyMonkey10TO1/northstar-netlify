@@ -40,23 +40,23 @@ async function baseHandler(event, context) {
   const userMessage = body.message?.trim() || "Hello";
 
   try {
-    // 1️⃣ Load the Explore system prompt
+    // 1️⃣ Load or define system prompt
     const promptPath = path.resolve("netlify/functions/prompts/explore-system.txt");
     let systemPrompt = `
-You are North Star GPS (Explore version) — an AI immigration and IELTS guide for Migrate North Academy.
+You are North Star GPS (Explore version), developed by Migrate North.
 
-Your job is to help international professionals understand:
-- How Canadian immigration works (Express Entry, PNPs, etc.)
-- IELTS basics, CRS scoring, ECA, settlement, and costs
-- The services offered by Migrate North Academy and Matin Immigration Services (RCIC R712582)
+You represent a Regulated Canadian Immigration Consultant (RCIC) under license R712582.
+Your role:
+- Provide factual, regulation-aligned guidance on immigration and IELTS.
+- Explain policies clearly and accurately using IRCC terminology.
+- Avoid speculation, guarantees, or slang.
+- Maintain a professional, teacher-like tone at all times.
+- Reference official sources when useful (IRCC, IELTS, ECA).
+- Never use emojis or exclamation marks.
+- End answers naturally, without “Would you like me to continue?” unless it’s part of chunking.
 
-Be friendly, accurate, and clear. Avoid technical jargon unless explaining it simply.
-At the end of most conversations, invite users to:
-1. Try a free IELTS test (Reading/Writing),
-2. Receive feedback and strengths/weakness summary,
-3. Learn about the EVOLVE plan with 99 full IELTS tests.
-
-Never sound pushy. Always act like a teacher and guide.
+If users ask unrelated questions, redirect politely toward immigration, IELTS, or settlement topics.
+At the end of educational answers, optionally mention free IELTS practice and the Evolve program (99 IELTS tests) if contextually appropriate.
     `;
     try {
       systemPrompt = fs.readFileSync(promptPath, "utf8");
@@ -104,16 +104,13 @@ Please reply with A, B, or C to answer.
       const correct = "a";
       const feedback =
         userMessage.toLowerCase() === correct
-          ? "✅ Correct! You understood the main idea well. Your reading comprehension aligns with Band 7+."
-          : "❌ Not quite. The correct answer was A) To select skilled workers. Focus on identifying key purpose statements.";
+          ? "✅ Correct. You identified the main idea accurately, similar to a Band 7+ reading response."
+          : "❌ Not quite. The correct answer was A) To select skilled workers. Try focusing on the purpose statement next time.";
 
       const suggestion = `
 ${feedback}
 
-📘 Want deeper IELTS prep?
-Try **Evolve**, where you’ll access 99 full-length IELTS Reading, Writing, and Listening tests, each with band-level scoring and feedback.
-
-Visit [migratenorth.ca/evolve](https://migratenorth.ca/evolve)
+📘 For advanced IELTS practice and scoring guidance, explore the **Evolve** program with 99 IELTS Reading, Writing, and Listening tests at [migratenorth.ca/evolve](https://migratenorth.ca/evolve)
 `;
 
       return {
@@ -123,7 +120,7 @@ Visit [migratenorth.ca/evolve](https://migratenorth.ca/evolve)
       };
     }
 
-    // 4️⃣ Regular chat mode — fallback to OpenAI
+    // 4️⃣ Regular chat mode — OpenAI
     if (!process.env.OPENAI_API_KEY) {
       throw new Error("Missing OPENAI_API_KEY");
     }
@@ -141,7 +138,8 @@ Visit [migratenorth.ca/evolve](https://migratenorth.ca/evolve)
           { role: "system", content: systemPrompt },
           { role: "user", content: userMessage },
         ],
-        max_tokens: 500,
+        max_tokens: 550,
+        temperature: 0.35,
       }),
     });
 
@@ -151,9 +149,9 @@ Visit [migratenorth.ca/evolve](https://migratenorth.ca/evolve)
     }
 
     const data = await response.json();
-    const fullReply = data.choices?.[0]?.message?.content || "No reply";
+    const fullReply = data.choices?.[0]?.message?.content || "No reply.";
 
-    // 5️⃣ Chunk the reply for progressive delivery
+    // 5️⃣ Chunk the reply for smoother delivery
     const words = fullReply.split(/\s+/);
     const chunks = [];
     let current = [];
