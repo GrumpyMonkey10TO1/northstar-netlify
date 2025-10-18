@@ -1,128 +1,105 @@
-// /netlify/functions/chat-evolve.js
+// netlify/functions/chat-explore.js
 import OpenAI from "openai";
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const CORS_HEADERS = {
-  "Content-Type": "application/json",
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type"
-};
+export const handler = async (event, context) => {
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 200, headers: corsHeaders(), body: "ok" };
+  }
 
-export default async (req) => {
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      headers: corsHeaders(),
+      body: JSON.stringify({ error: "Method not allowed" }),
+    };
+  }
+
   try {
-    // --- Handle CORS preflight (OPTIONS) ---
-    if (req.method && req.method.toUpperCase() === "OPTIONS") {
-      return new Response(null, { status: 204, headers: CORS_HEADERS });
+    const body = JSON.parse(event.body || "{}");
+    const userMessage = body.message?.trim();
+    if (!userMessage) {
+      return {
+        statusCode: 400,
+        headers: corsHeaders(),
+        body: JSON.stringify({ error: "Missing message" }),
+      };
     }
 
-    // --- Safely read and parse incoming body ---
-    const bodyText = await req.text();
-    let message = "";
-    try {
-      const parsed = JSON.parse(bodyText || "{}");
-      message = parsed.message || "";
-    } catch {
-      message = "";
-    }
-
-    // --- Handle empty input gracefully ---
-    if (!message) {
-      return new Response(
-        JSON.stringify({ reply: "No message received by Evolve function." }),
-        { status: 400, headers: CORS_HEADERS }
-      );
-    }
-
-    // ----------------------------
-    // HANDLE WRITING TASK REQUESTS
-    // ----------------------------
-    if (message.toLowerCase().includes("writing task") || message.toLowerCase().includes("writing test")) {
-      try {
-        // List of available writing tasks (expand this as you create more)
-        const tasks = [
-          "E-W-001.json",
-          "E-W-002.json",
-          "E-W-003.json",
-          "E-W-004.json",
-          "E-W-005.json"
-        ];
-
-        // Randomly pick one
-        const randomTask = tasks[Math.floor(Math.random() * tasks.length)];
-
-        // Fetch the selected JSON file from your Netlify assets
-        const res = await fetch(`https://startling-faun-f9dddb.netlify.app/assets/tests/evolve/writing/${randomTask}`);
-        const testData = await res.json();
-
-        // Build response message
-        const reply = `📝 Writing Task: ${testData.task_id}\n\n${testData.prompt}\n\nWord limit: ${testData.word_limit}\n\nScoring focus: ${Object.keys(testData.rubric).join(", ")}.`;
-
-        return new Response(JSON.stringify({ reply }), { status: 200, headers: CORS_HEADERS });
-      } catch (err) {
-        console.error("Error loading writing test:", err);
-        return new Response(
-          JSON.stringify({ reply: "Sorry, I couldn't load the writing task right now." }),
-          { status: 500, headers: CORS_HEADERS }
-        );
-      }
-    }
-
-    // ----------------------------
-    // EVOLVE SYSTEM PROMPT
-    // ----------------------------
     const systemPrompt = `
-You are North Star GPS - Evolve, the AI learning coach of Migrate North Academy.
-Your role is to guide users through structured English proficiency development (IELTS & PTE).
-The Evolve program costs $100 and includes 99 simulation tests designed to help users gradually reach higher CLB levels by practice, feedback, and reflection.
+You are North Star GPS, the official AI guide of Migrate North Academy, created under the supervision of RCIC #R712582.
+Your mission is to help skilled professionals around the world understand immigration and IELTS clearly, without fear or confusion.
 
-Tone: friendly, precise, and motivating. Avoid any exaggeration or salesy tone.
+You speak with three layers of tone:
+1. Authority – accurate, IRCC-aligned.
+2. Empathy – like a calm mentor.
+3. Guidance – natural, forward-moving.
 
-Rules:
-1. Always respond in clear, easy-to-understand English.
-2. When a user asks about IELTS, explain strategies and structure (not just answers).
-3. If the topic involves test simulations, mention that the Evolve program simulates 99 practice tests of increasing difficulty.
-4. If asked about Explore or Elevate, summarize their purposes:
-   - Explore = Free tier for orientation and light learning.
-   - Evolve = Paid tier ($100) for serious IELTS/PTE prep and skill mastery.
-   - Elevate = Advanced immigration profile builder that includes everything from Evolve.
-5. Keep responses short and conversational unless the user explicitly requests depth.
-6. For every answer, you can suggest one follow-up action or question to keep engagement going.
-`;
+End each message gently with a next step, such as:
+"Would you like me to explain what documents you’d need for that?"
+or
+"Would you like to go over how CRS points are actually calculated?"
+`.trim();
 
-    // ----------------------------
-    // OPENAI CHAT CALL
-    // ----------------------------
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
+      temperature: 0.75,
+      max_tokens: 2000,
+      presence_penalty: 0.3,
+      frequency_penalty: 0.2,
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: message }
+        { role: "user", content: userMessage },
       ],
-      max_tokens: 400,
-      temperature: 0.8
     });
 
-    const reply = (completion.choices?.[0]?.message?.content || "").trim();
+    let fullReply = completion.choices?.[0]?.message?.content?.trim() || "";
 
-    // Split long replies into manageable chunks
-    const sentences = reply.split(/(?<=[.!?])\s+/);
-    const firstChunk = sentences.slice(0, 3).join(" ");
-    const remaining = sentences.slice(3);
+    fullReply = fullReply
+      .replace(/^[A-Z]?[a-z]?[ ]?[ST]how more[^\w]*/gi, "")
+      .replace(/^["']+|["']+$/g, "")
+      .replace(/(\s)+/g, " ")
+      .trim();
 
-    return new Response(
-      JSON.stringify({ reply: firstChunk, remaining }),
-      { status: 200, headers: CORS_HEADERS }
-    );
+    const chunks = [];
+    const sentences = fullReply.split(/(?<=[.!?])\s+/);
+    let current = "";
 
-  } catch (error) {
-    console.error("Evolve Function Error:", error);
-    return new Response(
-      JSON.stringify({ reply: "Sorry, something went wrong with Evolve chat." }),
-      { status: 500, headers: CORS_HEADERS }
-    );
+    for (const sentence of sentences) {
+      if ((current + " " + sentence).length > 600) {
+        chunks.push(current.trim());
+        current = sentence;
+      } else {
+        current += " " + sentence;
+      }
+    }
+    if (current.trim().length > 0) chunks.push(current.trim());
+
+    const first = chunks.shift() || "No reply received.";
+    const remaining = chunks;
+
+    return {
+      statusCode: 200,
+      headers: corsHeaders(),
+      body: JSON.stringify({ reply: first, remaining }),
+    };
+  } catch (err) {
+    console.error("❌ Explore bot error:", err);
+    return {
+      statusCode: 500,
+      headers: corsHeaders(),
+      body: JSON.stringify({ reply: `Server error: ${err.message}` }),
+    };
   }
 };
+
+function corsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": "https://migratenorth.ca",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Content-Type": "application/json",
+  };
+}
+
