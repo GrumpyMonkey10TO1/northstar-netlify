@@ -58,7 +58,6 @@ Keep replies factual and friendly, as if explaining to someone abroad preparing 
 
     // --- Extract and clean model output ---
     let reply = completion.choices?.[0]?.message?.content?.trim() || "No response.";
-
     reply = sanitizeText(reply);
 
     // --- Split response into manageable chunks ---
@@ -90,8 +89,9 @@ function sanitizeText(text) {
   if (!text) return "";
 
   return text
-    .replace(/[\u0000-\u001F\u007F-\u009F]/g, "")            // invisible characters
-    .replace(/[A-Z]?\s?Show\s*more[^\w]*/gi, "")             // remove "Show more", "TShow more", etc.
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, "")            // remove invisible characters
+    .replace(/(^E?\s?Show\s*more[\s–—\-:]*)/gi, "")          // remove "Show more", "EShow more", "Show more —", etc.
+    .replace(/[A-Z]?\s?Show\s*more[^\w]*/gi, "")             // remove stray mid-sentence instances
     .replace(/\b[Ss]?ure!?/g, "")                            // remove stray "Sure!"
     .replace(/^[\-\s\_]+|[\-\s\_]+$/g, "")                   // trim leftover hyphens/spaces
     .replace(/—+/g, " ")                                     // replace em dashes
