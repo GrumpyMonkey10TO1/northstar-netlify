@@ -3,7 +3,7 @@ import OpenAI from "openai";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-export const handler = async (event, context) => {
+export const handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 200, headers: corsHeaders(), body: "ok" };
   }
@@ -18,7 +18,7 @@ export const handler = async (event, context) => {
 
   try {
     const body = JSON.parse(event.body || "{}");
-    const userMessage = body.message?.trim();
+    const userMessage = (body.message || "").trim();
     if (!userMessage) {
       return {
         statusCode: 400,
@@ -30,12 +30,12 @@ export const handler = async (event, context) => {
     // --- SYSTEM PROMPT ---
     const systemPrompt = `
 You are North Star GPS, the official AI guide of Migrate North Academy.
-You provide factual, professional, and encouraging answers about immigration and IELTS.
-Respond clearly, conversationally, and never include phrases like “TShow more”, “EShow more”, “Show more”, or any token artifacts.
-Keep your tone calm, helpful, and complete your explanations naturally.
-`.trim();
+You help users understand immigration and IELTS clearly, calmly, and professionally.
+Never include debug markers like “TShow more”, “EShow more”, or any similar tokens.
+Your answers must read naturally and fully, as if speaking to an international audience.
+    `.trim();
 
-    // --- OPENAI CALL ---
+    // --- CALL OPENAI ---
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.7,
@@ -46,27 +46,28 @@ Keep your tone calm, helpful, and complete your explanations naturally.
       ],
     });
 
-    let fullReply = completion.choices?.[0]?.message?.content?.trim() || "";
+    // --- SAFELY CLEAN OUTPUT EARLY ---
+    let raw = completion.choices?.[0]?.message?.content || "";
 
-    // ✅ STRONG SANITATION FIX — removes “TShow more”, “EShow more”, “Show more”, etc., anywhere in text
-    fullReply = fullReply
-      .replace(/\b[TE]?Show\s*more[—:\-\s]*/gi, "") // remove TShow more, EShow more, etc.
-      .replace(/—+/g, " ") // remove stray em dashes or artifacts
-      .replace(/\s{2,}/g, " ") // compress double spaces
-      .replace(/^[\-\s]+|[\-\s]+$/g, "") // trim leftover punctuation
+    // Clean hidden Unicode junk + all TShow more variants, anywhere
+    raw = raw
+      .replace(/[\u0000-\u001F\u007F-\u009F]/g, "") // invisible control chars
+      .replace(/\b[TE]?Show\s*more[—:\-\s]*/gi, "") // all “TShow more”, “EShow more”, “Show more —”
+      .replace(/—+/g, " ")
+      .replace(/\s{2,}/g, " ")
+      .replace(/^[\-\s]+|[\-\s]+$/g, "")
       .trim();
 
-    // --- SPLIT INTO CHUNKS FOR CONTINUATION ---
+    // --- CHUNK LONG REPLIES ---
+    const sentences = raw.split(/(?<=[.!?])\s+/);
     const chunks = [];
-    const sentences = fullReply.split(/(?<=[.!?])\s+/);
     let current = "";
-
-    for (const sentence of sentences) {
-      if ((current + " " + sentence).length > 700) {
+    for (const s of sentences) {
+      if ((current + " " + s).length > 700) {
         chunks.push(current.trim());
-        current = sentence;
+        current = s;
       } else {
-        current += " " + sentence;
+        current += " " + s;
       }
     }
     if (current.trim()) chunks.push(current.trim());
