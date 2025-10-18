@@ -37,7 +37,7 @@ export const handler = async (event, context) => {
 You are North Star GPS, an AI immigration and IELTS assistant for Migrate North Academy.
 You provide accurate, calm, and professional guidance about Express Entry, CRS scoring,
 ECA, IELTS, and settlement. You speak like a licensed consultant (RCIC #R712582),
-clear, fact-based, and without marketing tone.
+clear, factual, and neutral — not promotional. Avoid phrases like “TShow more” or “EShow more”.
     `.trim();
 
     // --- OpenAI Call ---
@@ -51,19 +51,22 @@ clear, fact-based, and without marketing tone.
       ],
     });
 
-    const fullReply = completion.choices?.[0]?.message?.content?.trim() || "";
+    let fullReply = completion.choices?.[0]?.message?.content?.trim() || "";
 
-    // ✅ Word-safe chunking (no broken words)
-    const words = fullReply.split(/\s+/);
+    // ✅ Clean unwanted debug artifacts
+    fullReply = fullReply.replace(/^[TE]Show more[^\w]*/gi, "").trim();
+
+    // ✅ Sentence-safe chunking (splits only after ., ?, or !)
     const chunks = [];
+    const sentences = fullReply.split(/(?<=[.!?])\s+/);
     let current = "";
 
-    for (const word of words) {
-      if ((current + " " + word).length > 400) {
+    for (const sentence of sentences) {
+      if ((current + " " + sentence).length > 600) {
         chunks.push(current.trim());
-        current = word;
+        current = sentence;
       } else {
-        current += " " + word;
+        current += " " + sentence;
       }
     }
     if (current.trim().length > 0) chunks.push(current.trim());
@@ -95,4 +98,3 @@ function corsHeaders() {
     "Content-Type": "application/json",
   };
 }
-
