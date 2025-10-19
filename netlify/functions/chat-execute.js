@@ -1,4 +1,4 @@
-<!-- North Star Execute – Immigration File Assistant (Final Version: Resilient Init + Typewriter + Memory + Thinking Effect) -->
+<!-- North Star Execute – Immigration File Assistant (Fixed Version: Stable Button Logic + Reliable Init + Typewriter + Memory + Thinking Effect) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600&display=swap" rel="stylesheet">
@@ -248,134 +248,124 @@
 </div>
 
 <script>
-(function SafeBoot(){
+(function(){
   const FUNCTION_URL = "https://startling-faun-f9dddb.netlify.app/.netlify/functions/chat-execute";
-  let booted = false;
+  const body = document.getElementById("chat-body");
+  const input = document.getElementById("chat-input");
+  const send = document.getElementById("chat-send");
+  const reset = document.getElementById("chat-reset");
+  let typingBubble = null;
 
-  function start() {
-    if (booted) return;
-    booted = true;
+  function scrollDown(){ body.scrollTop = body.scrollHeight; }
+  function showTyping(){
+    if (typingBubble) return;
+    typingBubble = document.createElement("div");
+    typingBubble.className = "typing-bubble";
+    typingBubble.innerHTML = "<div class='dot'></div><div class='dot'></div><div class='dot'></div>";
+    body.appendChild(typingBubble);
+    scrollDown();
+  }
+  function hideTyping(){ if (typingBubble){ typingBubble.remove(); typingBubble = null; } }
 
-    const body = document.getElementById("chat-body");
-    const input = document.getElementById("chat-input");
-    const send = document.getElementById("chat-send");
-    const reset = document.getElementById("chat-reset");
-
-    let typingBubble = null;
-
-    // --- Error reporter ---
-    function reportError(msg){
-      const div = document.createElement("div");
-      div.className = "chat-message bot";
-      div.innerHTML = `<img class="avatar" src="https://migratenorth.ca/wp-content/uploads/2025/10/Gemini_Generated_Image_i9m78li9m78li9m7.png"><div class="chat-bubble" style="background:#ffd7d7;color:#5a1212;border:1px solid #b33;padding:10px;border-radius:10px;">⚠️ ${msg}</div>`;
-      body.appendChild(div);
-      body.scrollTop = body.scrollHeight;
-    }
-
-    // --- Memory helpers ---
-    function getMemory(){
-      try {
-        const m = JSON.parse(localStorage.getItem("execute_chat_memory") || "[]");
-        const ts = parseInt(localStorage.getItem("execute_chat_timestamp") || "0", 10);
-        if (Date.now() - ts > 1800000) { // 30 min
-          localStorage.removeItem("execute_chat_memory");
-          localStorage.removeItem("execute_chat_timestamp");
-          return [];
-        }
-        return Array.isArray(m) ? m : [];
-      } catch { return []; }
-    }
-    function saveMemory(m){
-      localStorage.setItem("execute_chat_memory", JSON.stringify(m));
-      localStorage.setItem("execute_chat_timestamp", Date.now().toString());
-    }
-
-    function scrollDown(){ body.scrollTop = body.scrollHeight; }
-    function showTyping(){
-      if (typingBubble) return;
-      typingBubble = document.createElement("div");
-      typingBubble.className = "typing-bubble";
-      typingBubble.innerHTML = "<div class='dot'></div><div class='dot'></div><div class='dot'></div>";
-      body.appendChild(typingBubble);
+  async function typeWriter(text, el){
+    for (const c of text){
+      el.textContent += c;
       scrollDown();
+      await new Promise(r => setTimeout(r, 18));
     }
-    function hideTyping(){ if (typingBubble) { typingBubble.remove(); typingBubble = null; } }
-
-    async function typeWriter(text, el){
-      for (const c of text){
-        el.textContent += c;
-        scrollDown();
-        await new Promise(r => setTimeout(r, 18));
-      }
-    }
-
-    function addMsg(role, text, tw=true){
-      const div = document.createElement("div");
-      div.className = "chat-message " + role;
-      const avatar = role === "user"
-        ? "https://migratenorth.ca/wp-content/uploads/2025/10/medical-banner-with-doctor-working-laptop-scaled.jpeg"
-        : "https://migratenorth.ca/wp-content/uploads/2025/10/Gemini_Generated_Image_i9m78li9m78li9m7.png";
-      if (role === "user") {
-        div.innerHTML = `<div class='chat-bubble'>${text}</div><img class='avatar' src='${avatar}'>`;
-      } else {
-        div.innerHTML = `<img class='avatar' src='${avatar}'><div class='chat-bubble'></div>`;
-        const bubble = div.querySelector(".chat-bubble");
-        if (tw) await typeWriter(text, bubble);
-        else bubble.textContent = text;
-      }
-      body.appendChild(div);
-      scrollDown();
-    }
-
-    async function sendToBackend(promptText){
-      showTyping();
-      try {
-        const memory = getMemory();
-        const ts = parseInt(localStorage.getItem("execute_chat_timestamp") || Date.now().toString(), 10);
-        const res = await fetch(FUNCTION_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: promptText.trim(), memory, timestamp: ts })
-        });
-        const data = await res.json();
-        hideTyping();
-        addMsg("bot", data.reply || "No response.", true);
-        if (data.memory) saveMemory(data.memory);
-      } catch (err){
-        hideTyping();
-        reportError(err.message || "Network error");
-      }
-    }
-
-    async function handleUserMessage(){
-      const text = (input.value || "").trim();
-      if (!text) return;
-      addMsg("user", text, false);
-      input.value = "";
-      await sendToBackend(text);
-    }
-
-    send.addEventListener("click", handleUserMessage);
-    input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); handleUserMessage(); } });
-    reset.addEventListener("click", () => { localStorage.removeItem("execute_chat_memory"); localStorage.removeItem("execute_chat_timestamp"); location.reload(); });
-
-    // --- Intro message ---
-    setTimeout(() => addMsg("bot", "Welcome to North Star Execute. I can help you finalize your immigration forms, review your documents, and prepare for submission. Choose a topic to begin.", true), 300);
-
-    // --- Button listeners ---
-    setTimeout(() => {
-      document.querySelectorAll(".ns-btn").forEach(btn => {
-        btn.addEventListener("click", async e => {
-          e.preventDefault();
-          const topic = btn.dataset.topic || btn.textContent || "";
-          addMsg("user", btn.textContent.trim(), false);
-          await sendToBackend(topic);
-        });
-      });
-    }, 800);
   }
 
-  if (document.readyState === "complete" || document.readyState === "interactive") start();
-  else { document.addEventListener("DOMContentLoaded", start, { once: true }); window.addEventListener("load", start, { once: true }); setTimeout(start, 2000); }
+  function addMsg(role, text, tw=true){
+    const div = document.createElement("div");
+    div.className = "chat-message " + role;
+    const avatar = role === "user"
+      ? "https://migratenorth.ca/wp-content/uploads/2025/10/medical-banner-with-doctor-working-laptop-scaled.jpeg"
+      : "https://migratenorth.ca/wp-content/uploads/2025/10/Gemini_Generated_Image_i9m78li9m78li9m7.png";
+    if (role === "user") {
+      div.innerHTML = `<div class='chat-bubble'>${text}</div><img class='avatar' src='${avatar}'>`;
+      body.appendChild(div);
+    } else {
+      div.innerHTML = `<img class='avatar' src='${avatar}'><div class='chat-bubble'></div>`;
+      body.appendChild(div);
+      const bubble = div.querySelector(".chat-bubble");
+      if (tw) typeWriter(text, bubble); else bubble.textContent = text;
+    }
+    scrollDown();
+  }
+
+  function getMemory(){
+    try {
+      const m = JSON.parse(localStorage.getItem("execute_chat_memory") || "[]");
+      const ts = parseInt(localStorage.getItem("execute_chat_timestamp") || "0", 10);
+      if (Date.now() - ts > 1800000) {
+        localStorage.removeItem("execute_chat_memory");
+        localStorage.removeItem("execute_chat_timestamp");
+        return [];
+      }
+      return Array.isArray(m) ? m : [];
+    } catch { return []; }
+  }
+
+  function saveMemory(m){
+    localStorage.setItem("execute_chat_memory", JSON.stringify(m));
+    localStorage.setItem("execute_chat_timestamp", Date.now().toString());
+  }
+
+  async function sendToBackend(promptText){
+    showTyping();
+    try {
+      const memory = getMemory();
+      const ts = parseInt(localStorage.getItem("execute_chat_timestamp") || Date.now().toString(), 10);
+      const res = await fetch(FUNCTION_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: promptText.trim(), memory, timestamp: ts })
+      });
+      const data = await res.json();
+      hideTyping();
+      addMsg("bot", data.reply || "No response.", true);
+      if (data.memory) saveMemory(data.memory);
+    } catch (err){
+      hideTyping();
+      addMsg("bot", "Connection error or timeout. Please try again.", false);
+    }
+  }
+
+  async function handleUserMessage(){
+    const text = (input.value || "").trim();
+    if (!text) return;
+    addMsg("user", text, false);
+    input.value = "";
+    await sendToBackend(text);
+  }
+
+  send.addEventListener("click", handleUserMessage);
+  input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); handleUserMessage(); }});
+  reset.addEventListener("click", () => {
+    localStorage.removeItem("execute_chat_memory");
+    localStorage.removeItem("execute_chat_timestamp");
+    location.reload();
+  });
+
+  // Welcome message
+  window.addEventListener("load", () => {
+    addMsg("bot", "Welcome to North Star Execute. I can help you finalize your immigration forms, review your documents, and prepare for submission. Choose a topic to begin.", true);
+    attachButtonListeners();
+  });
+
+  // Attach button listeners reliably
+  function attachButtonListeners(){
+    const buttons = document.querySelectorAll(".ns-btn");
+    console.log("✅ Execute buttons detected:", buttons.length);
+    buttons.forEach(btn => {
+      btn.onclick = async e => {
+        e.preventDefault();
+        const topic = btn.dataset.topic || btn.textContent.trim();
+        addMsg("user", btn.textContent.trim(), false);
+        await sendToBackend(topic);
+      };
+    });
+  }
 })();
 </script>
+
