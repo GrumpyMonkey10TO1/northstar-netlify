@@ -1,4 +1,4 @@
-// === NORTH STAR GPS – EXPLORE BOT (with Typing Delay + Memory + CORS) ===
+// === NORTH STAR GPS – EXPLORE BOT (Fixed Return Field + Typing Delay) ===
 
 import OpenAI from "openai";
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -85,12 +85,12 @@ Keep replies factual and friendly, as if explaining to someone abroad preparing 
     const delay = 1200 + Math.floor(Math.random() * 300);
     await new Promise((resolve) => setTimeout(resolve, delay));
 
-    // --- Return response to frontend ---
+    // --- Return structured response (frontend expects `message`) ---
     return {
       statusCode: 200,
       headers: corsHeaders(),
       body: JSON.stringify({
-        message: reply, // matches frontend (data.message)
+        message: reply, // fixed key
         memory: conversationMemory,
         timestamp: now,
       }),
