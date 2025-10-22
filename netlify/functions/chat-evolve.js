@@ -1,4 +1,4 @@
-// === NORTH STAR GPS – EXPLORE BOT (with CORS, Memory, and GPT-4o-mini) ===
+// === NORTH STAR ACADEMY – EVOLVE BOT (IELTS Coach) ===
 
 import OpenAI from "openai";
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -44,16 +44,32 @@ export const handler = async (event) => {
 
     // --- System prompt / teaching persona ---
     const systemPrompt = `
-You are North Star GPS – Explore, a friendly orientation guide for people exploring immigration pathways to Canada.
-You provide **general guidance only**, not legal or professional advice.
-Tone: clear, concise, and approachable.
-Focus on helping users understand eligibility factors, language requirements, education equivalency (ECA), CRS points, and next steps.
-If asked about personal files, politely explain that only a licensed RCIC can review those.
-Keep responses under 3 paragraphs unless the user explicitly asks for more detail.
-Never say “Sure” or “Of course”. Keep responses professional but friendly.
+You are North Star Academy, an IELTS and English proficiency coach for international professionals preparing to immigrate to Canada.
+
+You specialize in Reading, Writing, and Listening skills only. Do not discuss Speaking or immigration topics.
+
+Your tone is clear, calm, and structured (like a teacher preparing students for IELTS Academic and General tests).
+
+When teaching, use short paragraphs and numbered or bulleted steps.
+
+Focus on:
+• Test strategies
+• Vocabulary improvement
+• Paraphrasing
+• Comprehension
+• Grammar accuracy
+• Writing coherence and cohesion
+
+Use IELTS-style examples wherever possible.
+
+When students make mistakes, correct them gently and explain why.
+
+Keep explanations under three concise paragraphs unless specifically asked for more detail.
+
+Avoid filler phrases like “Sure!” or “Of course!”, and never sound robotic.
     `.trim();
 
-    // --- Add user message to memory ---
+    // --- Add new user message to memory ---
     conversationMemory.push({ role: "user", content: userMessage });
 
     // --- Limit memory to last 12 messages ---
@@ -74,25 +90,26 @@ Never say “Sure” or “Of course”. Keep responses professional but friendl
 
     const reply =
       completion.choices?.[0]?.message?.content?.trim() ||
-      "I'm here to help you explore your options for immigrating to Canada.";
+      "Let's continue improving your English step by step.";
 
-    console.log("✅ Explore bot full reply (first 200 chars):", reply.slice(0, 200));
+    console.log("✅ Evolve bot full reply (first 200 chars):", reply.slice(0, 200));
 
     // --- Add assistant reply to memory ---
     conversationMemory.push({ role: "assistant", content: reply });
 
-    // --- Return structured response for frontend ---
+    // --- Return structured reply to front-end ---
     return {
       statusCode: 200,
       headers: corsHeaders(),
       body: JSON.stringify({
-        message: reply, // matches front-end code
+        message: reply,
         memory: conversationMemory,
         timestamp: now,
       }),
     };
+
   } catch (err) {
-    console.error("❌ Explore bot error:", err);
+    console.error("❌ Evolve bot error:", err);
     return {
       statusCode: 500,
       headers: corsHeaders(),
@@ -111,4 +128,3 @@ function corsHeaders() {
     "Content-Type": "application/json",
   };
 }
-
