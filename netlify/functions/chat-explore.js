@@ -1,5 +1,6 @@
-import OpenAI from "openai";
+// === NORTH STAR GPS – EXPLORE BOT (with Typing Delay + Memory + CORS) ===
 
+import OpenAI from "openai";
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export const handler = async (event) => {
@@ -27,7 +28,7 @@ export const handler = async (event) => {
     const previousMemory = body.memory || [];
     const sessionTime = body.timestamp || Date.now();
 
-    // Expire memory after 30 minutes (1800000 ms)
+    // --- Expire memory after 30 minutes ---
     const THIRTY_MINUTES = 1800000;
     const now = Date.now();
     const isExpired = now - sessionTime > THIRTY_MINUTES;
@@ -55,7 +56,7 @@ Keep replies factual and friendly, as if explaining to someone abroad preparing 
     // --- Add new user message to memory ---
     conversationMemory.push({ role: "user", content: userMessage });
 
-    // --- Keep memory concise (last 12 messages) ---
+    // --- Limit memory to last 12 messages ---
     if (conversationMemory.length > 12) {
       conversationMemory = conversationMemory.slice(-12);
     }
@@ -64,25 +65,32 @@ Keep replies factual and friendly, as if explaining to someone abroad preparing 
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.7,
-      max_tokens: 1200, // increased from 900 for longer complete answers
+      max_tokens: 1200,
       messages: [
         { role: "system", content: systemPrompt },
         ...conversationMemory,
       ],
     });
 
-    let reply = completion.choices?.[0]?.message?.content?.trim() || "No response.";
+    let reply =
+      completion.choices?.[0]?.message?.content?.trim() ||
+      "I'm here to help you understand your next steps toward Canada.";
+
     console.log("✅ Explore bot full reply (first 200 chars):", reply.slice(0, 200));
 
-    // --- Save reply in memory ---
+    // --- Add assistant reply to memory ---
     conversationMemory.push({ role: "assistant", content: reply });
 
-    // --- Return full reply (no truncation) ---
+    // --- Simulate natural typing delay (1.2–1.5 seconds) ---
+    const delay = 1200 + Math.floor(Math.random() * 300);
+    await new Promise((resolve) => setTimeout(resolve, delay));
+
+    // --- Return response to frontend ---
     return {
       statusCode: 200,
       headers: corsHeaders(),
       body: JSON.stringify({
-        reply,
+        message: reply, // matches frontend (data.message)
         memory: conversationMemory,
         timestamp: now,
       }),
