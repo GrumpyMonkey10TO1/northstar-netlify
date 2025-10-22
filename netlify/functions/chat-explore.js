@@ -1,10 +1,10 @@
-// === NORTH STAR GPS – EXPLORE FRONTEND CHATBOT ===
+// === NORTH STAR GPS – EXPLORE FRONTEND CHATBOT (FIXED) ===
 
 // --- DOM Elements ---
-const chatContainer = document.querySelector("#chat-container");
-const inputField = document.querySelector("#user-input");
-const sendButton = document.querySelector("#send-button");
-const typingIndicator = document.querySelector("#typing-indicator");
+const chatContainer = document.querySelector("#chat-body");
+const inputField = document.querySelector("#chat-input");
+const sendButton = document.querySelector("#chat-send");
+const resetButton = document.querySelector("#chat-reset");
 
 // --- Helper: Scroll to bottom smoothly ---
 function scrollToBottom() {
@@ -25,22 +25,56 @@ function typeWriterEffect(element, text, speed = 25) {
   typing();
 }
 
-// --- Display user message instantly ---
-function addUserMessage(message) {
-  const userMessage = document.createElement("div");
-  userMessage.classList.add("user-message");
-  userMessage.textContent = message;
-  chatContainer.appendChild(userMessage);
+// --- Add message bubbles ---
+function addMessage(role, text = "") {
+  const div = document.createElement("div");
+  div.className = `chat-message ${role}`;
+  const avatar =
+    role === "user"
+      ? "https://migratenorth.ca/wp-content/uploads/2025/10/medical-banner-with-doctor-working-laptop-scaled.jpeg"
+      : "https://migratenorth.ca/wp-content/uploads/2025/09/Gemini_Generated_Image_kqe210kqe210kqe2-10.png";
+  div.innerHTML =
+    role === "user"
+      ? `<div class='chat-bubble'>${text}</div><img class='avatar' src='${avatar}'>`
+      : `<img class='avatar' src='${avatar}'><div class='chat-bubble'></div>`;
+  chatContainer.appendChild(div);
   scrollToBottom();
+  return div.querySelector(".chat-bubble");
 }
 
-// --- Display bot message (typewriter style) ---
-function addBotMessage(message) {
-  const botMessage = document.createElement("div");
-  botMessage.classList.add("bot-message");
-  chatContainer.appendChild(botMessage);
-  typeWriterEffect(botMessage, message, 25);
+// --- Typing dots ---
+function createTypingDots() {
+  const typingDiv = document.createElement("div");
+  typingDiv.className = "typing-indicator";
+  typingDiv.innerHTML = "<span></span><span></span><span></span>";
+  chatContainer.appendChild(typingDiv);
   scrollToBottom();
+  return typingDiv;
+}
+
+// --- Animate bot response ---
+async function handleBotResponse(prompt) {
+  const bubble = addMessage("bot", "");
+  const typingDots = createTypingDots();
+
+  try {
+    const res = await fetch("/.netlify/functions/chat-explore", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: prompt }),
+    });
+
+    const data = await res.json();
+
+    typingDots.remove();
+
+    const reply = data.message || "No response received.";
+    typeWriterEffect(bubble, reply, 25);
+  } catch (err) {
+    typingDots.remove();
+    typeWriterEffect(bubble, "Connection error. Please try again.", 25);
+    console.error(err);
+  }
 }
 
 // --- Handle user input ---
@@ -48,39 +82,50 @@ async function handleUserInput() {
   const message = inputField.value.trim();
   if (!message) return;
 
-  addUserMessage(message);
+  addMessage("user", message);
   inputField.value = "";
-
-  // Show animated dots while waiting
-  typingIndicator.classList.remove("hidden");
-
-  try {
-    const response = await fetch("/.netlify/functions/chat-explore", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message }),
-    });
-
-    const data = await response.json();
-    typingIndicator.classList.add("hidden");
-
-    if (data.message) {
-      addBotMessage(data.message);
-    } else if (data.error) {
-      addBotMessage("Server error: " + data.error);
-    } else {
-      addBotMessage("No response received.");
-    }
-
-  } catch (error) {
-    typingIndicator.classList.add("hidden");
-    addBotMessage("Connection error. Please try again.");
-    console.error("Chatbot fetch error:", error);
-  }
+  await handleBotResponse(message);
 }
 
 // --- Event Listeners ---
 sendButton.addEventListener("click", handleUserInput);
 inputField.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") handleUserInput();
+  if (e.key === "Enter") {
+    e.preventDefault();
+    handleUserInput();
+  }
 });
+resetButton.addEventListener("click", () => location.reload());
+
+// --- Initial Greeting ---
+window.addEventListener("DOMContentLoaded", () => {
+  const bubble = addMessage("bot", "");
+  typeWriterEffect(
+    bubble,
+    "Welcome to North Star GPS – Explore. I can walk you through every step of Canada's immigration process.",
+    25
+  );
+});
+
+// --- Typing dots animation CSS (auto-added) ---
+const style = document.createElement("style");
+style.textContent = `
+  .typing-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 6px 0;
+  }
+  .typing-indicator span {
+    width: 8px; height: 8px;
+    background: #fff;
+    border-radius: 50%;
+    margin: 0 3px;
+    animation: blink 1.2s infinite ease-in-out;
+  }
+  .typing-indicator span:nth-child(1){animation-delay:0s;}
+  .typing-indicator span:nth-child(2){animation-delay:0.2s;}
+  .typing-indicator span:nth-child(3){animation-delay:0.4s;}
+  @keyframes blink {0%,80%,100%{opacity:0;}40%{opacity:1;}}
+`;
+document.head.appendChild(style);
