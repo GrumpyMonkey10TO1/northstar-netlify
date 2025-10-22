@@ -1,118 +1,86 @@
-// === NORTH STAR GPS – EXPLORE BOT (Fixed Return Field + Typing Delay) ===
+// === NORTH STAR GPS – EXPLORE FRONTEND CHATBOT ===
 
-import OpenAI from "openai";
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// --- DOM Elements ---
+const chatContainer = document.querySelector("#chat-container");
+const inputField = document.querySelector("#user-input");
+const sendButton = document.querySelector("#send-button");
+const typingIndicator = document.querySelector("#typing-indicator");
 
-export const handler = async (event) => {
-  // --- Handle preflight CORS ---
-  if (event.httpMethod === "OPTIONS") {
-    return {
-      statusCode: 200,
-      headers: corsHeaders(),
-      body: "ok",
-    };
+// --- Helper: Scroll to bottom smoothly ---
+function scrollToBottom() {
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+// --- Helper: Typewriter Effect for Bot Messages ---
+function typeWriterEffect(element, text, speed = 25) {
+  let i = 0;
+  function typing() {
+    if (i < text.length) {
+      element.textContent += text.charAt(i);
+      i++;
+      scrollToBottom();
+      setTimeout(typing, speed);
+    }
   }
+  typing();
+}
 
-  // --- Allow only POST requests ---
-  if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      headers: corsHeaders(),
-      body: JSON.stringify({ error: "Method not allowed" }),
-    };
-  }
+// --- Display user message instantly ---
+function addUserMessage(message) {
+  const userMessage = document.createElement("div");
+  userMessage.classList.add("user-message");
+  userMessage.textContent = message;
+  chatContainer.appendChild(userMessage);
+  scrollToBottom();
+}
+
+// --- Display bot message (typewriter style) ---
+function addBotMessage(message) {
+  const botMessage = document.createElement("div");
+  botMessage.classList.add("bot-message");
+  chatContainer.appendChild(botMessage);
+  typeWriterEffect(botMessage, message, 25);
+  scrollToBottom();
+}
+
+// --- Handle user input ---
+async function handleUserInput() {
+  const message = inputField.value.trim();
+  if (!message) return;
+
+  addUserMessage(message);
+  inputField.value = "";
+
+  // Show animated dots while waiting
+  typingIndicator.classList.remove("hidden");
 
   try {
-    const body = JSON.parse(event.body || "{}");
-    const userMessage = (body.message || "").trim();
-    const previousMemory = body.memory || [];
-    const sessionTime = body.timestamp || Date.now();
-
-    // --- Expire memory after 30 minutes ---
-    const THIRTY_MINUTES = 1800000;
-    const now = Date.now();
-    const isExpired = now - sessionTime > THIRTY_MINUTES;
-    let conversationMemory = isExpired ? [] : previousMemory;
-
-    if (!userMessage) {
-      return {
-        statusCode: 400,
-        headers: corsHeaders(),
-        body: JSON.stringify({ error: "Missing message" }),
-      };
-    }
-
-    // --- System prompt / personality definition ---
-    const systemPrompt = `
-You are North Star GPS, an AI immigration and IELTS assistant for Migrate North Academy.
-You are calm, clear, and professional, like a licensed RCIC consultant (RCIC #R712582).
-Your goal is to help international users understand Canadian immigration and IELTS systems.
-Explain concepts in simple English with natural flow, short paragraphs, and smooth transitions.
-Avoid robotic tone, avoid filler like "Sure!" or "Of course!", and never show system tags like "Show more".
-When users ask about immigration, reference IRCC procedures accurately. When about IELTS, be educational.
-Keep replies factual and friendly, as if explaining to someone abroad preparing to immigrate to Canada.
-    `.trim();
-
-    // --- Add new user message to memory ---
-    conversationMemory.push({ role: "user", content: userMessage });
-
-    // --- Limit memory to last 12 messages ---
-    if (conversationMemory.length > 12) {
-      conversationMemory = conversationMemory.slice(-12);
-    }
-
-    // --- Query OpenAI model ---
-    const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      temperature: 0.7,
-      max_tokens: 1200,
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...conversationMemory,
-      ],
+    const response = await fetch("/.netlify/functions/chat-explore", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message }),
     });
 
-    let reply =
-      completion.choices?.[0]?.message?.content?.trim() ||
-      "I'm here to help you understand your next steps toward Canada.";
+    const data = await response.json();
+    typingIndicator.classList.add("hidden");
 
-    console.log("✅ Explore bot full reply (first 200 chars):", reply.slice(0, 200));
+    if (data.message) {
+      addBotMessage(data.message);
+    } else if (data.error) {
+      addBotMessage("Server error: " + data.error);
+    } else {
+      addBotMessage("No response received.");
+    }
 
-    // --- Add assistant reply to memory ---
-    conversationMemory.push({ role: "assistant", content: reply });
-
-    // --- Simulate natural typing delay (1.2–1.5 seconds) ---
-    const delay = 1200 + Math.floor(Math.random() * 300);
-    await new Promise((resolve) => setTimeout(resolve, delay));
-
-    // --- Return structured response (frontend expects `message`) ---
-    return {
-      statusCode: 200,
-      headers: corsHeaders(),
-      body: JSON.stringify({
-        message: reply, // fixed key
-        memory: conversationMemory,
-        timestamp: now,
-      }),
-    };
-
-  } catch (err) {
-    console.error("❌ Explore bot error:", err);
-    return {
-      statusCode: 500,
-      headers: corsHeaders(),
-      body: JSON.stringify({ error: err.message }),
-    };
+  } catch (error) {
+    typingIndicator.classList.add("hidden");
+    addBotMessage("Connection error. Please try again.");
+    console.error("Chatbot fetch error:", error);
   }
-};
-
-// --- Helper: CORS headers ---
-function corsHeaders() {
-  return {
-    "Access-Control-Allow-Origin": "https://migratenorth.ca",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Max-Age": "86400",
-    "Content-Type": "application/json",
-  };
 }
+
+// --- Event Listeners ---
+sendButton.addEventListener("click", handleUserInput);
+inputField.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") handleUserInput();
+});
