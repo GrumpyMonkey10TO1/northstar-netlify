@@ -1,4 +1,4 @@
-// === NORTH STAR GPS – EXPLORE BACKEND FUNCTION (FINAL FIX) ===
+// === NORTH STAR GPS – EXPLORE BACKEND FUNCTION (FINAL FIXED VERSION) ===
 import OpenAI from "openai";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -50,7 +50,7 @@ Always be factual, avoid filler phrases, and explain concepts in clear everyday 
     return {
       statusCode: 200,
       headers: corsHeaders(),
-      body: JSON.stringify({ message: reply }),
+      body: JSON.stringify({ reply }), // ← FIXED KEY
     };
   } catch (err) {
     console.error("❌ Explore bot error:", err);
