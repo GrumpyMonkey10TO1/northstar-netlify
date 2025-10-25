@@ -1,18 +1,62 @@
-// === NORTH STAR ACADEMY – EVOLVE BOT (IELTS Coach + Boot Camp Integration) ===
+// === NORTH STAR ACADEMY – EVOLVE BOT (IELTS Coach + Boot Camp Integration + Feedback) ===
 
 import OpenAI from "openai";
+import tests from "../evolve_test.json" assert { type: "json" };
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// --- Load test data (replace with import or external JSON in production) ---
-import tests from "./evolve_test.json" assert { type: "json" };
+// --- Helper: CORS headers ---
+function corsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": "https://migratenorth.ca",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Max-Age": "86400",
+    "Content-Type": "application/json",
+  };
+}
+
+// --- Helper: Pick tests by level or random ---
+function selectTests(keyword) {
+  const msg = keyword.toLowerCase();
+  if (msg.includes("level 1")) return tests.slice(0, 11);
+  if (msg.includes("level 2")) return tests.slice(11, 22);
+  if (msg.includes("level 3")) return tests.slice(22, 33);
+  if (msg.includes("generate test")) return [tests[Math.floor(Math.random() * tests.length)]];
+  return [];
+}
+
+// --- Helper: Build feedback prompt ---
+function buildFeedbackPrompt(task, essay) {
+  return `
+You are an IELTS Writing examiner. Evaluate the student's essay.
+
+Task: ${task.prompt}
+Task Type: ${task.task_type}
+Context: ${task.context}
+Word Limit: ${task.word_limit}
+
+Rubric:
+${Object.entries(task.rubric)
+  .map(([key, value]) => `- ${key}: ${value}`)
+  .join("\n")}
+
+Student Essay:
+"${essay}"
+
+Now provide IELTS-style feedback:
+1. Short summary of performance (2 sentences)
+2. Criterion scores: Task Achievement, Coherence & Cohesion, Lexical Resource, Grammar
+3. Estimated CLB band (6–9)
+4. 2 motivational sentences encouraging continued progress.
+Keep tone professional, warm, and specific.
+  `.trim();
+}
 
 export const handler = async (event) => {
-  // --- Handle preflight CORS ---
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 200, headers: corsHeaders(), body: "ok" };
   }
 
-  // --- Allow only POST requests ---
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -27,11 +71,10 @@ export const handler = async (event) => {
     const previousMemory = body.memory || [];
     const sessionTime = body.timestamp || Date.now();
 
-    // --- Expire memory after 30 minutes ---
     const THIRTY_MINUTES = 1800000;
     const now = Date.now();
     const isExpired = now - sessionTime > THIRTY_MINUTES;
-    let conversationMemory = isExpired ? [] : previousMemory;
+    let memory = isExpired ? [] : previousMemory;
 
     if (!userMessage) {
       return {
@@ -41,88 +84,99 @@ export const handler = async (event) => {
       };
     }
 
-    // --- Handle Boot Camp / Generate Test keywords ---
-    const lowerMsg = userMessage.toLowerCase();
+    let reply = "";
+
+    // --- 1. Handle Boot Camp Levels or Generate Test ---
     if (
-      lowerMsg.includes("boot camp") ||
-      lowerMsg.includes("generate test") ||
-      lowerMsg.includes("level 1") ||
-      lowerMsg.includes("level 2") ||
-      lowerMsg.includes("level 3")
+      /boot camp|generate test|level 1|level 2|level 3/i.test(userMessage)
     ) {
-      // Pick a random test from the dataset
-      const randomTest = tests[Math.floor(Math.random() * tests.length)];
+      const selected = selectTests(userMessage);
+      if (selected.length === 0) {
+        reply = "Please choose a Boot Camp level or press Generate Test.";
+      } else {
+        const chosen = selected[Math.floor(Math.random() * selected.length)];
+        reply = `🎯 **${chosen.task_id} (${chosen.task_type})**
 
-      const bootReply = `
-🎯 **${randomTest.task_type} – ${randomTest.context}**
+🧾 **Prompt:** ${chosen.prompt}
 
-🧾 **Prompt:** ${randomTest.prompt}
-
-⏱️ Time limit: ${randomTest.time_limit} minutes  
-✍️ Word limit: ${randomTest.word_limit} words
+⏱️ Time limit: ${chosen.time_limit} minutes  
+✍️ Word limit: ${chosen.word_limit} words
 
 **Rubric Highlights:**  
-• ${randomTest.rubric["Task Response"] || randomTest.rubric["Task Achievement"]}  
-• ${randomTest.rubric["Coherence and Cohesion"]}  
-• ${randomTest.rubric["Lexical Resource"]}  
-• ${randomTest.rubric["Grammatical Range and Accuracy"]}
+• ${chosen.rubric["Task Response"] || chosen.rubric["Task Achievement"]}  
+• ${chosen.rubric["Coherence and Cohesion"]}  
+• ${chosen.rubric["Lexical Resource"]}  
+• ${chosen.rubric["Grammatical Range and Accuracy"]}
 
-When finished, submit your answer for evaluation. I’ll estimate your CLB band and provide structured feedback based on IELTS criteria.
+When ready, type **Submit Essay** after your writing to receive an IELTS-style feedback.`;
+
+        // Save chosen task to memory
+        memory.push({ role: "system", content: JSON.stringify(chosen) });
+      }
+    }
+
+    // --- 2. Handle essay submission ---
+    else if (/submit essay/i.test(userMessage)) {
+      const lastTask = [...memory].reverse().find(
+        (m) => m.role === "system" && m.content.includes("task_id")
+      );
+      if (!lastTask) {
+        reply = "You haven’t started a test yet. Please begin a Boot Camp level or generate a test.";
+      } else {
+        const task = JSON.parse(lastTask.content);
+        const lastEssay = [...memory]
+          .reverse()
+          .find((m) => m.role === "user" && !/submit essay/i.test(m.content));
+        const essay = lastEssay ? lastEssay.content : "(No essay found)";
+        const feedbackPrompt = buildFeedbackPrompt(task, essay);
+
+        const completion = await client.chat.completions.create({
+          model: "gpt-4o-mini",
+          temperature: 0.7,
+          max_tokens: 800,
+          messages: [{ role: "system", content: feedbackPrompt }],
+        });
+
+        reply =
+          completion.choices?.[0]?.message?.content?.trim() ||
+          "Error: Feedback could not be generated.";
+
+        // Optional: emit progress signal
+        reply += "\n\n✅ Progress updated. Keep going!";
+      }
+    }
+
+    // --- 3. Regular IELTS coaching mode ---
+    else {
+      const systemPrompt = `
+You are North Star Academy, an IELTS and English proficiency coach.
+Focus on Reading, Writing, and Listening. Avoid Speaking and immigration topics.
+Tone: calm, structured, and clear. Limit to 3 concise paragraphs.
+Provide practical examples when helpful.
       `.trim();
 
-      return {
-        statusCode: 200,
-        headers: corsHeaders(),
-        body: JSON.stringify({
-          message: bootReply,
-          metadata: randomTest,
-          memory: conversationMemory,
-          timestamp: now,
-        }),
-      };
+      const completion = await client.chat.completions.create({
+        model: "gpt-4o-mini",
+        temperature: 0.7,
+        max_tokens: 700,
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...memory,
+          { role: "user", content: userMessage },
+        ],
+      });
+
+      reply =
+        completion.choices?.[0]?.message?.content?.trim() ||
+        "Let's continue improving step by step.";
     }
 
-    // --- System prompt / teaching persona ---
-    const systemPrompt = `
-You are North Star Academy, an IELTS and English proficiency coach for international professionals preparing to immigrate to Canada.
-Focus on Reading, Writing, and Listening. Do not discuss Speaking or immigration topics.
-
-Tone: calm, clear, structured. Explain reasoning in short paragraphs or numbered steps.
-Correct mistakes gently. Emphasize IELTS-specific guidance (vocabulary, grammar, logic, cohesion).
-Keep answers under three concise paragraphs unless asked for more detail.
-Avoid filler phrases like "Sure!" or "Of course!".
-    `.trim();
-
-    // --- Add user message to memory ---
-    conversationMemory.push({ role: "user", content: userMessage });
-    if (conversationMemory.length > 12) {
-      conversationMemory = conversationMemory.slice(-12);
-    }
-
-    // --- Query OpenAI model ---
-    const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      temperature: 0.7,
-      max_tokens: 1000,
-      messages: [{ role: "system", content: systemPrompt }, ...conversationMemory],
-    });
-
-    const reply =
-      completion.choices?.[0]?.message?.content?.trim() ||
-      "Let's continue improving your English step by step.";
-
-    console.log("✅ Evolve bot full reply (first 200 chars):", reply.slice(0, 200));
-
-    conversationMemory.push({ role: "assistant", content: reply });
+    memory.push({ role: "assistant", content: reply });
 
     return {
       statusCode: 200,
       headers: corsHeaders(),
-      body: JSON.stringify({
-        message: reply,
-        memory: conversationMemory,
-        timestamp: now,
-      }),
+      body: JSON.stringify({ message: reply, memory, timestamp: now }),
     };
   } catch (err) {
     console.error("❌ Evolve bot error:", err);
@@ -133,14 +187,3 @@ Avoid filler phrases like "Sure!" or "Of course!".
     };
   }
 };
-
-// --- Helper: CORS headers ---
-function corsHeaders() {
-  return {
-    "Access-Control-Allow-Origin": "https://migratenorth.ca",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Max-Age": "86400",
-    "Content-Type": "application/json",
-  };
-}
