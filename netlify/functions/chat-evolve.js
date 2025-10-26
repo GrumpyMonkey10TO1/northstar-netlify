@@ -1,4 +1,4 @@
-// === NORTH STAR ACADEMY – EVOLVE BOT (IELTS Coach + Sequential Boot Camp + Timer Integration + Corrected Feedback Role) ===
+// === NORTH STAR ACADEMY – EVOLVE BOT (IELTS Coach + Sequential Boot Camp + Timer Integration + Buffered Response Fix v5) ===
 
 import OpenAI from "openai";
 import tests from "../evolve_test.json" assert { type: "json" };
@@ -56,6 +56,7 @@ Keep the tone professional, warm, and concise.
 }
 
 export const handler = async (event) => {
+  // --- Handle CORS preflight ---
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 200, headers: corsHeaders(), body: "ok" };
   }
@@ -140,11 +141,12 @@ Type **Submit Essay** when finished to receive IELTS-style feedback.`;
         const essay = lastEssay ? lastEssay.content : "(No essay found)";
         const feedbackPrompt = buildFeedbackPrompt(task, essay);
 
-        // Corrected role handling for GPT evaluation
+        // --- Buffered non-streaming completion ---
         const completion = await client.chat.completions.create({
           model: "gpt-4o-mini",
           temperature: 0.7,
           max_tokens: 800,
+          stream: false,
           messages: [
             { role: "system", content: "You are an IELTS Writing examiner." },
             { role: "user", content: feedbackPrompt },
@@ -152,7 +154,7 @@ Type **Submit Essay** when finished to receive IELTS-style feedback.`;
         });
 
         reply =
-          completion.choices?.[0]?.message?.content?.trim() ||
+          completion?.choices?.[0]?.message?.content?.trim() ||
           "Error: Feedback could not be generated.";
 
         reply +=
@@ -180,12 +182,15 @@ When ready, type **Submit Essay** after your writing.`;
 You are North Star Academy, an IELTS and English proficiency coach.
 Focus on Reading, Writing, and Listening. Avoid Speaking and immigration topics.
 Be concise, logical, and motivating. Provide examples where relevant.
+Do not use markdown or special characters like *, #, or ... in your replies.
       `.trim();
 
+      // --- Buffered response (no streaming) ---
       const completion = await client.chat.completions.create({
         model: "gpt-4o-mini",
         temperature: 0.7,
         max_tokens: 700,
+        stream: false, // ensures no partial dots or artifacts
         messages: [
           { role: "system", content: systemPrompt },
           ...memory,
@@ -194,7 +199,7 @@ Be concise, logical, and motivating. Provide examples where relevant.
       });
 
       reply =
-        completion.choices?.[0]?.message?.content?.trim() ||
+        completion?.choices?.[0]?.message?.content?.trim() ||
         "Let's continue improving step by step.";
     }
 
