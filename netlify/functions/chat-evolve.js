@@ -1,10 +1,10 @@
-// === NORTH STAR ACADEMY – EVOLVE BOT (IELTS Coach + Boot Camp Integration + Feedback) ===
+// === NORTH STAR ACADEMY – EVOLVE BOT (IELTS Coach + Sequential Boot Camp + Timer Integration) ===
 
 import OpenAI from "openai";
 import tests from "../evolve_test.json" assert { type: "json" };
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// --- Helper: CORS headers ---
+// --- CORS ---
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": "https://migratenorth.ca",
@@ -15,24 +15,27 @@ function corsHeaders() {
   };
 }
 
-// --- Helper: Pick tests by level or random ---
-function selectTests(keyword) {
-  const msg = keyword.toLowerCase();
-  if (msg.includes("level 1")) return tests.slice(0, 11);
-  if (msg.includes("level 2")) return tests.slice(11, 22);
-  if (msg.includes("level 3")) return tests.slice(22, 33);
-  if (msg.includes("generate test")) return [tests[Math.floor(Math.random() * tests.length)]];
-  return [];
+// --- Level ranges ---
+const LEVEL_RANGES = {
+  "level 1": [0, 11],
+  "level 2": [11, 22],
+  "level 3": [22, 33],
+};
+
+// --- Get next sequential test ---
+function getNextTest(level, index) {
+  const [start, end] = LEVEL_RANGES[level];
+  const range = tests.slice(start, end);
+  return range[index] || null;
 }
 
-// --- Helper: Build feedback prompt ---
+// --- Feedback prompt ---
 function buildFeedbackPrompt(task, essay) {
   return `
 You are an IELTS Writing examiner. Evaluate the student's essay.
 
 Task: ${task.prompt}
 Task Type: ${task.task_type}
-Context: ${task.context}
 Word Limit: ${task.word_limit}
 
 Rubric:
@@ -43,12 +46,11 @@ ${Object.entries(task.rubric)
 Student Essay:
 "${essay}"
 
-Now provide IELTS-style feedback:
-1. Short summary of performance (2 sentences)
+Provide IELTS-style feedback:
+1. Summary of performance (2 sentences)
 2. Criterion scores: Task Achievement, Coherence & Cohesion, Lexical Resource, Grammar
 3. Estimated CLB band (6–9)
-4. 2 motivational sentences encouraging continued progress.
-Keep tone professional, warm, and specific.
+4. Two motivational sentences encouraging progress.
   `.trim();
 }
 
@@ -67,7 +69,7 @@ export const handler = async (event) => {
 
   try {
     const body = JSON.parse(event.body || "{}");
-    const userMessage = (body.message || "").trim();
+    const userMessage = (body.message || "").trim().toLowerCase();
     const previousMemory = body.memory || [];
     const sessionTime = body.timestamp || Date.now();
 
@@ -75,53 +77,51 @@ export const handler = async (event) => {
     const now = Date.now();
     const isExpired = now - sessionTime > THIRTY_MINUTES;
     let memory = isExpired ? [] : previousMemory;
-
-    if (!userMessage) {
-      return {
-        statusCode: 400,
-        headers: corsHeaders(),
-        body: JSON.stringify({ error: "Missing message" }),
-      };
-    }
-
     let reply = "";
 
-    // --- 1. Handle Boot Camp Levels or Generate Test ---
-    if (
-      /boot camp|generate test|level 1|level 2|level 3/i.test(userMessage)
-    ) {
-      const selected = selectTests(userMessage);
-      if (selected.length === 0) {
-        reply = "Please choose a Boot Camp level or press Generate Test.";
+    // === Handle Boot Camp Levels (Sequential Mode) ===
+    if (/level 1|level 2|level 3/.test(userMessage)) {
+      const level = Object.keys(LEVEL_RANGES).find((l) => userMessage.includes(l));
+      if (!level) {
+        reply = "Please select a valid Boot Camp level.";
       } else {
-        const chosen = selected[Math.floor(Math.random() * selected.length)];
-        reply = `🎯 **${chosen.task_id} (${chosen.task_type})**
+        // Find current index for this level
+        const progressKey = `progress_${level}`;
+        let currentIndex = 0;
+        const progressMemory = memory.find((m) => m.role === "progress" && m.key === progressKey);
+        if (progressMemory) currentIndex = progressMemory.value;
 
-🧾 **Prompt:** ${chosen.prompt}
+        const nextTest = getNextTest(level, currentIndex);
 
-⏱️ Time limit: ${chosen.time_limit} minutes  
-✍️ Word limit: ${chosen.word_limit} words
+        if (!nextTest) {
+          reply = `✅ You've completed all ${level.toUpperCase()} tests!`;
+        } else {
+          reply = `🎯 **${nextTest.task_id} (${nextTest.task_type})**
 
-**Rubric Highlights:**  
-• ${chosen.rubric["Task Response"] || chosen.rubric["Task Achievement"]}  
-• ${chosen.rubric["Coherence and Cohesion"]}  
-• ${chosen.rubric["Lexical Resource"]}  
-• ${chosen.rubric["Grammatical Range and Accuracy"]}
+🧾 **Prompt:** ${nextTest.prompt}
 
-When ready, type **Submit Essay** after your writing to receive an IELTS-style feedback.`;
+⏱️ Time limit: ${nextTest.time_limit} minutes  
+✍️ Word limit: ${nextTest.word_limit} words
 
-        // Save chosen task to memory
-        memory.push({ role: "system", content: JSON.stringify(chosen) });
+When ready, write your essay below.  
+Type **Submit Essay** when finished to receive feedback.`;
+
+          // Store progress & current test in memory
+          memory = memory.filter((m) => !(m.role === "progress" && m.key === progressKey));
+          memory.push({ role: "progress", key: progressKey, value: currentIndex + 1 });
+          memory.push({ role: "system", content: JSON.stringify(nextTest) });
+        }
       }
     }
 
-    // --- 2. Handle essay submission ---
+    // === Handle Essay Submission ===
     else if (/submit essay/i.test(userMessage)) {
       const lastTask = [...memory].reverse().find(
         (m) => m.role === "system" && m.content.includes("task_id")
       );
+
       if (!lastTask) {
-        reply = "You haven’t started a test yet. Please begin a Boot Camp level or generate a test.";
+        reply = "You haven’t started a test yet. Please begin a Boot Camp level first.";
       } else {
         const task = JSON.parse(lastTask.content);
         const lastEssay = [...memory]
@@ -141,18 +141,30 @@ When ready, type **Submit Essay** after your writing to receive an IELTS-style f
           completion.choices?.[0]?.message?.content?.trim() ||
           "Error: Feedback could not be generated.";
 
-        // Optional: emit progress signal
-        reply += "\n\n✅ Progress updated. Keep going!";
+        reply += "\n\n✅ Progress updated. You can continue with your next test.";
       }
     }
 
-    // --- 3. Regular IELTS coaching mode ---
+    // === Generate Random Test ===
+    else if (/generate test/.test(userMessage)) {
+      const chosen = tests[Math.floor(Math.random() * tests.length)];
+      reply = `🎯 **${chosen.task_id} (${chosen.task_type})**
+
+🧾 **Prompt:** ${chosen.prompt}
+
+⏱️ Time limit: ${chosen.time_limit} minutes  
+✍️ Word limit: ${chosen.word_limit} words
+
+When ready, type **Submit Essay** after your writing.`;
+      memory.push({ role: "system", content: JSON.stringify(chosen) });
+    }
+
+    // === Regular IELTS Coaching ===
     else {
       const systemPrompt = `
 You are North Star Academy, an IELTS and English proficiency coach.
 Focus on Reading, Writing, and Listening. Avoid Speaking and immigration topics.
-Tone: calm, structured, and clear. Limit to 3 concise paragraphs.
-Provide practical examples when helpful.
+Be concise, logical, and motivating. Provide examples where relevant.
       `.trim();
 
       const completion = await client.chat.completions.create({
