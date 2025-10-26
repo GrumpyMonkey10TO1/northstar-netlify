@@ -1,4 +1,4 @@
-// === NORTH STAR ACADEMY – EVOLVE BOT (IELTS Coach + Sequential Boot Camp + Timer Integration) ===
+// === NORTH STAR ACADEMY – EVOLVE BOT (IELTS Coach + Sequential Boot Camp + Timer Integration + Corrected Feedback Role) ===
 
 import OpenAI from "openai";
 import tests from "../evolve_test.json" assert { type: "json" };
@@ -29,10 +29,10 @@ function getNextTest(level, index) {
   return range[index] || null;
 }
 
-// --- Feedback prompt ---
+// --- Feedback prompt builder ---
 function buildFeedbackPrompt(task, essay) {
   return `
-You are an IELTS Writing examiner. Evaluate the student's essay.
+You are an IELTS Writing examiner. Evaluate the student's essay according to IELTS Writing Task standards.
 
 Task: ${task.prompt}
 Task Type: ${task.task_type}
@@ -46,11 +46,12 @@ ${Object.entries(task.rubric)
 Student Essay:
 "${essay}"
 
-Provide IELTS-style feedback:
-1. Summary of performance (2 sentences)
+Now, evaluate the essay following this structure:
+1. Short summary of performance (2 sentences)
 2. Criterion scores: Task Achievement, Coherence & Cohesion, Lexical Resource, Grammar
 3. Estimated CLB band (6–9)
-4. Two motivational sentences encouraging progress.
+4. Two motivational sentences encouraging further progress.
+Keep the tone professional, warm, and concise.
   `.trim();
 }
 
@@ -88,7 +89,9 @@ export const handler = async (event) => {
         // Find current index for this level
         const progressKey = `progress_${level}`;
         let currentIndex = 0;
-        const progressMemory = memory.find((m) => m.role === "progress" && m.key === progressKey);
+        const progressMemory = memory.find(
+          (m) => m.role === "progress" && m.key === progressKey
+        );
         if (progressMemory) currentIndex = progressMemory.value;
 
         const nextTest = getNextTest(level, currentIndex);
@@ -104,11 +107,17 @@ export const handler = async (event) => {
 ✍️ Word limit: ${nextTest.word_limit} words
 
 When ready, write your essay below.  
-Type **Submit Essay** when finished to receive feedback.`;
+Type **Submit Essay** when finished to receive IELTS-style feedback.`;
 
           // Store progress & current test in memory
-          memory = memory.filter((m) => !(m.role === "progress" && m.key === progressKey));
-          memory.push({ role: "progress", key: progressKey, value: currentIndex + 1 });
+          memory = memory.filter(
+            (m) => !(m.role === "progress" && m.key === progressKey)
+          );
+          memory.push({
+            role: "progress",
+            key: progressKey,
+            value: currentIndex + 1,
+          });
           memory.push({ role: "system", content: JSON.stringify(nextTest) });
         }
       }
@@ -116,12 +125,13 @@ Type **Submit Essay** when finished to receive feedback.`;
 
     // === Handle Essay Submission ===
     else if (/submit essay/i.test(userMessage)) {
-      const lastTask = [...memory].reverse().find(
-        (m) => m.role === "system" && m.content.includes("task_id")
-      );
+      const lastTask = [...memory]
+        .reverse()
+        .find((m) => m.role === "system" && m.content.includes("task_id"));
 
       if (!lastTask) {
-        reply = "You haven’t started a test yet. Please begin a Boot Camp level first.";
+        reply =
+          "You haven’t started a test yet. Please begin a Boot Camp level first.";
       } else {
         const task = JSON.parse(lastTask.content);
         const lastEssay = [...memory]
@@ -130,18 +140,23 @@ Type **Submit Essay** when finished to receive feedback.`;
         const essay = lastEssay ? lastEssay.content : "(No essay found)";
         const feedbackPrompt = buildFeedbackPrompt(task, essay);
 
+        // Corrected role handling for GPT evaluation
         const completion = await client.chat.completions.create({
           model: "gpt-4o-mini",
           temperature: 0.7,
           max_tokens: 800,
-          messages: [{ role: "system", content: feedbackPrompt }],
+          messages: [
+            { role: "system", content: "You are an IELTS Writing examiner." },
+            { role: "user", content: feedbackPrompt },
+          ],
         });
 
         reply =
           completion.choices?.[0]?.message?.content?.trim() ||
           "Error: Feedback could not be generated.";
 
-        reply += "\n\n✅ Progress updated. You can continue with your next test.";
+        reply +=
+          "\n\n✅ Progress updated. You can continue with your next test by typing the same level again or clicking it from the Boot Camp menu.";
       }
     }
 
@@ -183,6 +198,7 @@ Be concise, logical, and motivating. Provide examples where relevant.
         "Let's continue improving step by step.";
     }
 
+    // --- Save the assistant reply to memory ---
     memory.push({ role: "assistant", content: reply });
 
     return {
