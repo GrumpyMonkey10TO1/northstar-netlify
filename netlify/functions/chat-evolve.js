@@ -132,7 +132,7 @@ Prompt: ${t.prompt}
 Time limit: ${t.time_limit} minutes
 Word limit: ${t.word_limit} words
 
-When ready, type your essay. Click Submit to receive IELTS-style feedback.`;
+When ready, write your essay. Click Submit to receive IELTS-style feedback.`;
           }
         }
       }
@@ -282,9 +282,11 @@ Be concise, logical, and motivating. Provide clear examples. No markdown or spec
         ],
       });
 
-      reply = completion?.choices?.[0]?.message?.content?.trim() || "Let's continue improving step by step.";
-      memory.push({ role: "assistant", content: reply });
-      return { statusCode: 200, headers: corsHeaders(), body: JSON.stringify({ message: reply, memory, timestamp: now }) };
+      const response =
+        completion?.choices?.[0]?.message?.content?.trim() ||
+        "Let's continue improving step by step.";
+      memory.push({ role: "assistant", content: response });
+      return { statusCode: 200, headers: corsHeaders(), body: JSON.stringify({ message: response, memory, timestamp: now }) };
     }
   } catch (err) {
     console.error("❌ Evolve bot error:", err);
