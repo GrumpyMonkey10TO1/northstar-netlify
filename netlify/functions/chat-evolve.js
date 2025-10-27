@@ -1,4 +1,6 @@
-// === NORTH STAR ACADEMY – EVOLVE BOT (IELTS Coach + Sequential Boot Camp + Timer Integration + Buffered Response Fix v5) ===
+// === NORTH STAR ACADEMY – EVOLVE BOT
+// Full IELTS Coach + Hierarchical Boot Camp + Timed Test Sessions + Essay-in-message Fix + Coach Mode (v8)
+// Netlify Function: /netlify/functions/chat-evolve.js
 
 import OpenAI from "openai";
 import tests from "../evolve_test.json" assert { type: "json" };
@@ -15,18 +17,18 @@ function corsHeaders() {
   };
 }
 
-// --- Level ranges ---
+// --- Level ranges (0-indexed test slices) ---
 const LEVEL_RANGES = {
-  "level 1": [0, 11],
-  "level 2": [11, 22],
-  "level 3": [22, 33],
+  "level 1": [0, 11],   // tests[0..10]
+  "level 2": [11, 22],  // tests[11..21]
+  "level 3": [22, 33],  // tests[22..32]
 };
 
-// --- Get next sequential test ---
-function getNextTest(level, index) {
+// Helper: get a specific test by level + index (0..10)
+function getSpecificTest(level, testIndex) {
   const [start, end] = LEVEL_RANGES[level];
   const range = tests.slice(start, end);
-  return range[index] || null;
+  return range[testIndex] || null;
 }
 
 // --- Feedback prompt builder ---
@@ -39,9 +41,7 @@ Task Type: ${task.task_type}
 Word Limit: ${task.word_limit}
 
 Rubric:
-${Object.entries(task.rubric)
-  .map(([key, value]) => `- ${key}: ${value}`)
-  .join("\n")}
+${Object.entries(task.rubric).map(([k, v]) => `- ${k}: ${v}`).join("\n")}
 
 Student Essay:
 "${essay}"
@@ -52,171 +52,242 @@ Now, evaluate the essay following this structure:
 3. Estimated CLB band (6–9)
 4. Two motivational sentences encouraging further progress.
 Keep the tone professional, warm, and concise.
-  `.trim();
+`.trim();
 }
 
 export const handler = async (event) => {
-  // --- Handle CORS preflight ---
+  // CORS preflight
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 200, headers: corsHeaders(), body: "ok" };
   }
-
   if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      headers: corsHeaders(),
-      body: JSON.stringify({ error: "Method not allowed" }),
-    };
+    return { statusCode: 405, headers: corsHeaders(), body: JSON.stringify({ error: "Method not allowed" }) };
   }
 
   try {
     const body = JSON.parse(event.body || "{}");
-    const userMessage = (body.message || "").trim().toLowerCase();
+
+    // New structured API (kept backward-compatible with message-only usage)
+    const action = body.action || null;                // "start_test" | "submit_essay" | null
+    const params = body.params || {};                  // { level, testIndex, essay }
+    const rawUserMessage = (body.message || "").trim();
+    const userMessage = rawUserMessage;
+    const lowerMsg = rawUserMessage.toLowerCase();
+
     const previousMemory = body.memory || [];
     const sessionTime = body.timestamp || Date.now();
 
     const THIRTY_MINUTES = 1800000;
     const now = Date.now();
     const isExpired = now - sessionTime > THIRTY_MINUTES;
+
+    // Memory layout (array of {role, ...})
+    // - {role:"progress", key:`progress_level 1`, value:Number} // count completed for level
+    // - {role:"system", content: JSON.stringify(currentTest)}    // last active test context
+    // - {role:"context", value: "coach"}                         // Coach Mode flag
     let memory = isExpired ? [] : previousMemory;
     let reply = "";
 
-    // === Handle Boot Camp Levels (Sequential Mode) ===
-    if (/level 1|level 2|level 3/.test(userMessage)) {
-      const level = Object.keys(LEVEL_RANGES).find((l) => userMessage.includes(l));
-      if (!level) {
-        reply = "Please select a valid Boot Camp level.";
+    // current Coach Mode?
+    let contextMode = memory.find((m) => m.role === "context" && m.value === "coach") ? "coach" : "normal";
+
+    // Small helpers for progress
+    function getProgress(level) {
+      const key = `progress_${level}`;
+      const rec = memory.find((m) => m.role === "progress" && m.key === key);
+      return rec ? rec.value : 0;
+    }
+    function setProgress(level, newVal) {
+      const key = `progress_${level}`;
+      memory = memory.filter((m) => !(m.role === "progress" && m.key === key));
+      memory.push({ role: "progress", key, value: newVal });
+    }
+
+    // --- ACTION: start_test (hierarchical explicit test start)
+    if (action === "start_test") {
+      const level = (params.level || "").toLowerCase();      // "level 1" | "level 2" | "level 3"
+      const testIndex = Number(params.testIndex ?? -1);      // 0..10
+      if (!LEVEL_RANGES[level]) {
+        reply = "Please choose a valid level.";
+      } else if (Number.isNaN(testIndex) || testIndex < 0 || testIndex > 10) {
+        reply = "Please choose a valid test index.";
       } else {
-        // Find current index for this level
-        const progressKey = `progress_${level}`;
-        let currentIndex = 0;
-        const progressMemory = memory.find(
-          (m) => m.role === "progress" && m.key === progressKey
-        );
-        if (progressMemory) currentIndex = progressMemory.value;
-
-        const nextTest = getNextTest(level, currentIndex);
-
-        if (!nextTest) {
-          reply = `✅ You've completed all ${level.toUpperCase()} tests!`;
+        const unlocked = getProgress(level); // how many completed
+        if (testIndex > unlocked) {
+          reply = "That test is locked. Please complete previous tests first.";
         } else {
-          reply = `🎯 **${nextTest.task_id} (${nextTest.task_type})**
+          const t = getSpecificTest(level, testIndex);
+          if (!t) {
+            reply = "Test not found.";
+          } else {
+            // Set the current test context
+            memory = memory.filter((m) => !(m.role === "system" && m.content?.includes('"task_id":')));
+            memory.push({ role: "system", content: JSON.stringify({ ...t, level, testIndex }) });
+            // exit coach mode when starting a fresh test
+            memory = memory.filter((m) => m.role !== "context");
 
-🧾 **Prompt:** ${nextTest.prompt}
+            reply =
+`🎯 ${t.task_id} (${t.task_type})
+Prompt: ${t.prompt}
+Time limit: ${t.time_limit} minutes
+Word limit: ${t.word_limit} words
 
-⏱️ Time limit: ${nextTest.time_limit} minutes  
-✍️ Word limit: ${nextTest.word_limit} words
-
-When ready, write your essay below.  
-Type **Submit Essay** when finished to receive IELTS-style feedback.`;
-
-          // Store progress & current test in memory
-          memory = memory.filter(
-            (m) => !(m.role === "progress" && m.key === progressKey)
-          );
-          memory.push({
-            role: "progress",
-            key: progressKey,
-            value: currentIndex + 1,
-          });
-          memory.push({ role: "system", content: JSON.stringify(nextTest) });
+When ready, type your essay. Click Submit to receive IELTS-style feedback.`;
+          }
         }
       }
+
+      memory.push({ role: "assistant", content: reply });
+      return { statusCode: 200, headers: corsHeaders(), body: JSON.stringify({ message: reply, memory, timestamp: now }) };
     }
 
-    // === Handle Essay Submission ===
-    else if (/submit essay/i.test(userMessage)) {
-      const lastTask = [...memory]
-        .reverse()
-        .find((m) => m.role === "system" && m.content.includes("task_id"));
-
+    // --- ACTION: submit_essay (structured)
+    if (action === "submit_essay") {
+      const lastTask = [...memory].reverse().find((m) => m.role === "system" && m.content.includes('"task_id"'));
       if (!lastTask) {
-        reply =
-          "You haven’t started a test yet. Please begin a Boot Camp level first.";
+        reply = "You haven’t started a test yet. Please choose a test first.";
       } else {
         const task = JSON.parse(lastTask.content);
-        const lastEssay = [...memory]
-          .reverse()
-          .find((m) => m.role === "user" && !/submit essay/i.test(m.content));
-        const essay = lastEssay ? lastEssay.content : "(No essay found)";
-        const feedbackPrompt = buildFeedbackPrompt(task, essay);
 
-        // --- Buffered non-streaming completion ---
-        const completion = await client.chat.completions.create({
-          model: "gpt-4o-mini",
-          temperature: 0.7,
-          max_tokens: 800,
-          stream: false,
-          messages: [
-            { role: "system", content: "You are an IELTS Writing examiner." },
-            { role: "user", content: feedbackPrompt },
-          ],
-        });
+        // Essay can be provided explicitly or taken from memory fallback
+        let essay = (params.essay || "").trim();
+        if (!essay && rawUserMessage) {
+          // if the frontend sent essay as message with "submit essay"
+          if (lowerMsg.includes("submit essay")) essay = rawUserMessage.split(/submit essay/i)[0].trim();
+          else essay = rawUserMessage;
+        }
+        if (!essay) {
+          const lastEssay = [...memory].reverse().find((m) => m.role === "user" && !/submit essay/i.test(m.content));
+          essay = lastEssay ? lastEssay.content : "";
+        }
 
-        reply =
-          completion?.choices?.[0]?.message?.content?.trim() ||
-          "Error: Feedback could not be generated.";
+        if (!essay || essay.split(/\s+/).filter(Boolean).length < 20) {
+          reply = "Please write your essay (20+ words) before submitting.";
+        } else {
+          const feedbackPrompt = buildFeedbackPrompt(task, essay);
+          const completion = await client.chat.completions.create({
+            model: "gpt-4o-mini",
+            temperature: 0.7,
+            max_tokens: 900,
+            stream: false,
+            messages: [
+              { role: "system", content: "You are an IELTS Writing examiner." },
+              { role: "user", content: feedbackPrompt },
+            ],
+          });
 
-        reply +=
-          "\n\n✅ Progress updated. You can continue with your next test by typing the same level again or clicking it from the Boot Camp menu.";
+          reply =
+            completion?.choices?.[0]?.message?.content?.trim() ||
+            "Error: Feedback could not be generated.";
+
+          // Mark progress for that level (unlock next test)
+          if (task.level && Number.isInteger(task.testIndex)) {
+            const done = getProgress(task.level);
+            const needed = task.testIndex + 1;
+            if (needed > done) setProgress(task.level, needed);
+          }
+
+          reply += "\n\n✅ Progress updated. You can start your next test from the Boot Camp menu.";
+
+          // Enter Coach Mode for follow-ups
+          memory = memory.filter((m) => m.role !== "context");
+          memory.push({ role: "context", value: "coach" });
+        }
       }
+
+      memory.push({ role: "assistant", content: reply });
+      return { statusCode: 200, headers: corsHeaders(), body: JSON.stringify({ message: reply, memory, timestamp: now }) };
     }
 
-    // === Generate Random Test ===
-    else if (/generate test/.test(userMessage)) {
+    // ---- Backward compatible flows below (if no 'action' used) ----
+
+    // QUICK RANDOM
+    if (/generate test/.test(lowerMsg)) {
       const chosen = tests[Math.floor(Math.random() * tests.length)];
-      reply = `🎯 **${chosen.task_id} (${chosen.task_type})**
+      memory.push({ role: "system", content: JSON.stringify({ ...chosen, level: "random", testIndex: -1 }) });
+      reply =
+`🎯 ${chosen.task_id} (${chosen.task_type})
+Prompt: ${chosen.prompt}
+Time limit: ${chosen.time_limit} minutes
+Word limit: ${chosen.word_limit} words
 
-🧾 **Prompt:** ${chosen.prompt}
-
-⏱️ Time limit: ${chosen.time_limit} minutes  
-✍️ Word limit: ${chosen.word_limit} words
-
-When ready, type **Submit Essay** after your writing.`;
-      memory.push({ role: "system", content: JSON.stringify(chosen) });
+When ready, type your essay and Submit for feedback.`;
+      memory.push({ role: "assistant", content: reply });
+      return { statusCode: 200, headers: corsHeaders(), body: JSON.stringify({ message: reply, memory, timestamp: now }) };
     }
 
-    // === Regular IELTS Coaching ===
-    else {
-      const systemPrompt = `
+    // LEGACY "submit essay" from message
+    if (/submit essay/i.test(lowerMsg)) {
+      const lastTask = [...memory].reverse().find((m) => m.role === "system" && m.content.includes('"task_id"'));
+      if (!lastTask) {
+        reply = "You haven’t started a test yet. Please choose a test first.";
+      } else {
+        const task = JSON.parse(lastTask.content);
+        let essay = rawUserMessage.split(/submit essay/i)[0].trim();
+        if (!essay) {
+          const lastEssay = [...memory].reverse().find((m) => m.role === "user" && !/submit essay/i.test(m.content));
+          essay = lastEssay ? lastEssay.content : "";
+        }
+        if (!essay) reply = "Please write your essay before submitting.";
+        else {
+          const feedbackPrompt = buildFeedbackPrompt(task, essay);
+          const completion = await client.chat.completions.create({
+            model: "gpt-4o-mini",
+            temperature: 0.7,
+            max_tokens: 900,
+            stream: false,
+            messages: [
+              { role: "system", content: "You are an IELTS Writing examiner." },
+              { role: "user", content: feedbackPrompt },
+            ],
+          });
+          reply = completion?.choices?.[0]?.message?.content?.trim() || "Error: Feedback could not be generated.";
+          if (task.level && Number.isInteger(task.testIndex)) {
+            const done = getProgress(task.level);
+            const needed = task.testIndex + 1;
+            if (needed > done) setProgress(task.level, needed);
+          }
+          reply += "\n\n✅ Progress updated. You can start your next test from the Boot Camp menu.";
+          memory = memory.filter((m) => m.role !== "context");
+          memory.push({ role: "context", value: "coach" });
+        }
+      }
+      memory.push({ role: "assistant", content: reply });
+      return { statusCode: 200, headers: corsHeaders(), body: JSON.stringify({ message: reply, memory, timestamp: now }) };
+    }
+
+    // REGULAR COACHING / COACH MODE
+    {
+      const systemPrompt = (contextMode === "coach")
+        ? `
+You are North Star Academy, acting as a writing coach after giving IELTS feedback.
+Help the student understand mistakes, suggest improvements, and provide short model lines if asked.
+Be specific, warm, and practical. Keep replies under 8 sentences. No markdown or special characters.
+        `.trim()
+        : `
 You are North Star Academy, an IELTS and English proficiency coach.
 Focus on Reading, Writing, and Listening. Avoid Speaking and immigration topics.
-Be concise, logical, and motivating. Provide examples where relevant.
-Do not use markdown or special characters like *, #, or ... in your replies.
-      `.trim();
+Be concise, logical, and motivating. Provide clear examples. No markdown or special characters.
+        `.trim();
 
-      // --- Buffered response (no streaming) ---
       const completion = await client.chat.completions.create({
         model: "gpt-4o-mini",
         temperature: 0.7,
         max_tokens: 700,
-        stream: false, // ensures no partial dots or artifacts
+        stream: false,
         messages: [
           { role: "system", content: systemPrompt },
           ...memory,
-          { role: "user", content: userMessage },
+          { role: "user", content: userMessage }
         ],
       });
 
-      reply =
-        completion?.choices?.[0]?.message?.content?.trim() ||
-        "Let's continue improving step by step.";
+      reply = completion?.choices?.[0]?.message?.content?.trim() || "Let's continue improving step by step.";
+      memory.push({ role: "assistant", content: reply });
+      return { statusCode: 200, headers: corsHeaders(), body: JSON.stringify({ message: reply, memory, timestamp: now }) };
     }
-
-    // --- Save the assistant reply to memory ---
-    memory.push({ role: "assistant", content: reply });
-
-    return {
-      statusCode: 200,
-      headers: corsHeaders(),
-      body: JSON.stringify({ message: reply, memory, timestamp: now }),
-    };
   } catch (err) {
     console.error("❌ Evolve bot error:", err);
-    return {
-      statusCode: 500,
-      headers: corsHeaders(),
-      body: JSON.stringify({ error: err.message }),
-    };
+    return { statusCode: 500, headers: corsHeaders(), body: JSON.stringify({ error: err.message }) };
   }
 };
