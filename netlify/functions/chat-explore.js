@@ -1,18 +1,23 @@
-// === NORTH STAR GPS – EXPLORE BACKEND FUNCTION (FINAL VERSION: BUSINESS-READY + HUMAN PERSONALITY) ===
+// === NORTH STAR GPS – EXPLORE BACKEND FUNCTION (FINAL BUSINESS VERSION + FIXED FOR NETLIFY) ===
+
+// ✅ 1. Import OpenAI properly for Netlify ES Modules
 import OpenAI from "openai";
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-// --- In-memory short-term memory (resets on function reload) ---
+// ✅ 2. In-memory short-term memory (resets on function reload)
 let conversationHistory = [];
 
-export const handler = async (event) => {
-  // --- Allow CORS preflight ---
+// ✅ 3. Main handler
+export async function handler(event) {
+  // --- Handle CORS preflight ---
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 200, headers: corsHeaders(), body: "OK" };
   }
 
-  // --- Only accept POST requests ---
+  // --- Only allow POST ---
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -87,7 +92,7 @@ Your job is to simplify complex topics (CRS, IELTS, licensing, settlement) and h
 • Keep the focus on guidance, clarity, and human warmth.
     `.trim();
 
-    // --- Build chat messages with short-term memory ---
+    // --- Build chat messages ---
     const messages = [
       { role: "system", content: systemPrompt },
       ...conversationHistory.slice(-8),
@@ -110,12 +115,11 @@ Your job is to simplify complex topics (CRS, IELTS, licensing, settlement) and h
     conversationHistory.push({ role: "user", content: userMessage });
     conversationHistory.push({ role: "assistant", content: reply });
 
-    // --- Trim memory to prevent overflow ---
     if (conversationHistory.length > 20) {
       conversationHistory = conversationHistory.slice(-20);
     }
 
-    // --- Return response ---
+    // --- Return successful response ---
     return {
       statusCode: 200,
       headers: corsHeaders(),
@@ -129,7 +133,7 @@ Your job is to simplify complex topics (CRS, IELTS, licensing, settlement) and h
       body: JSON.stringify({ error: err.message }),
     };
   }
-};
+}
 
 // --- Helper: CORS headers ---
 function corsHeaders() {
