@@ -6,7 +6,7 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const openers = ["Got it.", "Sure thing.", "Makes sense.", "Quick take:"];
 const closers = [
   "That’s the gist—want next steps?",
-  "Hope that clears it up 🤘",
+  "Hope that clears it up 🤘"
 ];
 const rand = arr => arr[Math.floor(Math.random() * arr.length)];
 
@@ -44,21 +44,28 @@ exports.handler = async (event, context) => {
 
   try {
     const body = JSON.parse(event.body || "{}");
-    const messages = body.messages || []; // now accepts full session history
 
-    // if there's no messages, ask for something
-    if (!messages.length)
+    // ✅ FIX: handle both single message + full session
+    let messages = body.messages || [];
+    let userMessage = "";
+
+    if (Array.isArray(messages) && messages.length > 0) {
+      const last = messages[messages.length - 1];
+      userMessage = (last?.content || last?.message || "").trim();
+    } else if (body.message) {
+      userMessage = body.message.trim();
+      messages = [{ role: "user", content: userMessage }];
+    }
+
+    if (!userMessage)
       return {
         statusCode: 400,
         headers: corsHeaders(),
-        body: JSON.stringify({ error: "No messages received" })
+        body: JSON.stringify({ error: "Missing user message" })
       };
 
-    // last user message
-    const lastUser = messages[messages.length - 1]?.content?.trim() || "";
-
     /* ----  quick CRS when numbers detected  ---- */
-    const crsMatch = lastUser.match(
+    const crsMatch = userMessage.match(
       /(\d+).*(master|bachelor|phd|diploma).*(\d)\s*years?.*(clb\s?(\d)|ielts\s?(\d))/i
     );
     if (crsMatch) {
@@ -87,10 +94,9 @@ Offer next step naturally, never hard-sell.
 If off-topic, reply: “That’s outside immigration land—shoot if you veer back 😊”
 Start with: ${rand(openers)}  End with: ${rand(closers)}`;
 
-    // merge system + recent context (sent from frontend)
     const conversation = [
       { role: "system", content: systemPrompt },
-      ...messages.slice(-12) // keep last 12 for efficiency
+      ...messages.slice(-12)
     ];
 
     const completion = await client.chat.completions.create({
