@@ -2,7 +2,6 @@
 const OpenAI = require("openai");
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-let conversationHistory = [];
 
 const openers = ["Got it.", "Sure thing.", "Makes sense.", "Quick take:"];
 const closers = [
@@ -45,16 +44,21 @@ exports.handler = async (event, context) => {
 
   try {
     const body = JSON.parse(event.body || "{}");
-    const userMessage = (body.message || "").trim();
-    if (!userMessage)
+    const messages = body.messages || []; // now accepts full session history
+
+    // if there's no messages, ask for something
+    if (!messages.length)
       return {
         statusCode: 400,
         headers: corsHeaders(),
-        body: JSON.stringify({ error: "Missing message" })
+        body: JSON.stringify({ error: "No messages received" })
       };
 
+    // last user message
+    const lastUser = messages[messages.length - 1]?.content?.trim() || "";
+
     /* ----  quick CRS when numbers detected  ---- */
-    const crsMatch = userMessage.match(
+    const crsMatch = lastUser.match(
       /(\d+).*(master|bachelor|phd|diploma).*(\d)\s*years?.*(clb\s?(\d)|ielts\s?(\d))/i
     );
     if (crsMatch) {
@@ -66,10 +70,6 @@ exports.handler = async (event, context) => {
       } without spouse).\nLast draw: ${lastDraw}. You’d need CLB 9 or PNP push—want the fastest route?\n${rand(
         closers
       )}`;
-      conversationHistory.push(
-        { role: "user", content: userMessage },
-        { role: "assistant", content: reply }
-      );
       return {
         statusCode: 200,
         headers: corsHeaders(),
@@ -79,35 +79,30 @@ exports.handler = async (event, context) => {
 
     /* ----  normal GPT call  ---- */
     const systemPrompt = `You are North Star GPS, Ovi Matin’s (RCIC R712582) WhatsApp-style assistant.
-1. Answer in 2-3 short sentences, contractions, line-breaks like voice notes.
-2. If user gives age+edu+ielts+work (+spouse?) give instant CRS estimate first.
-3. Offer next step, never hard-sell.
-4. Off-topic → “That’s outside immigration land—shoot if you veer back 😊”
-5. Start with: ${rand(openers)}  End with: ${rand(closers)}`;
+You are an expert on Canadian immigration, Express Entry, CRS scoring, IELTS/CLB conversions, and PNP strategy.
+Always interpret “points” as CRS points unless the user clearly means IELTS scores.
+Answer in 2-3 short sentences, using contractions and a warm, conversational tone.
+If user gives age+edu+ielts+work (+spouse?) give instant CRS estimate first.
+Offer next step naturally, never hard-sell.
+If off-topic, reply: “That’s outside immigration land—shoot if you veer back 😊”
+Start with: ${rand(openers)}  End with: ${rand(closers)}`;
 
-    const messages = [
+    // merge system + recent context (sent from frontend)
+    const conversation = [
       { role: "system", content: systemPrompt },
-      ...conversationHistory.slice(-6),
-      { role: "user", content: userMessage }
+      ...messages.slice(-12) // keep last 12 for efficiency
     ];
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.8,
       max_tokens: 320,
-      messages
+      messages: conversation
     });
 
-    let reply =
-      completion.choices?.[0]?.message?.content?.trim() || "Hmm, try again?";
-    reply = `${rand(openers)}\n${reply}\n${rand(closers)}`;
-
-    conversationHistory.push(
-      { role: "user", content: userMessage },
-      { role: "assistant", content: reply }
-    );
-    if (conversationHistory.length > 20)
-      conversationHistory = conversationHistory.slice(-20);
+    const reply =
+      completion.choices?.[0]?.message?.content?.trim() ||
+      "Hmm, not sure, could you rephrase that?";
 
     return {
       statusCode: 200,
