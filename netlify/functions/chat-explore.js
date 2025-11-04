@@ -8,7 +8,6 @@ const openers = ["Got it.", "Sure thing.", "Makes sense.", "Quick take:"];
 const closers = [
   "That’s the gist—want next steps?",
   "Hope that clears it up 🤘",
-  "Shoot if you need the deep dive."
 ];
 const rand = arr => arr[Math.floor(Math.random() * arr.length)];
 
