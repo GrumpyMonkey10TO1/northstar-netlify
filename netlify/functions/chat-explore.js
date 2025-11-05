@@ -1,16 +1,7 @@
-// === North Star GPS – Professional Consultant Edition ===
+// === North Star GPS – Natural Freeflow Edition ===
 const OpenAI = require("openai");
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-// Changed for a more formal, consultant-like tone
-const openers = ["Understood.", "Certainly.", "Processing your request.", "Initial Assessment:"];
-// Changed for a more professional closure and call to action
-const closers = [
-  "That summarizes the key points. Would you like to discuss next steps?",
-  "I trust this clarification is helpful. Please advise on how to proceed."
-];
-const rand = arr => arr[Math.floor(Math.random() * arr.length)];
 
 function quickCRS({ age, edu, ielts, work, spouse = false }) {
   let core = 0;
@@ -47,7 +38,6 @@ exports.handler = async (event, context) => {
   try {
     const body = JSON.parse(event.body || "{}");
 
-    // ✅ FIX: handle both single message + full session
     let messages = body.messages || [];
     let userMessage = "";
 
@@ -66,21 +56,17 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({ error: "Missing user message" })
       };
 
-    /* ---- quick CRS when numbers detected ---- */
+    /* ---- Quick CRS when numbers detected ---- */
     const crsMatch = userMessage.match(
       /(\d+).*(master|bachelor|phd|diploma).*(\d)\s*years?.*(clb\s?(\d)|ielts\s?(\d))/i
     );
     if (crsMatch) {
       const [_, age, edu, work, __, ielts] = crsMatch;
       const est = quickCRS({ age, edu, ielts, work });
-      const lastDraw = 481; // update weekly
-      
-      // Revised quick CRS response for a professional tone
-      const reply = `${rand(openers)}\nYour estimated CRS Score is: ~${est} (The score is estimated at ~${
-        est - 50
-      } without a spousal component).\nThe last confirmed Express Entry draw score was ${lastDraw}. To be competitive, focusing on achieving CLB 9 or exploring a Provincial Nominee Program (PNP) is highly recommended. Do you wish to review your strategic options?\n${rand(
-        closers
-      )}`;
+      const lastDraw = 481;
+
+      const reply = `Your estimated CRS score is around ${est} (${est - 50} without a spouse).
+The most recent draw was ${lastDraw}, so you might be close if you improve IELTS or get a PNP nomination.`;
 
       return {
         statusCode: 200,
@@ -89,16 +75,14 @@ exports.handler = async (event, context) => {
       };
     }
 
-    /* ---- normal GPT call ---- */
-    // System prompt revised for professional, concise, and authoritative tone
-    const systemPrompt = `You are North Star GPS, Ovi Matin’s (RCIC R712582) professional immigration consulting assistant.
-You are an expert on Canadian immigration, Express Entry, CRS scoring, IELTS/CLB conversions, and PNP strategy.
-Always interpret “points” as CRS points unless the user clearly means IELTS scores.
-Answer clearly and concisely, using a professional and authoritative tone appropriate for an official immigration consultant. Avoid contractions where possible. Responses must be 2-3 sentences.
-If the user provides their age, education, work experience, and language scores (+spouse?) provide the instant CRS estimate first.
-Offer next step naturally, focusing on strategic action and program eligibility, never hard-sell.
-If a query is outside the scope of Canadian immigration, reply: “I am designed to assist with Canadian immigration matters. Kindly refocus your inquiry to remain within that scope.”
-Start with: ${rand(openers)} End with: ${rand(closers)}`;
+    /* ---- Normal GPT Call ---- */
+    const systemPrompt = `You are North Star GPS, the friendly AI immigration assistant for Migrate North, led by Ovi Matin (RCIC #R712582).
+You help users understand Canadian immigration, Express Entry, CRS points, IELTS/CLB conversions, and PNP strategy.
+Speak naturally, like texting with a helpful consultant — relaxed, clear, and human.
+Write in 2–3 short sentences per reply.
+Avoid repetitive phrases or templated responses. Do not use forced greetings or closings.
+If the user shares details like age, education, IELTS, or work years, estimate their CRS first.
+If they go off-topic, gently redirect them back to immigration with something friendly like, “That’s a bit outside immigration, but I can help once we’re back on track.”`;
 
     const conversation = [
       { role: "system", content: systemPrompt },
@@ -114,7 +98,7 @@ Start with: ${rand(openers)} End with: ${rand(closers)}`;
 
     const reply =
       completion.choices?.[0]?.message?.content?.trim() ||
-      "I apologize, I am experiencing an issue with processing this request. Please rephrase your query.";
+      "Hmm, could you rephrase that?";
 
     return {
       statusCode: 200,
@@ -122,7 +106,7 @@ Start with: ${rand(openers)} End with: ${rand(closers)}`;
       body: JSON.stringify({ reply })
     };
   } catch (err) {
-    console.error("❌ Explore bot error:", err);
+    console.error("❌ North Star GPS error:", err);
     return {
       statusCode: 500,
       headers: corsHeaders(),
