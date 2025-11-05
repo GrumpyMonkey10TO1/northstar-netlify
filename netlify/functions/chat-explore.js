@@ -1,12 +1,14 @@
-// ===  North Star GPS  –  WhatsApp-style, CRS-estimator, tier-aware  ===
+// === North Star GPS – Professional Consultant Edition ===
 const OpenAI = require("openai");
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const openers = ["Got it.", "Sure thing.", "Makes sense.", "Quick take:"];
+// Changed for a more formal, consultant-like tone
+const openers = ["Understood.", "Certainly.", "Processing your request.", "Initial Assessment:"];
+// Changed for a more professional closure and call to action
 const closers = [
-  "That’s the gist—want next steps?",
-  "Hope that clears it up 🤘"
+  "That summarizes the key points. Would you like to discuss next steps?",
+  "I trust this clarification is helpful. Please advise on how to proceed."
 ];
 const rand = arr => arr[Math.floor(Math.random() * arr.length)];
 
@@ -64,7 +66,7 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({ error: "Missing user message" })
       };
 
-    /* ----  quick CRS when numbers detected  ---- */
+    /* ---- quick CRS when numbers detected ---- */
     const crsMatch = userMessage.match(
       /(\d+).*(master|bachelor|phd|diploma).*(\d)\s*years?.*(clb\s?(\d)|ielts\s?(\d))/i
     );
@@ -72,11 +74,14 @@ exports.handler = async (event, context) => {
       const [_, age, edu, work, __, ielts] = crsMatch;
       const est = quickCRS({ age, edu, ielts, work });
       const lastDraw = 481; // update weekly
-      const reply = `${rand(openers)}\nRough CRS: ~${est} (${
+      
+      // Revised quick CRS response for a professional tone
+      const reply = `${rand(openers)}\nYour estimated CRS Score is: ~${est} (The score is estimated at ~${
         est - 50
-      } without spouse).\nLast draw: ${lastDraw}. You’d need CLB 9 or PNP push—want the fastest route?\n${rand(
+      } without a spousal component).\nThe last confirmed Express Entry draw score was ${lastDraw}. To be competitive, focusing on achieving CLB 9 or exploring a Provincial Nominee Program (PNP) is highly recommended. Do you wish to review your strategic options?\n${rand(
         closers
       )}`;
+
       return {
         statusCode: 200,
         headers: corsHeaders(),
@@ -84,15 +89,16 @@ exports.handler = async (event, context) => {
       };
     }
 
-    /* ----  normal GPT call  ---- */
-    const systemPrompt = `You are North Star GPS, Ovi Matin’s (RCIC R712582) WhatsApp-style assistant.
+    /* ---- normal GPT call ---- */
+    // System prompt revised for professional, concise, and authoritative tone
+    const systemPrompt = `You are North Star GPS, Ovi Matin’s (RCIC R712582) professional immigration consulting assistant.
 You are an expert on Canadian immigration, Express Entry, CRS scoring, IELTS/CLB conversions, and PNP strategy.
 Always interpret “points” as CRS points unless the user clearly means IELTS scores.
-Answer in 2-3 short sentences, using contractions and a warm, conversational tone.
-If user gives age+edu+ielts+work (+spouse?) give instant CRS estimate first.
-Offer next step naturally, never hard-sell.
-If off-topic, reply: “That’s outside immigration land—shoot if you veer back 😊”
-Start with: ${rand(openers)}  End with: ${rand(closers)}`;
+Answer clearly and concisely, using a professional and authoritative tone appropriate for an official immigration consultant. Avoid contractions where possible. Responses must be 2-3 sentences.
+If the user provides their age, education, work experience, and language scores (+spouse?) provide the instant CRS estimate first.
+Offer next step naturally, focusing on strategic action and program eligibility, never hard-sell.
+If a query is outside the scope of Canadian immigration, reply: “I am designed to assist with Canadian immigration matters. Kindly refocus your inquiry to remain within that scope.”
+Start with: ${rand(openers)} End with: ${rand(closers)}`;
 
     const conversation = [
       { role: "system", content: systemPrompt },
@@ -108,7 +114,7 @@ Start with: ${rand(openers)}  End with: ${rand(closers)}`;
 
     const reply =
       completion.choices?.[0]?.message?.content?.trim() ||
-      "Hmm, not sure, could you rephrase that?";
+      "I apologize, I am experiencing an issue with processing this request. Please rephrase your query.";
 
     return {
       statusCode: 200,
