@@ -1,151 +1,148 @@
-// netlify/functions/execute.js
+// /netlify/functions/execute.js
 import OpenAI from "openai";
-
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Replace this with your live origin if you add a subdomain later
+/**
+ * North Star Execute, server function v2.1 (Option 1 merged)
+ * - Strict CORS (migratenorth.ca)
+ * - Memory trimming and role labeling
+ * - Lightweight command router for Execute use cases
+ * - Deterministic defaults with safe creativity on drafts
+ * - Session expiry hint for the frontend
+ */
+
 const ORIGIN = "https://migratenorth.ca";
 
-// Maximum pairs to retain in memory to prevent token bloat
-const MAX_TURNS = 12;
+// Standard CORS headers
+function corsHeaders(extra = {}) {
+  return {
+    "Access-Control-Allow-Origin": ORIGIN,
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Methods": "POST,OPTIONS",
+    "Access-Control-Max-Age": "86400",
+    "Content-Type": "application/json",
+    ...extra,
+  };
+}
 
-// Helper to clamp memory length
-function clampMemory(history = []) {
-  if (!Array.isArray(history)) return [];
-  const start = Math.max(0, history.length - MAX_TURNS);
-  return history.slice(start);
+// Keep only the most recent N user+assistant turns
+function trimMemory(mem = [], maxTurns = 12) {
+  const flat = Array.isArray(mem) ? mem : [];
+  return flat.slice(-2 * maxTurns);
+}
+
+// Focused system prompt for Execute
+function systemPrompt() {
+  return [
+    "You are North Star GPS, an expert Canadian immigration assistant built by Matin Immigration Services.",
+    "Primary jobs: complete IRCC forms, build checklists, draft LoEs, review docs against IRCC criteria, prep Express Entry and PR packages.",
+    "Tone: precise, calm, thorough, action focused. Avoid marketing. Prefer bullet points and numbered steps.",
+    "When the user asks for a draft, output a clean draft first, then a short checklist to finalize it.",
+    "When reviewing, cite the rule in plain language and say exactly what to fix.",
+    "Never give legal guarantees. Include a short, plain disclaimer at the end for any high stakes guidance.",
+    "Return concise outputs suitable to paste into forms or documents."
+  ].join(" ");
+}
+
+// Lightweight intent planner
+function planTask(input = "") {
+  const text = (input || "").toLowerCase();
+  if (/\b(checklist|document checklist|what do i need)\b/.test(text)) return "CHECKLIST";
+  if (/\b(letter|loe|explanation|cover letter|invitation|sop)\b/.test(text)) return "DRAFT_LETTER";
+  if (/\b(review|assess|audit|critique|fix)\b/.test(text)) return "REVIEW";
+  if (/\b(form|imm\s?5669|imm\s?5406|imm\s?5768|imm\s?0008)\b/.test(text)) return "FORM_HELP";
+  if (/\b(pnp|oinp|bc pnp|aipp|sinp|draw|profile)\b/.test(text)) return "PNP_GUIDE";
+  if (/\b(gcms|atip)\b/.test(text)) return "GCMS_HELP";
+  return "GENERAL";
 }
 
 export const handler = async (event) => {
-  // Handle CORS preflight
+  // Preflight
   if (event.httpMethod === "OPTIONS") {
-    return {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": ORIGIN,
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Allow-Methods": "POST,OPTIONS",
-        "Access-Control-Max-Age": "86400",
-      },
-      body: "ok",
-    };
+    return { statusCode: 200, headers: corsHeaders(), body: "ok" };
   }
 
-  // Enforce POST
+  // Enforce POST only
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers: { "Access-Control-Allow-Origin": ORIGIN },
+      headers: corsHeaders(),
       body: JSON.stringify({ error: "Method not allowed" }),
     };
   }
 
   try {
-    const payload = JSON.parse(event.body || "{}");
     const {
       message = "",
       memory = [],
-      mode = "auto",             // "auto", "forms", "checklist", "review", "qna"
-      userProfile = {},          // { name, email, country, profession, noc }
-      timestamp,
-    } = payload;
+      timestamp = Date.now(),
+      userMeta = {}
+    } = JSON.parse(event.body || "{}");
 
-    const safeMemory = clampMemory(memory);
+    const mode = planTask(message);
+    const trimmedMemory = trimMemory(memory, 12);
 
-    // Light typing simulation text for UI
-    const thinking = "Thinking through your request...";
-
-    // System instructions for Execute
-    const systemPrompt = `
-You are North Star Execute, an expert Canadian immigration assistant built by Migrate North Academy and operated by Matin Immigration Services Inc. You help users complete IRCC forms, prepare Express Entry profiles, draft supporting letters, and organize document checklists with precise, stepwise guidance.
-
-Operating rules:
-1) Be concrete, use short steps, request missing facts explicitly.
-2) When working on a form, output a "fields_needed" list with field names and brief hints.
-3) When organizing tasks, return a "checklist" array of small, verifiable items, each with a status key set to "todo", "in_progress", or "done".
-4) When reviewing text, return "edits" as an array of {line, suggestion, reason}.
-5) Never guess legal facts. If a rule is uncertain, state that it needs verification on IRCC or the governing regulator site.
-6) Always include a "next_action" for the user at the end, one clear step only.
-7) Keep a neutral, professional tone. No marketing language.
-8) If asked for legal advice, provide general information and recommend a licensed RCIC review. You may state: "Final review by RCIC is recommended."
-9) Respect user preferences for non salesy tone and factual accuracy.
-
-Output contract:
-Respond with clear natural language, but also include a concise JSON block at the end delimited by <<<EXECUTE_JSON>>> and <<<END_EXECUTE_JSON>>> that the frontend can parse. The JSON must include:
-{
-  "mode": "auto|forms|checklist|review|qna",
-  "fields_needed": [ { "field": "IMM 0008: family name", "hint": "as on passport" } ],
-  "checklist": [ { "item": "ECA report from WES", "status": "todo" } ],
-  "edits": [ { "line": 3, "suggestion": "replace X with Y", "reason": "grammar" } ],
-  "references": [ "IRCC page or policy name if mentioned" ],
-  "next_action": "one clear next step for the user"
-}
-Only include keys that are relevant to the current reply. Keep arrays short and practical.
-`;
-
-    // Optional mode prime
-    const modePrimer = {
-      auto: "User intent is not fixed. Infer the best structure and include the JSON block.",
-      forms: "User is filling an IRCC form. Ask for missing fields, return fields_needed with IRCC labels.",
-      checklist: "User wants a plan. Return a practical checklist with 5 to 9 items, each small and verifiable.",
-      review: "User provided text for review. Return targeted line edits with reasons, no rewriting the entire document unless asked.",
-      qna: "User has questions. Answer directly, cite references by name, and include one next_action.",
-    }[mode] || "Infer the best structure.";
+    // Tool hint to steer outputs without function calling
+    const toolHint = [
+      `Mode: ${mode}`,
+      "If Mode = CHECKLIST, produce step by step with documents, specs, and how to prove each item.",
+      "If Mode = DRAFT_LETTER, produce a clean final draft, followed by a micro checklist.",
+      "If Mode = REVIEW, list issues found, corrections, and a corrected version when possible.",
+      "If Mode = FORM_HELP, map fields to likely answers, note pitfalls, and provide sample wording where allowed.",
+      "If Mode = PNP_GUIDE, outline eligibility, points, required docs, queue steps, and common refusals.",
+      "If Mode = GCMS_HELP, show how to order, timelines, and how to read key fields once received."
+    ].join(" | ");
 
     const messages = [
-      { role: "system", content: systemPrompt.trim() },
+      { role: "system", content: systemPrompt() },
+      ...trimmedMemory,
       {
         role: "user",
-        content: `Context: ${JSON.stringify(
-          { mode, userProfile, timestamp },
-          null,
-          0
-        )}\nInstruction: ${modePrimer}\n\nUser message: ${message}`,
+        content:
+          `Timestamp: ${new Date(timestamp).toISOString()}\n` +
+          `User meta: ${JSON.stringify(userMeta)}\n` +
+          `Tool hint: ${toolHint}\n\n` +
+          message,
       },
-      ...safeMemory,
     ];
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      temperature: 0.3,
+      temperature: mode === "DRAFT_LETTER" ? 0.7 : 0.3,
       max_tokens: 900,
       messages,
     });
 
-    const reply =
-      completion.choices?.[0]?.message?.content || "I could not generate a response.";
+    const reply = completion.choices?.[0]?.message?.content || "No response available.";
 
-    // Append newest turn to memory
-    const newMemory = clampMemory([
-      ...safeMemory,
+    const newMemory = [
+      ...trimmedMemory,
       { role: "user", content: message },
       { role: "assistant", content: reply },
-    ]);
+    ];
 
     // Simple session hint for the client
     const sessionExpiresAt = Date.now() + 30 * 60 * 1000;
 
     return {
       statusCode: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": ORIGIN,
-      },
+      headers: corsHeaders(),
       body: JSON.stringify({
         reply,
         memory: newMemory,
-        thinking,
+        thinking: "Thinking through your request...",
+        mode,
         sessionExpiresAt,
-        model: "gpt-4o-mini",
+        model: "gpt-4o-mini"
       }),
     };
   } catch (err) {
     console.error("Execute function error:", err);
     return {
       statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": ORIGIN },
+      headers: corsHeaders(),
       body: JSON.stringify({
-        error: "Internal Server Error: " + err.message,
+        error: "Internal Server Error: " + (err?.message || "Unknown error"),
       }),
     };
   }
