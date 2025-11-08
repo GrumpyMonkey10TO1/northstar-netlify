@@ -1,5 +1,20 @@
+// netlify/functions/execute.js
 import OpenAI from "openai";
+
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Replace this with your live origin if you add a subdomain later
+const ORIGIN = "https://migratenorth.ca";
+
+// Maximum pairs to retain in memory to prevent token bloat
+const MAX_TURNS = 12;
+
+// Helper to clamp memory length
+function clampMemory(history = []) {
+  if (!Array.isArray(history)) return [];
+  const start = Math.max(0, history.length - MAX_TURNS);
+  return history.slice(start);
+}
 
 export const handler = async (event) => {
   // Handle CORS preflight
@@ -7,249 +22,131 @@ export const handler = async (event) => {
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": "https://migratenorth.ca",
+        "Access-Control-Allow-Origin": ORIGIN,
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Access-Control-Allow-Methods": "POST,OPTIONS",
-        "Access-Control-Max-Age": "86400"
+        "Access-Control-Max-Age": "86400",
       },
-      body: "ok"
+      body: "ok",
     };
   }
 
-  // Allow POST only
+  // Enforce POST
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers: { "Access-Control-Allow-Origin": "https://migratenorth.ca" },
-      body: JSON.stringify({ error: "Method not allowed" })
+      headers: { "Access-Control-Allow-Origin": ORIGIN },
+      body: JSON.stringify({ error: "Method not allowed" }),
     };
   }
 
   try {
     const payload = JSON.parse(event.body || "{}");
-    const userText = (payload.message || "").toLowerCase();
-    const memory = payload.memory || [];
-    const timestamp = payload.timestamp || Date.now();
+    const {
+      message = "",
+      memory = [],
+      mode = "auto",             // "auto", "forms", "checklist", "review", "qna"
+      userProfile = {},          // { name, email, country, profession, noc }
+      timestamp,
+    } = payload;
 
-    // Response variable
-    let reply = "";
+    const safeMemory = clampMemory(memory);
 
-    // ------------------------------------------------------
-    // 1. Pathway and CRS logic
-    // ------------------------------------------------------
+    // Light typing simulation text for UI
+    const thinking = "Thinking through your request...";
 
-    if (userText.includes("strongest pathway")) {
-      reply = "Your strongest pathway is Express Entry under FSW. I will refine this as your IELTS, ECA, and work history update.";
-    }
+    // System instructions for Execute
+    const systemPrompt = `
+You are North Star Execute, an expert Canadian immigration assistant built by Migrate North Academy and operated by Matin Immigration Services Inc. You help users complete IRCC forms, prepare Express Entry profiles, draft supporting letters, and organize document checklists with precise, stepwise guidance.
 
-    else if (userText.includes("clb 9")) {
-      reply = "CLB 9 increases your CRS significantly. Your new estimated range is 450 to 465 depending on your work history and spousal details.";
-    }
+Operating rules:
+1) Be concrete, use short steps, request missing facts explicitly.
+2) When working on a form, output a "fields_needed" list with field names and brief hints.
+3) When organizing tasks, return a "checklist" array of small, verifiable items, each with a status key set to "todo", "in_progress", or "done".
+4) When reviewing text, return "edits" as an array of {line, suggestion, reason}.
+5) Never guess legal facts. If a rule is uncertain, state that it needs verification on IRCC or the governing regulator site.
+6) Always include a "next_action" for the user at the end, one clear step only.
+7) Keep a neutral, professional tone. No marketing language.
+8) If asked for legal advice, provide general information and recommend a licensed RCIC review. You may state: "Final review by RCIC is recommended."
+9) Respect user preferences for non salesy tone and factual accuracy.
 
-    else if (userText.includes("non accompanying")) {
-      reply = "With your spouse listed as non accompanying your CRS may increase by 10 to 20 points depending on your education and experience.";
-    }
+Output contract:
+Respond with clear natural language, but also include a concise JSON block at the end delimited by <<<EXECUTE_JSON>>> and <<<END_EXECUTE_JSON>>> that the frontend can parse. The JSON must include:
+{
+  "mode": "auto|forms|checklist|review|qna",
+  "fields_needed": [ { "field": "IMM 0008: family name", "hint": "as on passport" } ],
+  "checklist": [ { "item": "ECA report from WES", "status": "todo" } ],
+  "edits": [ { "line": 3, "suggestion": "replace X with Y", "reason": "grammar" } ],
+  "references": [ "IRCC page or policy name if mentioned" ],
+  "next_action": "one clear next step for the user"
+}
+Only include keys that are relevant to the current reply. Keep arrays short and practical.
+`;
 
-    else if (userText.includes("postgraduate diploma")) {
-      reply = "A postgraduate diploma can add 15 to 30 CRS points. The value depends on whether it becomes a second credential in your profile.";
-    }
+    // Optional mode prime
+    const modePrimer = {
+      auto: "User intent is not fixed. Infer the best structure and include the JSON block.",
+      forms: "User is filling an IRCC form. Ask for missing fields, return fields_needed with IRCC labels.",
+      checklist: "User wants a plan. Return a practical checklist with 5 to 9 items, each small and verifiable.",
+      review: "User provided text for review. Return targeted line edits with reasons, no rewriting the entire document unless asked.",
+      qna: "User has questions. Answer directly, cite references by name, and include one next_action.",
+    }[mode] || "Infer the best structure.";
 
-    else if (userText.includes("highest pnp chances")) {
-      reply = "Your strongest PNP chances are in British Columbia and Nova Scotia based on healthcare aligned programs and your NOC category.";
-    }
-
-    else if (userText.includes("blocking my express entry")) {
-      reply = "Your main blockers are language scores and missing documents. Improving speaking and writing and completing your experience letters will remove the main issues.";
-    }
-
-    // ------------------------------------------------------
-    // 2. Licensing and profession specific logic
-    // ------------------------------------------------------
-
-    else if (userText.includes("nursing licensing roadmap")) {
-      reply = "Your nursing licensing steps are NNAS submission, identity verification, advisory report, NCLEX registration, and provincial registration. I can guide each step.";
-    }
-
-    else if (userText.includes("explain nclex")) {
-      reply = "NCLEX registration requires creating an NCSBN account, registering with Pearson VUE, completing identity steps, receiving Authorization to Test, and booking the exam.";
-    }
-
-    else if (userText.includes("ontario") && userText.includes("british columbia") && userText.includes("nursing")) {
-      reply = "Ontario uses NNAS and the Supervised Practice Experience Program. British Columbia uses its own assessment model and often moves faster. BC is usually more direct for internationally educated nurses.";
-    }
-
-    else if (userText.includes("supervised practice experience program")) {
-      reply = "Eligibility for the Ontario SPEP depends on your NNAS outcome, English scores, and documentation completeness. I can check this once your profile is updated.";
-    }
-
-    else if (userText.includes("nnas") && userText.includes("documents")) {
-      reply = "NNAS requires identity documents, transcripts, registration verification forms, and employment verification. Each document must be sent directly from the issuing source.";
-    }
-
-    else if (userText.includes("physician licensing roadmap")) {
-      reply = "Physician licensing includes MCCQE exams, credential verification, practice ready assessment programs, and provincial registration. Your path depends on your specialty.";
-    }
-
-    else if (userText.includes("medical exams")) {
-      reply = "Canadian medical exams include MCCQE one and professional evaluations for regulated health occupations. I can verify which exams apply to your situation.";
-    }
-
-    else if (userText.includes("pharmacist licensing roadmap")) {
-      reply = "Pharmacist licensing involves PEBC evaluation, the evaluation exam, the qualifying exam, practical training, and provincial registration.";
-    }
-
-    else if (userText.includes("pebc evaluation")) {
-      reply = "The PEBC evaluation and qualifying exams measure academic and professional readiness. I can explain fees, documents, and timelines.";
-    }
-
-    else if (userText.includes("lab technologist licensing roadmap")) {
-      reply = "Lab technologist licensing requires CSMLS credentialing, exam registration, and provincial certification when applicable.";
-    }
-
-    else if (userText.includes("csmls")) {
-      reply = "CSMLS credentialing requires academic assessment, competency confirmation, and passing the certification exam. I can outline the sequence.";
-    }
-
-    else if (userText.includes("dentist licensing roadmap")) {
-      reply = "Dentist licensing requires NDEB credential verification, the equivalency process, assessment exams, and provincial registration.";
-    }
-
-    else if (userText.includes("ndeb")) {
-      reply = "The NDEB equivalency process involves document verification and passing the required assessment exams. I can list the steps for you.";
-    }
-
-    else if (userText.includes("physiotherapist licensing roadmap")) {
-      reply = "Physiotherapist licensing involves credentialing through the CAPR, the competency exam, and provincial registration.";
-    }
-
-    else if (userText.includes("physiotherapy credentialing")) {
-      reply = "Physiotherapy credentialing requires academic documentation and competency evaluation. I can check eligibility when you share your background.";
-    }
-
-    // ------------------------------------------------------
-    // 3. Document generation and readiness
-    // ------------------------------------------------------
-
-    else if (userText.includes("generate") && userText.includes("experience letter")) {
-      reply = "Your experience letter template is ready. Add employer details, NOC aligned duties, and exact employment dates.";
-    }
-
-    else if (userText.includes("generate") && userText.includes("resume")) {
-      reply = "Your Canadian style resume template is ready with a professional summary, Canadian formatting, and NOC aligned duties.";
-    }
-
-    else if (userText.includes("missing") && userText.includes("express entry")) {
-      reply = "Missing documents include experience letters, proof of funds, and your passport bio page. I will adjust your readiness score as you upload them.";
-    }
-
-    else if (userText.includes("proof of funds")) {
-      reply = "I can check your proof of funds against IRCC requirements once you share your balance and family size.";
-    }
-
-    else if (userText.includes("collect") && userText.includes("this month")) {
-      reply = "You need to collect experience letters, updated bank statements, a passport bio page, and employer verification letters. I can track each item.";
-    }
-
-    // ------------------------------------------------------
-    // 4. Progress and planning
-    // ------------------------------------------------------
-
-    else if (userText.includes("next three steps")) {
-      reply = "Your next three steps are, 1) order your ECA, 2) generate two employer experience letters, 3) collect your passport bio page.";
-    }
-
-    else if (userText.includes("highest impact task")) {
-      reply = "Your highest impact task is improving IELTS speaking and writing. This has the strongest effect on your CRS score.";
-    }
-
-    else if (userText.includes("30 day immigration plan")) {
-      reply = "Your 30 day plan includes, complete your ECA payment, generate experience letters, start NNAS verification, and prepare proof of funds.";
-    }
-
-    else if (userText.includes("compare express entry and pnp")) {
-      reply = "Express Entry is faster when your CRS is competitive. PNP adds stability if your CRS is low. I can compare both based on your data.";
-    }
-
-    else if (userText.includes("fastest pathway")) {
-      reply = "Your fastest pathway is Express Entry under FSW. PNP is an option but adds more time.";
-    }
-
-    else if (userText.includes("one year") && userText.includes("work experience")) {
-      reply = "One more year of skilled work experience can increase your CRS by about 35 points. It also improves PNP eligibility.";
-    }
-
-    // ------------------------------------------------------
-    // 5. Profile updates
-    // ------------------------------------------------------
-
-    else if (userText.includes("update my profile") && userText.includes("work experience")) {
-      reply = "Your work experience has been updated. You now need new experience letters that match this change. CRS will be recalculated.";
-    }
-
-    else if (userText.includes("update my profile") && userText.includes("ielts")) {
-      reply = "Your IELTS scores are updated. Your CRS and pathway recommendations will adjust accordingly.";
-    }
-
-    else if (userText.includes("update my profile") && userText.includes("spouse")) {
-      reply = "Your spousal information is updated. CRS and pathway calculations will be adjusted.";
-    }
-
-    // ------------------------------------------------------
-    // 6. Eligibility checks
-    // ------------------------------------------------------
-
-    else if (userText.includes("eligible") && userText.includes("express entry")) {
-      reply = "You meet most Express Entry requirements. Remaining gaps are language improvement and document readiness.";
-    }
-
-    else if (userText.includes("eligible") && userText.includes("pnp")) {
-      reply = "Your PNP eligibility is strongest in BC and Nova Scotia. I can review occupational demand once your NOC is confirmed.";
-    }
-
-    else if (userText.includes("this year")) {
-      reply = "Immigration this year is possible if you complete your documents and increase your CRS. I can plan the improvements for you.";
-    }
-
-    // ------------------------------------------------------
-    // 7. Default fallback
-    // ------------------------------------------------------
-
-    else {
-      reply = "I logged your request and will route it to the correct pathway or module.";
-    }
-
-    // ------------------------------------------------------
-    // Send response back with memory
-    // ------------------------------------------------------
-
-    const newMemory = [
-      ...memory,
-      { role: "user", content: payload.message },
-      { role: "assistant", content: reply }
+    const messages = [
+      { role: "system", content: systemPrompt.trim() },
+      {
+        role: "user",
+        content: `Context: ${JSON.stringify(
+          { mode, userProfile, timestamp },
+          null,
+          0
+        )}\nInstruction: ${modePrimer}\n\nUser message: ${message}`,
+      },
+      ...safeMemory,
     ];
+
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0.3,
+      max_tokens: 900,
+      messages,
+    });
+
+    const reply =
+      completion.choices?.[0]?.message?.content || "I could not generate a response.";
+
+    // Append newest turn to memory
+    const newMemory = clampMemory([
+      ...safeMemory,
+      { role: "user", content: message },
+      { role: "assistant", content: reply },
+    ]);
+
+    // Simple session hint for the client
+    const sessionExpiresAt = Date.now() + 30 * 60 * 1000;
 
     return {
       statusCode: 200,
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "https://migratenorth.ca"
+        "Access-Control-Allow-Origin": ORIGIN,
       },
       body: JSON.stringify({
-        reply: reply,
+        reply,
         memory: newMemory,
-        thinking: "Processing your request"
-      })
+        thinking,
+        sessionExpiresAt,
+        model: "gpt-4o-mini",
+      }),
     };
-
   } catch (err) {
-    console.error("Function error:", err);
+    console.error("Execute function error:", err);
     return {
       statusCode: 500,
-      headers: {
-        "Access-Control-Allow-Origin": "https://migratenorth.ca"
-      },
-      body: JSON.stringify({ error: "Internal Server Error: " + err.message })
+      headers: { "Access-Control-Allow-Origin": ORIGIN },
+      body: JSON.stringify({
+        error: "Internal Server Error: " + err.message,
+      }),
     };
   }
 };
-
