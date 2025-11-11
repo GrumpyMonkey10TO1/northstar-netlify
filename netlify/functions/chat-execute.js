@@ -40,8 +40,8 @@ export const handler = async (event) => {
   try {
     const { message, memory = [], mode = "auto", meta = {} } = JSON.parse(event.body || "{}");
 
-    // Trim memory to last 40 turns for speed and token control
-    const trimmed = memory.slice(-40);
+    // Trim memory to last 20 turns for speed (was 40)
+    const trimmed = memory.slice(-20);
 
     // Convert bot/assistant roles for OpenAI compatibility
     const processedMemory = trimmed.map((msg) => ({
@@ -64,11 +64,11 @@ Rules:
 7) Do not invent policy or dates. If unsure, state what must be verified on IRCC or the province site.
 Current mode: ${mode}`;
 
-    // Call OpenAI
+    // Call OpenAI - using gpt-3.5-turbo for speed
     const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-3.5-turbo",
       temperature: 0.4,
-      max_tokens: 600,
+      max_tokens: 400,
       messages: [
         { role: "system", content: systemPrompt },
         ...processedMemory,
