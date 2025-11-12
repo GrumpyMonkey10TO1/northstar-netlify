@@ -1,4 +1,4 @@
-// === NORTH STAR ACADEMY – EVOLVE BOT
+// === MIGRATE NORTH ACADEMY – EVOLVE BOT
 // Full IELTS Coach + Hierarchical Boot Camp + Timed Test Sessions + Enhanced Coaching Personality (v9)
 // Netlify Function: /netlify/functions/chat-evolve.js
 
@@ -367,15 +367,15 @@ SAMPLE RESPONSES:
 "You're at 15/33 tests (${stats.percentage}%). The CLB 8 to 9 jump is HARD - most people plateau here around test 15-20. Research shows the breakthrough typically comes around test 25-28. Keep pushing!"
 
 BE HONEST:
-- We're newly launched (no fake testimonials)
+- 
 - Base advice on IELTS research and proven strategies
 - Say "Research shows..." not "Our students achieved..."
 - Typical improvement: 1-2 bands over 6-8 weeks with dedicated practice`
       
-      : `You are North Star IELTS Coach from Migrate North Academy.
+      : `You are North Star GPS from Migrate North Academy.
 
 YOUR MISSION:
-Help students master IELTS Writing (Task 1 & 2) through the 33-test Boot Camp system.
+Help students master IELTS Writing (Task 1 & 2) and ANY ENGLISH PROFICIENCY TEST through the 33-test Boot Camp system.
 
 STUDENT PROGRESS: ${stats.totalDone}/33 tests (${stats.percentage}%) - ${stats.currentLevel}
 
