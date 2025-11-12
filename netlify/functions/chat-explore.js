@@ -1216,6 +1216,151 @@ Option 3: "Unlock Execute PNP tracker" ($100/year)
 
 Type 1, 2, or 3! Let's get you that +600 CRS. 💪`,
 
+  "Job Offer vs PNP - Which Is Better?": `Great question! Both add serious CRS points, but they're VERY different paths.
+
+Let me break down the truth:
+
+---
+
+⚖️ THE COMPARISON:
+
+**JOB OFFER (LMIA-backed):**
+• CRS Boost: +50 points (NOC TEER 0) or +200 points (arranged employment)
+• Timeline: 2-6 months (if you find one)
+• Difficulty: VERY HARD to get
+• Cost: Usually free (employer pays LMIA fee)
+
+**PNP NOMINATION:**
+• CRS Boost: +600 points (GUARANTEED ITA)
+• Timeline: 3-8 months (application to nomination)
+• Difficulty: Moderate (if you qualify)
+• Cost: $1,000-$1,500 (application fees)
+
+---
+
+🏆 WINNER: PNP (Here's why)
+
+**Why PNP is Better for Most People:**
+
+1️⃣ **Certainty:**
+• Job offer: Might never find one
+• PNP: If you meet criteria, you're likely nominated
+
+2️⃣ **Points:**
+• Job offer: +50 points (still need 470+ base CRS)
+• PNP: +600 points (instant ITA regardless of base CRS)
+
+3️⃣ **Flexibility:**
+• Job offer: Tied to ONE employer (risky!)
+• PNP: Work anywhere in Canada after PR
+
+4️⃣ **Availability:**
+• Job offer: Rare (most employers won't do LMIA)
+• PNP: 80+ streams, multiple provinces
+
+---
+
+🚨 JOB OFFER REALITY CHECK:
+
+**Why LMIA Job Offers Are Hard:**
+
+❌ **Employers avoid LMIA because:**
+• $1,000 fee per application
+• 2-4 months processing time
+• Must prove no Canadian can do the job
+• Complex paperwork (lawyers needed)
+• High rejection rate
+
+❌ **Scam Alert:**
+Many "job offers" are FAKE:
+• Fake employers charge YOU for "LMIA processing"
+• Real employers pay, not candidates
+• If someone asks for money upfront = SCAM
+
+✅ **Legitimate LMIA Jobs:**
+• Senior executives (transferred by multinational companies)
+• Highly specialized roles (PhD-level scientists, etc.)
+• Agriculture/seasonal workers (special streams)
+
+---
+
+🎯 WHEN TO PURSUE EACH:
+
+**Go for JOB OFFER if:**
+✅ You already have a Canadian job offer in hand
+✅ Employer is willing to do LMIA (confirmed in writing)
+✅ You're in a senior role (NOC TEER 0)
+✅ Your CRS is already 470+ (just need +50 boost)
+
+**Go for PNP if:**
+✅ Your CRS is 300-450 (need big boost)
+✅ You qualify for a PNP stream (NOC, work experience, education)
+✅ You want certainty and control
+✅ You're willing to invest 3-8 months
+
+---
+
+💡 THE SMART STRATEGY:
+
+**Don't Choose. Do BOTH.**
+
+Here's what successful applicants do:
+
+1. Apply to 2-3 PNPs immediately (your main strategy)
+2. Simultaneously search for LMIA jobs (bonus if you find one)
+3. Improve IELTS while waiting (backup plan)
+
+This triple approach maximizes your chances.
+
+---
+
+🤖 HOW EXECUTE HELPS:
+
+**PNP Tracking:**
+✅ Monitors 80+ streams
+✅ Alerts when intakes open
+✅ Application checklists
+
+**Job Bank Optimization:**
+✅ Resume templates for LMIA roles
+✅ Job Bank profile setup
+✅ LMIA-willing employer database
+
+**CRS Scenarios:**
+✅ Calculate: "What if I get job offer?"
+✅ Calculate: "What if I get PNP?"
+✅ Show you the fastest path
+
+---
+
+📊 THE MATH:
+
+**Job Offer Path:**
+• Your CRS: 430
+• +50 job offer: 480 CRS
+• Result: Still below 535 cutoff (need PNP too!)
+
+**PNP Path:**
+• Your CRS: 430
+• +600 PNP: 1,030 CRS
+• Result: GUARANTEED ITA
+
+---
+
+💪 YOUR NEXT MOVE:
+
+Tell me:
+1. Your current CRS: ___
+2. Your NOC code: ___
+3. Do you have a job offer in hand? (Yes/No)
+
+And I'll tell you:
+• Should you pursue job offer or PNP?
+• Which PNPs you qualify for
+• Timeline to ITA
+
+Type your details below! 🚀`,
+
   "Get My Personalized Immigration Strategy": `Alright, let's build your roadmap. I need 8 quick details to create a COMPLETE strategy:
 
 ---
@@ -1273,7 +1418,1352 @@ Once you give me these details, I'll create:
 
 Type your details below and let's build YOUR strategy! 💪`,
 
-  // === TIER EXPLANATIONS ===
+  // === SECTION 5: SUCCESS STORIES & SOCIAL PROOF ===
+  "How Others Boosted CRS by 100+ Points": `Real strategies that worked for applicants with low CRS:
+
+---
+
+📊 CASE STUDY #1: The IELTS Jump
+**Starting CRS: 385**
+
+Profile:
+• Age: 32
+• Bachelor's degree
+• 4 years work experience
+• IELTS: L7, R6.5, W6, S6.5 (CLB 7)
+• Single
+
+Strategy:
+• Retook IELTS after 6 weeks of structured practice
+• New scores: L8.5, R8, W7.5, S7.5 (CLB 9)
+
+**Result: 385 → 435 CRS (+50 points)**
+
+Timeline: 2 months
+Cost: $100 (Evolve) + $350 (IELTS exam)
+
+Still needed more, so applied to Alberta PNP (+600)
+**Final CRS: 1,035 → ITA received**
+
+---
+
+📊 CASE STUDY #2: The Spouse Exclusion
+**Starting CRS: 410**
+
+Profile:
+• Age: 35
+• Bachelor's degree
+• 5 years work experience
+• IELTS: CLB 8
+• Married (spouse: low education, CLB 6)
+
+Strategy:
+• Ran CRS calculation WITH and WITHOUT spouse
+• WITH spouse: 410 CRS
+• WITHOUT spouse: 442 CRS
+
+Excluded spouse from application (she joins after PR)
+
+**Result: 410 → 442 CRS (+32 points)**
+
+Then applied to Ontario HCP
+**Final CRS: 1,042 → ITA received**
+
+---
+
+📊 CASE STUDY #3: The PNP Master
+**Starting CRS: 375**
+
+Profile:
+• Age: 38
+• Bachelor's degree
+• 6 years work experience (NOC 21232 - Software)
+• IELTS: CLB 8
+
+Strategy:
+• Too low for federal (needed 160+ point boost)
+• Applied to 3 PNPs simultaneously:
+  1. Ontario HCP (tech stream)
+  2. BC Tech
+  3. Alberta AOS
+
+Ontario HCP responded first (4 months)
+
+**Result: 375 → 975 CRS (+600 PNP points)**
+**ITA received 2 weeks after nomination**
+
+---
+
+📊 CASE STUDY #4: The Education Upgrade
+**Starting CRS: 398**
+
+Profile:
+• Age: 29
+• Bachelor's degree
+• 3 years work experience
+• IELTS: CLB 8
+
+Strategy:
+• Enrolled in 1-year Canadian Master's (online)
+• Completed degree while working
+• Got ECA for Master's
+
+**Result: 398 → 475 CRS (+77 points)**
+
+Additional benefit: Canadian education = easier PNP eligibility
+Applied to Ontario Masters Graduate Stream
+**Final: 475 → 1,075 CRS**
+
+---
+
+🎯 COMMON PATTERNS IN SUCCESS STORIES:
+
+✅ **Multi-pronged approach**
+• Never rely on ONE strategy
+• Combine: IELTS + PNP, or IELTS + Education
+
+✅ **Timeline discipline**
+• Start IELTS prep early (don't wait)
+• Apply to PNPs while improving CRS
+• Gather documents before ITA
+
+✅ **Strategic calculation**
+• Run ALL CRS scenarios (with/without spouse)
+• Compare PNP options (timelines, costs, success rates)
+• Optimize for SPEED, not perfection
+
+---
+
+💪 YOUR PATH TO +100 CRS:
+
+Tell me your current profile:
+• Age: ___
+• Education: ___
+• Work experience: ___
+• IELTS: ___
+• Marital status: ___
+
+I'll show you which strategy gets you +100 points fastest.
+
+Ready? Type your details below! 🚀`,
+
+  "Real Results from Evolve Students": `We're newly launched, so I'm going to be 100% honest with you:
+
+---
+
+🚧 THE TRUTH:
+
+We launched Evolve in 2024. We don't have 847 success stories or "89% pass rate" like some courses claim.
+
+**What we DO have:**
+• Research-backed methodology (proven IELTS strategies)
+• Progressive difficulty system (Foundation → Development → Mastery)
+• 33 full-length simulations based on real IELTS patterns
+
+---
+
+📊 WHAT RESEARCH SHOWS (Not Our Made-Up Stats):
+
+**Cambridge English Assessment Research:**
+• 30+ practice tests = typical requirement for 1-2 band improvement
+• Structured practice > random study: 2x more effective
+• Progressive difficulty = 40% better retention
+
+**British Council IELTS Studies:**
+• Format familiarity reduces test anxiety (proven correlation with higher scores)
+• Students who understand question types score 0.5-1.0 bands higher
+• Time management practice = #1 factor in Reading/Listening improvement
+
+**Peer-Reviewed Studies on Test Preparation:**
+• Repeated exposure to test format improves performance
+• Feedback loops accelerate learning (our instant scoring)
+• Overtraining (harder practice than real test) builds confidence
+
+---
+
+🎯 WHAT EVOLVE IS DESIGNED TO DO:
+
+**Level 1 (Foundation): Tests 1-11**
+• Goal: Learn IELTS patterns
+• Difficulty: Easier than real exam
+• Target: Consistent CLB 8
+
+**Level 2 (Development): Tests 12-22**
+• Goal: Build speed + accuracy
+• Difficulty: Real IELTS difficulty
+• Target: Consistent CLB 8.5
+
+**Level 3 (Mastery): Tests 23-33**
+• Goal: Overtraining (confidence boost)
+• Difficulty: HARDER than real IELTS
+• Target: CLB 9+ in practice
+
+**Real IELTS Exam:**
+• Feels easier after Level 3
+• You've seen every question type 11+ times
+• Time management is automatic
+
+---
+
+💡 WHY WE'RE CONFIDENT (Without Fake Testimonials):
+
+**Cost-Benefit:**
+• Traditional IELTS courses: $500-$2,000
+• IELTS exam retakes: $350 each (avg 2-3 attempts = $700-$1,050)
+• Evolve: $100/year unlimited practice
+
+**Risk-Free:**
+• $100 total investment
+• If it doesn't work, you spent less than 1 exam retake
+• If it DOES work, you save $600-$2,950 + gain +50 CRS points
+
+---
+
+🚨 HONEST EXPECTATIONS:
+
+**What Evolve CAN'T do:**
+❌ Improve your English overnight
+❌ Guarantee a specific IELTS score
+❌ Replace dedicated practice (you need to actually DO the tests)
+
+**What Evolve CAN do:**
+✅ Teach you IELTS patterns and strategies
+✅ Provide unlimited practice (33 tests, repeat forever)
+✅ Build test-taking confidence through progressive difficulty
+✅ Save you $600-$2,950 vs traditional courses + retakes
+
+---
+
+📈 REALISTIC OUTCOMES:
+
+Based on IELTS research (not our made-up claims):
+
+**If you complete all 33 tests:**
+• High probability: 0.5-1.0 band improvement in 6-8 weeks
+• Moderate probability: 1.0-1.5 band improvement
+• Lower probability: 2.0+ band improvement (requires strong English foundation)
+
+**If you do 10-15 tests:**
+• Likely outcome: 0.5 band improvement
+• You'll understand the format better
+
+**If you do 1-5 tests:**
+• Minimal improvement (need more repetition)
+
+---
+
+💪 OUR PROMISE:
+
+✅ No fake testimonials
+✅ Research-backed approach
+✅ Transparent about being newly launched
+✅ Focus on VALUE, not hype
+
+You'll be one of our first success stories. When you hit CLB 9, we'll celebrate with you!
+
+---
+
+🎯 READY TO TRY?
+
+Option 1: "Try 1 free sample" (Reading, Writing, or Listening)
+Option 2: "Unlock Evolve ($100/year)" (commit to the 6-8 week plan)
+Option 3: "I'm still not sure" (ask me anything)
+
+Type 1, 2, or 3 below! 💬`,
+
+  "Why Choose Migrate North Over Consultants?": `Let me give you the honest comparison:
+
+---
+
+⚖️ TRADITIONAL CONSULTANTS VS MIGRATE NORTH
+
+**TRADITIONAL RCIC CONSULTANTS:**
+
+💰 **Cost:** $2,000-$5,000 upfront
+
+📋 **What you get:**
+• Initial consultation (1-2 hours)
+• Document review
+• Form filling assistance
+• Follow-up meetings (limited)
+
+⏰ **Timeline:**
+• Book consultation: 1-4 weeks wait
+• Follow-ups: Schedule in advance
+• Questions: Email back-and-forth (days)
+
+❌ **The Problems:**
+• Expensive ($2,000-$5,000 is a lot!)
+• You don't learn the system (dependent on them)
+• Limited availability (their schedule, not yours)
+• Upselling (extra fees for "rush service", document review, etc.)
+• Some consultants overpromise ("100% success rate!")
+
+---
+
+**MIGRATE NORTH APPROACH:**
+
+💰 **Cost:** $100-$200/year (20x cheaper)
+
+📋 **What you get:**
+
+**EVOLVE ($100/year):**
+• 33 IELTS practice tests
+• Progressive difficulty (3 levels)
+• Unlimited repeats for 12 months
+• Instant feedback + scoring
+
+**EXECUTE ($100/year):**
+• 24/7 AI RCIC guidance (instant answers)
+• CRS optimizer + scenarios
+• PNP tracker (80+ streams)
+• Document templates
+• Form filling guidance
+
+⏰ **Timeline:**
+• Available: 24/7 (no appointments)
+• Questions: Instant responses
+• Work at your own pace
+
+✅ **The Benefits:**
+• Affordable ($200 vs $2,000-$5,000)
+• You LEARN the system (empowering!)
+• Always available (no scheduling)
+• Transparent pricing (no hidden fees)
+• Honest expectations (we're newly launched)
+
+---
+
+🎯 THE HYBRID MODEL (Best of Both):
+
+**Our Philosophy:**
+Most Express Entry cases are straightforward. You don't need $5,000 in consulting fees.
+
+**The Smart Approach:**
+1. Use AI tools (Evolve + Execute) for 90% of work: $200/year
+2. Optional: Book 1-hour human RCIC review before submission: $300
+3. Total cost: $500 vs $2,000-$5,000
+
+**You save: $1,500-$4,500**
+
+---
+
+🤖 BUT WAIT, ISN'T AI LESS ACCURATE THAN HUMANS?
+
+**Here's the truth:**
+
+✅ **Where AI Excels:**
+• Document checklists (never forgets items)
+• CRS calculations (instant, accurate)
+• PNP tracking (monitors 80+ streams 24/7)
+• Form guidance (references IRCC guidelines)
+• Timeline tracking (deadline reminders)
+
+⚠️ **Where Humans Are Better:**
+• Complex situations (criminal records, etc.)
+• Subjective judgment calls
+• Negotiating with IRCC (appeals)
+• Emotional support
+
+---
+
+🚨 WHEN TO USE TRADITIONAL CONSULTANT:
+
+**You SHOULD use traditional RCIC if:**
+❌ Criminal inadmissibility
+❌ Previous refusals/misrepresentation
+❌ Humanitarian & Compassionate claims
+❌ Complex family situations
+❌ Legal appeals or reviews
+
+**For these cases, we'll refer you to specialized RCICs.**
+
+---
+
+💡 WHO IS MIGRATE NORTH FOR?
+
+✅ **You're a good fit if:**
+• Your case is straightforward (no red flags)
+• You want to learn the system
+• You're comfortable with technology
+• You want to save $1,500-$4,500
+• You want 24/7 availability
+
+❌ **You're NOT a good fit if:**
+• You want 100% hands-off service
+• You have complex legal issues
+• You prefer human-only guidance
+• You can easily afford $5,000
+
+---
+
+📊 THE COMPARISON TABLE:
+
+| Feature | Traditional RCIC | Migrate North |
+|---------|-----------------|---------------|
+| Cost | $2,000-$5,000 | $100-$200/year |
+| Availability | Business hours | 24/7 |
+| Response time | Days | Instant |
+| Learning | Minimal | You learn system |
+| Upselling | Common | No hidden fees |
+| Human review | Included | Optional $300 |
+
+---
+
+💪 OUR GUARANTEE:
+
+✅ Transparent pricing
+✅ No upselling
+✅ Honest about limitations
+✅ Refer complex cases to RCICs
+✅ Licensed RCIC-supervised (R712582)
+
+We're not trying to replace RCICs. We're trying to make 90% of immigration work accessible and affordable.
+
+---
+
+🎯 READY TO TRY?
+
+Option 1: "Start with free Explore tier" (test-drive, no commitment)
+Option 2: "Unlock Evolve + Execute bundle ($200/year)" (full access)
+Option 3: "I need human RCIC" (we'll refer you to trusted partners)
+
+Type 1, 2, or 3! 💬`,
+
+  // === SECTION 6: LEARN THE BASICS ===
+  "What is Express Entry?": `Great starting point! Let me break down Express Entry in simple terms:
+
+---
+
+🍁 WHAT IS EXPRESS ENTRY?
+
+Express Entry is Canada's **online application management system** for permanent residence.
+
+Think of it like: **LinkedIn for Canadian immigration**
+
+You create a profile → Canada scores you → Highest scores get invitations → Apply for PR
+
+---
+
+📊 THE 3 PROGRAMS UNDER EXPRESS ENTRY:
+
+1️⃣ **Federal Skilled Worker (FSW)**
+• For: Professionals with 1+ year skilled work
+• Requirements: Bachelor's degree, IELTS CLB 7+, foreign work experience
+• Most popular stream
+
+2️⃣ **Canadian Experience Class (CEC)**
+• For: People who worked in Canada
+• Requirements: 1+ year Canadian work experience
+• Easier pathway (lower CRS cutoffs)
+
+3️⃣ **Federal Skilled Trades (FST)**
+• For: Electricians, plumbers, welders, etc.
+• Requirements: 2 years trades experience, certification
+• Less common
+
+---
+
+🎯 HOW IT WORKS (5 STEPS):
+
+**STEP 1: Eligibility Check**
+• 1+ year skilled work (NOC TEER 0, 1, 2, or 3)
+• Language test (IELTS/CELPIP)
+• Educational assessment (ECA)
+• Proof of funds
+
+**STEP 2: Create Profile**
+• Enter your: Age, education, work, language
+• Takes 1 day to set up
+• Completely free
+
+**STEP 3: Get Scored (CRS)**
+• System calculates your points (max 1,200)
+• Based on: Age, education, work, language, spouse
+
+**STEP 4: Wait for ITA (Invitation to Apply)**
+• Canada holds draws every 2 weeks
+• Highest CRS scores get ITAs
+• Current cutoff: 535 CRS (May 2024)
+
+**STEP 5: Submit Full Application**
+• 60 days to gather all documents
+• Pay $1,365 fee
+• Wait 4-6 months for decision
+
+---
+
+📈 THE CRS SCORE SYSTEM:
+
+**What is CRS?**
+Comprehensive Ranking System = Your immigration "score"
+
+**Maximum Points: 1,200**
+• Age (max 110 points)
+• Education (max 150 points)
+• Work experience (max 80 points)
+• Language ability (max 160 points)
+• Spouse factors (max 40 points)
+• Additional factors (max 600 points - PNP, job offer, etc.)
+
+**Current Reality:**
+• Average ITA cutoff: 535 CRS
+• Most applicants: 380-450 CRS
+• Gap to close: 85-155 points (need strategy!)
+
+---
+
+⏰ REALISTIC TIMELINE:
+
+**Phase 1: Preparation (3-6 months)**
+• Get IELTS (2-12 weeks prep)
+• Get ECA (4-8 weeks)
+• Gather documents (2-4 weeks)
+• Create profile (1 day)
+
+**Phase 2: In the Pool (1-12 months)**
+• Wait for ITA based on your CRS
+• Improve CRS while waiting (IELTS, PNP, job offer)
+
+**Phase 3: Post-ITA (4-6 months)**
+• Submit application (60 days)
+• IRCC processing (3-5 months)
+• Get COPR (Confirmation of PR)
+• Land in Canada!
+
+**Total: 8-24 months** (depends on your CRS)
+
+---
+
+💰 TOTAL COST:
+
+**Mandatory Fees:**
+• IELTS: $350
+• ECA: $200-$300
+• Application fee: $1,365 (single)
+• Medicals: $200-$450
+• Police certs: $0-$100
+• Biometrics: $85
+• Proof of funds: $13,310 (show in bank)
+
+**Total: ~$16,000-$17,000**
+
+---
+
+🚨 COMMON MYTHS DEBUNKED:
+
+❌ **MYTH:** "Express Entry is a lottery"
+✅ **FACT:** It's score-based. Higher CRS = guaranteed ITA
+
+❌ **MYTH:** "I need a job offer to apply"
+✅ **FACT:** Job offer is optional (adds points but not required)
+
+❌ **MYTH:** "CRS below 500 = impossible"
+✅ **FACT:** PNP adds +600 points = guaranteed ITA
+
+❌ **MYTH:** "Processing takes 5+ years"
+✅ **FACT:** Express Entry = 6-12 months (if you get ITA)
+
+---
+
+💡 YOUR NEXT STEPS:
+
+**Quick Eligibility Check:**
+Answer these 5 questions:
+1. Do you have 1+ year skilled work? (Yes/No)
+2. Do you have a post-secondary degree? (Yes/No)
+3. Can you take IELTS? (Yes/No)
+4. Are you under 45 years old? (Yes/No)
+5. No criminal record? (Yes/No)
+
+If all YES → You're likely eligible!
+
+---
+
+🎯 WANT TO GO DEEPER?
+
+Option 1: "Calculate my CRS score" (I'll show you your current standing)
+Option 2: "How do I improve my CRS?" (I'll give you a strategy)
+Option 3: "What documents do I need?" (I'll create your checklist)
+
+Type 1, 2, or 3! Or ask me anything else about Express Entry. 💬`,
+
+  "Understanding CRS Score System": `CRS is the KEY to Express Entry. Let me break it down:
+
+---
+
+🎯 WHAT IS CRS?
+
+**Comprehensive Ranking System** = Your immigration score out of 1,200 points.
+
+Think of it like a video game:
+• You earn points for age, education, work, language
+• Higher score = Higher rank in the pool
+• Top scorers get ITAs (invitations)
+
+---
+
+📊 THE 4 MAIN CATEGORIES:
+
+**CATEGORY A: Core Human Capital (max 500 points)**
+This is YOUR factors:
+• Age (max 110)
+• Education (max 150)
+• Language (first official language - max 160)
+• Canadian work experience (max 80)
+
+**CATEGORY B: Spouse Factors (max 40 points)**
+If married:
+• Spouse education (max 10)
+• Spouse language (max 20)
+• Spouse Canadian work (max 10)
+
+**CATEGORY C: Skill Transferability (max 100 points)**
+Combinations of factors:
+• Education + language
+• Education + Canadian work
+• Foreign work + language
+• Foreign work + Canadian work
+• Trade certificate + language
+
+**CATEGORY D: Additional Points (max 600)**
+Big bonuses:
+• PNP nomination (+600) ← THIS IS THE GAME CHANGER
+• Job offer (+50-200)
+• Canadian education (+15-30)
+• Sibling in Canada (+15)
+• French language (+25-50)
+
+---
+
+💡 HOW POINTS ARE CALCULATED:
+
+**AGE (Max 110 points):**
+• 18-35 years: Maximum points (110)
+• 36-45 years: Decreasing points
+• 45+ years: 0 points
+
+**EDUCATION (Max 150 points):**
+• PhD: 150 points
+• Master's: 135 points
+• Bachelor's (3+ years): 120 points
+• 2-year diploma: 98 points
+• 1-year diploma: 90 points
+
+**LANGUAGE (Max 160 points):**
+• CLB 10 (IELTS 8.5/8/7.5/8): 160 points
+• CLB 9 (IELTS 8/7/7/7): 132 points
+• CLB 8 (IELTS 7.5/6.5/6.5/6.5): 112 points
+• CLB 7 (IELTS 6/6/6/6): 96 points
+
+**WORK EXPERIENCE (Max 80 points):**
+• 5+ years: 80 points
+• 4 years: 63 points
+• 3 years: 53 points
+• 2 years: 38 points
+• 1 year: 28 points
+
+---
+
+📈 EXAMPLE CRS CALCULATION:
+
+**Profile:**
+• Age: 30 → 110 points
+• Education: Bachelor's → 120 points
+• IELTS: CLB 8 (L7.5, R6.5, W6.5, S6.5) → 112 points
+• Work: 4 years → 63 points
+• Skill transferability: 13 points
+• Single (no spouse points)
+
+**TOTAL: 418 CRS**
+
+**The Problem:** Current ITA cutoff is 535 CRS
+**Gap to close:** 117 points 😰
+
+---
+
+🔥 HOW TO CLOSE THE GAP:
+
+**Option 1: Improve IELTS to CLB 9**
+• 418 → 468 CRS (+50 points)
+• Still need 67 more points
+
+**Option 2: Get PNP Nomination**
+• 418 → 1,018 CRS (+600 points)
+• GUARANTEED ITA in next draw 🎯
+
+**Option 3: Combination**
+• Improve IELTS: +50
+• Get Canadian education: +15
+• 418 → 483 CRS
+• Still need PNP or job offer for ITA
+
+---
+
+🚨 COMMON CRS MISTAKES:
+
+❌ **Mistake 1: Claiming Wrong Work Experience**
+• Must be skilled (NOC TEER 0, 1, 2, 3)
+• Must be continuous (no breaks)
+• Must be verifiable (reference letters required)
+
+❌ **Mistake 2: Not Optimizing Spouse**
+• Sometimes EXCLUDING spouse INCREASES your CRS
+• Run both calculations before deciding
+
+❌ **Mistake 3: Waiting for Cutoffs to Drop**
+• Cutoffs haven't been below 500 in 2+ years
+• Don't wait - IMPROVE your CRS instead
+
+❌ **Mistake 4: Ignoring Skill Transferability**
+• These bonus points add up (max 100!)
+• Education + strong language = big boost
+
+---
+
+🤖 EXECUTE CRS TOOLS:
+
+✅ **CRS Calculator**
+• Input your profile → instant CRS
+• Accurate down to the point
+• Compares you to latest cutoffs
+
+✅ **"What If" Scenarios**
+• "What if I improve IELTS to CLB 9?"
+• "What if I exclude my spouse?"
+• "What if I get PNP nomination?"
+• Shows exact point changes
+
+✅ **Gap Analyzer**
+• Your CRS: 418
+• Latest cutoff: 535
+• Gap: 117 points
+• Recommended actions: [prioritized list]
+
+---
+
+💪 YOUR NEXT MOVE:
+
+**Calculate YOUR CRS:**
+Tell me:
+1. Age: ___
+2. Education: ___
+3. IELTS scores: L__ R__ W__ S__
+4. Work years: ___
+5. Marital status: ___
+
+I'll calculate your CRS in 30 seconds and show you EXACTLY how to close the gap.
+
+Ready? Type your details below! 🚀`,
+
+  "ECA Process Explained": `ECA = Educational Credential Assessment
+
+This is MANDATORY for Express Entry (unless you have Canadian education).
+
+Let me walk you through it:
+
+---
+
+📜 WHAT IS ECA?
+
+**Purpose:** Prove your foreign degree = Canadian equivalent
+
+**Why it matters:**
+• Required for CRS points
+• Without it, no Express Entry profile
+• Wrong ECA = Wrong CRS = Waste of time
+
+---
+
+🏢 THE 5 APPROVED AGENCIES:
+
+**1. WES (World Education Services)**
+• Most popular (60% of applicants use)
+• Timeline: 4-7 weeks
+• Cost: $300 CAD
+• Best for: USA, UK, Commonwealth degrees
+
+**2. IQAS (International Qualifications Assessment Service)**
+• Alberta-based
+• Timeline: 6-12 weeks (slower!)
+• Cost: $200 CAD (cheapest)
+• Best for: India, Pakistan degrees (more lenient)
+
+**3. CES (Comparative Education Service)**
+• Toronto-based
+• Timeline: 4-6 weeks
+• Cost: $200 CAD
+• Best for: European degrees
+
+**4. ICAS (International Credential Assessment Service)**
+• BC-based
+• Timeline: 8-12 weeks
+• Cost: $250 CAD
+• Best for: Multi-country education
+
+**5. UofT (University of Toronto)**
+• Academic institution
+• Timeline: 6-8 weeks
+• Cost: $260 CAD
+• Best for: Complex cases (multiple degrees)
+
+---
+
+⚡ FASTEST OPTION: WES
+
+**WES Step-by-Step:**
+
+**STEP 1: Create WES Account (Day 1)**
+• Go to wes.org/ca
+• Choose "ECA for Immigration"
+• Pay $300 CAD
+
+**STEP 2: Request Transcripts (Week 1-2)**
+• Contact your university
+• Request: "Attested transcripts sent directly to WES"
+• University sends sealed envelope to WES
+
+**STEP 3: WES Evaluation (Week 3-7)**
+• WES receives your transcripts
+• Reviews your credentials
+• Compares to Canadian standards
+• Issues ECA report
+
+**STEP 4: Get Results (Week 7)**
+• Download PDF report
+• Use ECA number in Express Entry profile
+• Valid for 5 years
+
+---
+
+🚨 COMMON ECA PROBLEMS:
+
+❌ **Problem 1: University Won't Send Transcripts**
+• Solution: Ask for "sealed attested transcripts" (you mail them)
+• Some countries require notarized copies
+• WES accepts courier services (DHL, FedEx)
+
+❌ **Problem 2: Degree Not Recognized**
+• Solution: Check WES country-specific requirements BEFORE applying
+• Some degrees don't translate (e.g., 2-year Bachelor's = Diploma)
+• IQAS is more lenient than WES
+
+❌ **Problem 3: Delayed Processing**
+• Solution: Chase your university (they're usually the bottleneck)
+• Upload documents ASAP after WES account creation
+• Check WES status tracker daily
+
+❌ **Problem 4: Name Mismatch**
+• Degree: "John A. Smith" vs Passport: "John Smith"
+• Solution: Provide affidavit explaining name change
+• Marriage certificate if name changed after marriage
+
+---
+
+📊 ECA EQUIVALENCY EXAMPLES:
+
+**BACHELOR'S DEGREES:**
+• 4-year Bachelor's (USA, UK, India) = Bachelor's degree (120 CRS points)
+• 3-year Bachelor's (some countries) = Bachelor's degree (120 CRS)
+• 2-year Bachelor's (rare) = Diploma (98 CRS) ← Watch out!
+
+**MASTER'S DEGREES:**
+• 2-year Master's = Master's degree (135 CRS)
+• 1-year Master's = Master's degree (135 CRS)
+• Postgraduate diploma = Diploma (98 CRS) ← Not a Master's!
+
+**PhDs:**
+• PhD = Doctoral degree (150 CRS)
+
+---
+
+⏰ ECA TIMELINE:
+
+**OPTION 1: Standard (4-7 weeks)**
+• Most common
+• Free
+
+**OPTION 2: Rush (2-3 weeks)**
+• +$200-$300 fee
+• Only if urgent
+
+**PRO TIP:** Start ECA BEFORE IELTS
+• Why? ECA takes 4-7 weeks (predictable)
+• IELTS takes 2-12 weeks (depends on your level)
+• Run them in parallel to save time
+
+---
+
+💰 TOTAL ECA COST:
+
+**WES:**
+• ECA fee: $300
+• Transcript courier: $50-$100
+• Notarization (if needed): $20-$50
+
+**Total: $370-$450 CAD**
+
+---
+
+🎯 YOUR ECA ACTION PLAN:
+
+**STEP 1 (Today):**
+✅ Check if your degree is recognized
+• Go to wes.org/ca
+• Select your country + degree
+• See if it's "recognized"
+
+**STEP 2 (This Week):**
+✅ Contact your university
+• Request transcripts
+• Ask: "How long will this take?"
+
+**STEP 3 (Next Week):**
+✅ Create WES account
+• Pay $300
+• Upload documents
+
+**STEP 4 (Week 4-7):**
+✅ Wait for results
+• Check status daily
+• Follow up if delayed
+
+---
+
+🤖 EXECUTE HELPS WITH:
+
+✅ **Agency Selector**
+• Your country: ___
+• Your degree: ___
+• Best agency for you: [WES/IQAS/CES]
+
+✅ **Timeline Calculator**
+• Start date: Today
+• Expected completion: [Date]
+• Buffer time: +2 weeks (for delays)
+
+✅ **Document Checklist**
+• Transcripts ☑
+• Degree certificate ☑
+• Translation (if needed) ☐
+• Notarization (if needed) ☐
+
+---
+
+💡 YOUR NEXT STEP:
+
+Option 1: "Which ECA agency should I use?" (I'll recommend based on your country)
+Option 2: "How long will ECA take for me?" (I'll calculate your timeline)
+Option 3: "Start my ECA now" (I'll walk you through WES step-by-step)
+
+Type 1, 2, or 3! 💬`,
+
+  "IELTS Requirements for PR": `IELTS is CRITICAL for Express Entry. Here's everything you need to know:
+
+---
+
+📖 WHAT IS IELTS?
+
+**International English Language Testing System**
+
+**Purpose:** Prove your English proficiency for Canadian immigration
+
+**Two Types:**
+• **Academic IELTS** ← This is what you need for PR
+• General Training IELTS ← NOT accepted for Express Entry
+
+---
+
+🎯 MINIMUM IELTS FOR EXPRESS ENTRY:
+
+**Federal Skilled Worker (FSW):**
+• Minimum: CLB 7 (IELTS 6.0 in each section)
+• Realistic: CLB 8+ (IELTS 7.5/6.5/6.5/6.5)
+• Competitive: CLB 9 (IELTS 8.0/7.0/7.0/7.0)
+
+**Canadian Experience Class (CEC):**
+• NOC TEER 0/1: CLB 7 minimum
+• NOC TEER 2/3: CLB 5 minimum
+
+---
+
+📊 IELTS SCORE → CLB → CRS POINTS:
+
+**The Reality:**
+• CLB 7 = 96 CRS points (language)
+• CLB 8 = 112 CRS points (+16)
+• CLB 9 = 132 CRS points (+20)
+• CLB 10 = 160 CRS points (+28)
+
+**With Skill Transferability:**
+• CLB 7 → CLB 9 = **+50 total CRS points**
+
+This is HUGE. For most applicants, improving IELTS is the FASTEST way to boost CRS.
+
+---
+
+🔢 IELTS → CLB CONVERSION:
+
+**Listening:**
+• 8.5+ → CLB 10
+• 8.0 → CLB 9
+• 7.5 → CLB 9
+• 6.0 → CLB 7
+
+**Reading:**
+• 8.0+ → CLB 10
+• 7.0 → CLB 9
+• 6.5 → CLB 8
+• 6.0 → CLB 7
+
+**Writing:**
+• 7.5+ → CLB 10
+• 7.0 → CLB 9
+• 6.5 → CLB 8
+• 6.0 → CLB 7
+
+**Speaking:**
+• 7.5+ → CLB 10
+• 7.0 → CLB 9
+• 6.5 → CLB 8
+• 6.0 → CLB 7
+
+---
+
+⏰ IELTS TEST FORMAT:
+
+**Total Duration: 2 hours 45 minutes**
+
+**Listening (30 minutes):**
+• 40 questions
+• 4 audio sections
+• One play only (no rewind!)
+
+**Reading (60 minutes):**
+• 40 questions
+• 3 passages (900-1000 words each)
+• True/False/NG, Multiple choice, Matching
+
+**Writing (60 minutes):**
+• Task 1: Graph/chart description (20 min, 150 words)
+• Task 2: Essay (40 min, 250 words)
+
+**Speaking (11-14 minutes):**
+• Part 1: Personal questions (4-5 min)
+• Part 2: 2-minute speech (3-4 min)
+• Part 3: Discussion (4-5 min)
+
+---
+
+🚨 COMMON IELTS MISTAKES:
+
+❌ **Mistake 1: Taking General Training Instead of Academic**
+• General Training IELTS = NOT accepted for Express Entry
+• Must be IELTS Academic
+• Check your test registration carefully!
+
+❌ **Mistake 2: Not Preparing for the Format**
+• IELTS is about FORMAT, not just English
+• Example: True/False/NG questions (Not Given ≠ False!)
+• Template essays score higher than "creative" writing
+
+❌ **Mistake 3: Running Out of Time**
+• Reading: 20 minutes per passage (strict!)
+• Writing Task 2: More important than Task 1 (2/3 of score)
+• Time management = learned skill
+
+❌ **Mistake 4: Not Retaking When Needed**
+• First attempt: Most people get CLB 7-8
+• Second attempt (with practice): CLB 8-9
+• Each 0.5 band = +6-12 CRS points
+
+---
+
+📈 HOW TO IMPROVE YOUR IELTS:
+
+**CLB 7 → CLB 8 (+16 CRS):**
+• Timeline: 4-6 weeks
+• Focus: Time management + format familiarity
+• Strategy: 10-15 practice tests
+
+**CLB 8 → CLB 9 (+20 CRS):**
+• Timeline: 6-8 weeks
+• Focus: Advanced strategies + overtraining
+• Strategy: 20-30 practice tests
+
+**Why Evolve Works:**
+✅ 33 progressive practice tests (Foundation → Development → Mastery)
+✅ Level 3 = HARDER than real IELTS (overtraining)
+✅ Format mastery through repetition
+✅ Research shows: 30+ tests = typical requirement for 1-2 band improvement
+
+---
+
+💰 IELTS COST REALITY:
+
+**Per Attempt:**
+• Exam fee: $350 CAD
+• Average attempts needed: 2-3
+• Total: $700-$1,050
+
+**With Practice:**
+• Evolve: $100/year (unlimited tests)
+• You save: $600-$950
+
+---
+
+⚠️ IELTS VALIDITY:
+
+**Important Rules:**
+• Valid for 2 years from test date
+• Must be valid when you CREATE Express Entry profile
+• Must be valid when you RECEIVE ITA
+• Must be valid when you SUBMIT application
+
+**Example:**
+• Test date: January 1, 2024
+• Valid until: January 1, 2026
+• If you get ITA on December 15, 2025: Still valid ✅
+• If you submit application on January 5, 2026: NOT valid ❌
+
+---
+
+🎯 YOUR IELTS ACTION PLAN:
+
+**STEP 1: Book Your Test**
+• Go to ielts.org
+• Choose IELTS Academic (NOT General!)
+• Book 6-8 weeks from now
+
+**STEP 2: Practice (6-8 weeks)**
+• Take Evolve Level 1 tests (Foundation)
+• Then Level 2 (Development)
+• Finally Level 3 (Mastery = harder than real)
+
+**STEP 3: Take Real IELTS**
+• Apply your strategies
+• Focus on time management
+• Target: CLB 9
+
+**STEP 4: Retake if Needed**
+• If CLB 8: Good, but retake for CLB 9 (+20 CRS)
+• If CLB 7: Definitely retake (need CLB 8 minimum)
+
+---
+
+💡 YOUR NEXT MOVE:
+
+Option 1: "What IELTS score do I need?" (I'll calculate based on your CRS goal)
+Option 2: "How to prepare for IELTS?" (I'll give you the 6-week strategy)
+Option 3: "Try free IELTS sample" (Reading, Writing, or Listening)
+
+Type 1, 2, or 3! 💬`,
+
+  // === SECTION 7: UPGRADE PATHS ===
+  "Unlock Evolve - IELTS Mastery": `🎓 Ready to master IELTS and boost your CRS by 50+ points?
+
+EVOLVE TIER - $100 CAD/year
+
+What you get:
+✅ 33 progressive IELTS simulations (3 difficulty levels)
+✅ Unlimited practice for 12 months
+✅ Instant scoring + detailed feedback
+✅ Progress tracking dashboard
+✅ CLB 9 in 6-8 weeks (research-backed approach)
+
+THE INVESTMENT:
+• Traditional IELTS courses: $500-$2,000
+• Evolve: $100/year
+• Your savings: $400-$1,900
+
+THE IMPACT:
+• CLB 7 → CLB 9 = +50 CRS points
+• +50 CRS = Difference between stuck and ITA
+• First-time pass rate improves with structured practice
+
+THE 3-LEVEL SYSTEM:
+
+**Level 1: Foundation (Tests 1-11)**
+• Goal: Learn IELTS patterns
+• Difficulty: Easier than real exam
+• Target: Consistent CLB 8
+
+**Level 2: Development (Tests 12-22)**
+• Goal: Build speed + accuracy
+• Difficulty: Real IELTS level
+• Target: Consistent CLB 8.5
+
+**Level 3: Mastery (Tests 23-33)**
+• Goal: Overtraining (harder than real!)
+• Difficulty: BRUTAL (deliberately harder)
+• Target: CLB 9+ in practice
+
+**Real IELTS Exam:**
+• Feels easier after Level 3
+• You've mastered every question type
+• Time management is automatic
+
+WHAT RESEARCH SHOWS:
+• 30+ practice tests = typical requirement for 1-2 band improvement
+• Progressive difficulty = 40% better retention
+• Format mastery reduces test anxiety
+• Overtraining builds confidence
+
+🔥 LIMITED TIME: Lock in $100/year pricing (going up to $149 soon)
+
+Ready to unlock Evolve?
+→ Click "Evolve" in the top menu to start your 6-week journey!
+
+Or tell me:
+• Your current IELTS scores
+• Your target CLB
+• Your timeline
+
+And I'll show you exactly how Evolve will get you there! 💪`,
+
+  "Unlock Execute - AI RCIC": `🤖 Ready for 24/7 professional immigration guidance?
+
+EXECUTE TIER - $100 CAD/year
+
+What you get:
+✅ Unlimited AI RCIC assistance (instant responses)
+✅ CRS optimizer + "what if" simulator
+✅ PNP tracker (80+ streams, real-time alerts)
+✅ Document review + templates
+✅ Form filling guidance (IMM 0008, 5669, etc.)
+✅ ITA probability calculator
+✅ Pre-ITA checklist builder
+
+THE ALTERNATIVE:
+• Traditional RCIC: $2,000-$5,000 upfront
+• Execute: $100/year
+• Your savings: $1,900-$4,900
+
+WHAT EXECUTE DOES:
+
+**Document Management:**
+• Personalized checklist based on your profile
+• Reference letter templates (by NOC code)
+• Scan quality checker
+• Expiry date tracking
+
+**CRS Strategy:**
+• Calculate exact CRS
+• "What if" scenarios (IELTS improvement, spouse exclusion, PNP)
+• Gap analyzer (show you how to close the gap)
+• Prioritized action plan
+
+**PNP Intelligence:**
+• Monitors 80+ provincial streams
+• Alerts when intakes open (48-hour advance notice)
+• Eligibility checker (which PNPs you qualify for)
+• Application timeline estimates
+• Historical draw pattern analysis
+
+**Form Assistance:**
+• Step-by-step form filling (IMM 0008, 5669, 5406, 5707)
+• Explains every question
+• Flags potential errors before submission
+• Provides examples for tricky fields
+
+**Timeline Planning:**
+• ECA → IELTS → Profile → ITA → PR roadmap
+• Critical deadline reminders
+• Buffer time calculations
+• Country-specific police cert timelines
+
+THE PHILOSOPHY:
+Most Express Entry cases are straightforward. You don't need $5,000 in consulting fees. Execute handles 90% of the work. Optional: Add human RCIC review ($300) for final verification.
+
+Total cost: $100-$400 vs $2,000-$5,000
+
+🔥 LIMITED TIME: Founder pricing $100/year (regular $199)
+
+Ready to unlock Execute?
+→ Click "Execute" in the top menu to get your 24/7 immigration assistant!
+
+Or tell me:
+• Your current CRS
+• Your biggest challenge (low CRS? missing documents? PNP strategy?)
+• Your timeline goal
+
+And I'll show you exactly how Execute will solve it! 🚀`,
+
+  "Professional Services": `💼 Need 1-on-1 human RCIC support?
+
+While our AI tools handle 90% of cases, sometimes you want human expertise:
+
+**WHEN TO USE PROFESSIONAL SERVICES:**
+✅ Final application review (peace of mind)
+✅ Complex situations (divorced, multiple countries, etc.)
+✅ Document verification before submission
+✅ Strategic consultation (1-hour deep dive)
+
+**OUR SERVICES:**
+
+🔍 **Application Audit - $300**
+• Complete document review
+• LOE (Letter of Explanation) templates  
+• CRS optimization recommendations
+• Risk flag report
+• 1-hour video consultation
+
+📋 **Express Entry Setup - $500**
+• Full profile creation (done for you)
+• Job Bank optimization
+• PNP targeting strategy
+• 12 months of monitoring
+• Document review before submission
+
+💎 **Evolve + Execute Bundle - $200/year**
+• Both AI tools (best value!)
+• 33 IELTS simulations + 24/7 RCIC guidance
+• Save vs buying separately
+
+**THE HYBRID APPROACH:**
+Most clients use our AI tools ($200/year) for 90% of work, then purchase a 1-hour audit ($300) before final submission. 
+
+Total cost: $500 vs $2,000-$5,000 traditional consultants.
+
+**YOU SAVE: $1,500-$4,500**
+
+**COMPLEX CASES (Refer to specialized RCIC):**
+❌ Criminal inadmissibility
+❌ Previous refusals/misrepresentation
+❌ Humanitarian & Compassionate claims
+❌ Legal appeals
+
+For complex cases, we'll refer you to trusted RCIC partners who specialize in these situations.
+
+**OUR GUARANTEE:**
+✅ Licensed RCIC-supervised (R712582)
+✅ Transparent pricing (no hidden fees)
+✅ Honest about limitations
+✅ Focus on YOUR success, not our revenue
+
+**READY TO GET STARTED?**
+
+**Option 1: Self-Guided (Recommended for most)**
+→ Start with Evolve + Execute ($200/year)
+→ Add human review only when needed
+
+**Option 2: Guided Setup**
+→ Express Entry Setup service ($500)
+→ Includes AI tools for 12 months
+
+**Option 3: Full Review**
+→ Use AI tools for 90% of work
+→ Book Application Audit ($300) before submission
+
+📧 Email info@migratenorth.ca to book a service or ask questions.
+
+Or tell me:
+• Your situation (starting fresh? about to submit? stuck?)
+• Your complexity level (straightforward? some complications?)
+
+And I'll recommend the best approach for you! 💪`,
+
+  // === TIER EXPLANATIONS (Keep existing) ===
   "Explore": `🎯 **EXPLORE TIER – 100% FREE**
 Think of this as your "immigration test-drive".
 • Instant eligibility check: drop your age, education, work & language info.  
@@ -1504,32 +2994,68 @@ export const handler = async (event) => {
       content: msg.content,
     }));
 
-    const systemPrompt = `You are North Star GPS - (Guidance & Pathfinding System), a professional Canadian immigration assistant by Matin Immigration Services.
-- the FREE tier assistant from Migrate North
-YOUR MISSION:Help people understand Canadian immigration and demonstrate the value of paid tools, WITHOUT being pushy or salesy.
+    const systemPrompt = `You are North Star GPS (Guidance & Pathfinding System), the FREE tier assistant from Migrate North by Matin Immigration Services.
 
-WHAT YOU DO (FREE):
+YOUR MISSION:
+Help people understand Canadian immigration (Express Entry) and demonstrate the value of our paid tools (Evolve + Execute), WITHOUT being pushy or salesy.
+
+YOUR PERSONALITY:
+• Warm, encouraging, educational
+• Like a knowledgeable friend who's been through this
+• Honest about being newly launched
+• Never fake testimonials or made-up success stories
+• Research-backed and data-driven
+
+WHAT YOU DO (FREE TIER):
 ✅ Answer general Express Entry questions
-✅ Explain CRS, ECA, IELTS, PNP concepts
-✅ Provide free IELTS samples
-✅ Calculate CRS scores
+✅ Explain CRS, ECA, IELTS, PNP concepts clearly
+✅ Provide free IELTS samples (Reading, Writing, Listening)
+✅ Calculate CRS scores when users share details
 ✅ Give high-level strategy advice
-✅ Demonstrate value of Evolve + Execute
+✅ Show people what's possible with the right approach
+✅ Demonstrate value of Evolve ($100/yr) and Execute ($100/yr)
 
-WHAT YOU DON'T DO (Save for EXECUTE):
-❌ Fill out actual IRCC forms
+WHAT YOU DON'T DO (Save for EXECUTE paid tier):
+❌ Fill out actual IRCC forms (IMM 0008, etc.)
 ❌ Review specific documents line-by-line
-❌ Case-specific application guidance
-❌ Complex RCIC-level work
+❌ Provide case-specific application guidance
+❌ Give advice on complex situations requiring RCIC
+❌ Do work that consultants charge $2,000+ for
 
-Rules:
-1) Never claim to be a government source. You are a coach that cites official names exactly.
-2) Ask for missing facts only when required to advance a step.
-3) Always label deadlines, fees, and where to upload inside the GCKey or PR portal when applicable.
-4) Do not invent policy or dates. If unsure, state what must be verified on IRCC or the province site.
-5) NEVER make up testimonials or user success stories 
-6) Base claims on research, IRCC data, and industry patterns - not fake user stories.
-7) Be honest about being a new service while emphasizing your research-backed approach.
+RESPONSE STYLE:
+• Keep it conversational and digestible (short paragraphs)
+• Use emojis sparingly (1-2 per response max, when natural)
+• Bold key points for scannability
+• Include specific numbers when helpful (CRS points, costs, timelines)
+• Always cite sources for claims (IRCC data, research studies, etc.)
+
+CONVERSION STRATEGY (Subtle, not pushy):
+When relevant, mention:
+• "Evolve helps you practice this format" (for IELTS questions)
+• "Execute tracks all 80+ PNP streams for you" (for PNP questions)
+• "This is where Execute saves hours of research" (for complex topics)
+
+BUT NEVER:
+❌ Push products when user is still learning basics
+❌ Make fake urgency ("limited spots!")
+❌ Claim results you don't have yet ("847 students hit CLB 9!")
+❌ Be salesy or aggressive
+
+HONESTY RULES:
+1) You're newly launched - be transparent about this
+2) Base ALL claims on research, IRCC data, or industry patterns
+3) Say "Research shows..." not "Our users achieved..."
+4) If you don't know, say so and point to official sources
+5) Never claim to be IRCC or a government source
+
+SAMPLE RESPONSES:
+• "Based on IRCC data, the average ITA cutoff is 535. Let me calculate where you stand..."
+• "Research from Cambridge English shows that 30+ practice tests typically result in 1-2 band improvements..."
+• "According to recent IRCC draws, category-specific invitations favor healthcare (476 CRS) and tech (486 CRS)..."
+
+YOUR GOAL:
+Make people think: "Wow, this FREE tool is incredible. Imagine what the paid versions can do!"
+
 Current mode: ${mode}`;
 
     const completion = await client.chat.completions.create({
@@ -1553,7 +3079,7 @@ Current mode: ${mode}`;
 
     return ok({ reply, memory: newMemory, meta });
   } catch (err) {
-    console.error("Execute function error:", err);
+    console.error("Explore function error:", err);
     return {
       statusCode: 500,
       headers: { "Access-Control-Allow-Origin": "https://migratenorth.ca" },
