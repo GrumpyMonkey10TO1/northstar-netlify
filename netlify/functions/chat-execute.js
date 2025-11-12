@@ -2,1080 +2,9 @@ import OpenAI from "openai";
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // =============================================================================
-// FAQ RESPONSE LIBRARY - Pre-written conversion-optimized responses
+// EXECUTE TIER - Professional Immigration Assistant (PAID $100/year)
+// For users actively working on their Express Entry application
 // =============================================================================
-
-const FAQ_RESPONSES = {
-  // === SECTION 1: START HERE ===
-  "Am I Eligible for Express Entry?": `Great question! Let me break this down simply:
-
-✅ YOU'RE LIKELY ELIGIBLE IF:
-• You have at least 1 year of skilled work experience (NOC TEER 0, 1, 2, or 3)
-• You have IELTS/CELPIP results (or can get them)
-• Your degree can be assessed by WES/IQAS
-• You're under 45 years old
-
-❌ RED FLAGS THAT DISQUALIFY MOST PEOPLE:
-• Less than 1 year continuous work experience
-• Work experience in NOC 4 or 5 (low-skilled)
-• No post-secondary education
-• Criminal record or medical inadmissibility
-
-📊 QUICK REALITY CHECK:
-The current average ITA cutoff is around 490-535 CRS. If you're:
-• 25-35 years old
-• Bachelor's degree + 3 years work experience
-• IELTS CLB 7-8
-• Single applicant
-
-You're probably sitting at 380-450 CRS — which means you NEED a strategy to close the gap.
-
-💡 WANT YOUR EXACT CRS SCORE?
-Tell me your: Age | Education | Work years | IELTS scores | Marital status
-
-I'll calculate it in 30 seconds and show you EXACTLY what you need to improve.
-
-🚀 Or get your full roadmap with Execute ($100/year) — I'll audit your profile, flag risks, and map every step to ITA.`,
-
-  "What's My Realistic CRS Score?": `Let's calculate this together! I need 5 quick details:
-
-1️⃣ Your age: _____
-2️⃣ Education level: (High school / Bachelor's / Master's / PhD)
-3️⃣ Years of skilled work: _____
-4️⃣ IELTS scores: L__ R__ W__ S__ (or planned target)
-5️⃣ Marital status: (Single / Married)
-
-Once you give me these, I'll calculate your estimated CRS range and show you:
-
-🎯 WHERE YOU STAND:
-• Latest ITA cutoff: 535 (May 2024)
-• Your gap to overcome: [X] points
-
-🔥 HOW TO CLOSE THE GAP:
-If you improve IELTS from CLB 7 to CLB 9:
-→ +50 points (this is the easiest win)
-
-💪 FASTEST PATH TO CLB 9?
-Evolve is designed to help you jump from CLB 7 to CLB 9 in 6-8 weeks using our 33-simulation boot camp. Based on IELTS research, students who complete structured practice typically gain 1-2 bands.
-
-🤖 WANT A FULL STRATEGY SESSION?
-Execute analyzes your ENTIRE profile — documents, PNP options, job offers, timeline risks — and builds a step-by-step plan.`,
-
-  "How Long Will This Take?": `Straight answer: **6-18 months** from starting ECA to landing in Canada.
-
-Here's the realistic timeline breakdown:
-
-⏰ PHASE 1: PREP (3-6 months)
-• Educational Credential Assessment (ECA): 4-8 weeks
-• IELTS exam + prep: 2-12 weeks (depends on your English level)
-• Gather documents (work letters, transcripts, passport): 2-4 weeks
-• Create Express Entry profile: 1 day
-
-⏰ PHASE 2: WAITING FOR ITA (1-12 months)
-This is the PAINFUL part. How long depends on your CRS:
-• 500+ CRS: 1-3 months (you're golden)
-• 450-500 CRS: 3-6 months (competitive)
-• 400-450 CRS: 6-12 months (need PNP or improvement)
-• Below 400 CRS: 12+ months (or never without strategy)
-
-⏰ PHASE 3: POST-ITA TO PR (4-6 months)
-• Submit full application: 2 weeks
-• Background checks, medicals, biometrics: 2-3 months
-• IRCC processing: 2-3 months
-• COPR (Confirmation of PR): Final approval
-• Land in Canada: Book your flight!
-
-🚨 BIGGEST TIME WASTERS:
-❌ Waiting too long to start IELTS prep (most people need 2-3 attempts)
-❌ Choosing wrong ECA agency (delays by 6+ weeks)
-❌ Missing document requirements (costly re-submissions)
-❌ Not having a PNP backup plan
-
-⚡ Having a strategic approach can save 3-4 months on average by catching document errors BEFORE submission, identifying PNP opportunities early, and monitoring your profile effectively.
-
-🎯 Want me to create YOUR personalized timeline?
-Tell me: Age | Education | IELTS status | Work experience`,
-
-  "Total Cost Breakdown": `Real talk: Express Entry is expensive, but FAR cheaper than traditional consultants.
-
-Here's what you'll actually spend:
-
-💰 MANDATORY COSTS (Everyone pays these):
-• IELTS exam: $300-$350 CAD
-• Educational Credential Assessment (ECA): $200-$300 CAD
-• Express Entry application fee: $1,365 CAD (single) / $1,825 (couple)
-• Medical exam: $200-$450 CAD per person
-• Police certificates: $0-$100 CAD (varies by country)
-• Biometrics: $85 CAD
-• Proof of funds: ~$13,000+ CAD (must show in bank, not spent)
-
-📊 TOTAL BASELINE: ~$15,500 - $17,000 CAD
-
-💸 OPTIONAL BUT SMART:
-• IELTS prep course (generic): $500-$2,000 CAD
-• Immigration consultant (traditional): $2,000-$5,000 CAD
-
-😱 TOTAL WITH CONSULTANT: ~$20,000 - $25,000 CAD
-
----
-
-🎯 THE MIGRATE NORTH ALTERNATIVE:
-
-💪 EVOLVE (IELTS boot camp): $100 CAD/year
-• 33 full-length simulations
-• Unlimited practice for 12 months
-• Progressive difficulty training
-• **You save: $400-$1,900 vs traditional courses**
-
-🤖 EXECUTE (AI RCIC): $100 CAD/year
-• 24/7 expert guidance
-• Document review & strategy
-• PNP targeting & monitoring
-• **You save: $1,800-$4,900 vs traditional consultants**
-
-🏆 BOTH TIERS: $200/year
-**Total savings vs traditional route: $2,200 - $6,800 CAD**
-
----
-
-🧮 YOUR REAL TOTAL COST:
-Mandatory fees: ~$16,000
-+ Evolve + Execute: $200
-= **$16,200 CAD** (vs $22,000+ with consultants)
-
-Plus, YOU control the process. No upsells, no hidden fees.
-
-💡 START FREE:
-Try Explore (this tier) completely free. When you're ready to level up, you're looking at just $100-200/year for professional-grade tools.`,
-
-  // === SECTION 2: TOP CONCERNS ===
-  "My CRS Is Too Low - What Now?": `I hear you. CRS below 450 feels like a death sentence... but it's NOT.
-
-Here's the truth the big consultants won't tell you:
-
-📉 YOU'RE NOT ALONE:
-According to IRCC data, the majority of Express Entry candidates sit between 380-450 CRS. The system is DESIGNED to favor younger applicants with Master's degrees, which locks out most people.
-
-But here's what successful applicants do differently:
-
----
-
-🎯 STRATEGY #1: BOOST IELTS (EASIEST WIN)
-Going from CLB 7 → CLB 9 adds **+50 points**
-
-The numbers:
-• CLB 7 = 96 CRS points (language)
-• CLB 9 = 132 CRS points (language)
-• Gain = +36 to +50 points total (with skill transferability)
-
-⚡ This is why Evolve exists. Research shows that structured, progressive practice (like our 33-simulation system) helps most students improve 1-2 CLB bands in 6-8 weeks.
-
----
-
-🎯 STRATEGY #2: PROVINCIAL NOMINEE PROGRAM (INSTANT +600)
-PNP is your cheat code. A nomination = automatic 600 points.
-
-But here's the catch: Each province has different rules, and you need to TARGET the right one.
-
-🔥 HOT PNP OPTIONS RIGHT NOW:
-• Ontario HCP: Tech workers with CRS 400+
-• BC Tech: Software jobs, no LMIA needed
-• Alberta AOS: Open to most NOCs, 300 CRS minimum
-• Saskatchewan: Fastest processing (3-4 months)
-
-💡 Execute tracks ALL 80+ PNP streams and tells you which ones you qualify for, when applications open, exact documents needed, and timeline estimates.
-
-Traditional consultants charge $3,000 just for this analysis. Execute does it 24/7 for $100/year.
-
----
-
-🎯 STRATEGY #3: JOB OFFER (+50-200 points)
-LMIA-backed job offers are rare but powerful:
-• +50 points for NOC TEER 0 jobs
-• +200 points for arranged employment
-
-Where to find them: Job Bank Canada, LinkedIn "Canada + LMIA", direct employer outreach.
-
-Execute can help write your Job Bank profile, optimize your resume for LMIA roles, and track postings.
-
----
-
-❌ WHAT DOESN'T WORK:
-• Just waiting for cutoffs to drop (they won't below 470)
-• Paying consultants who don't give you a PLAN
-• Faking documents (lifetime ban + criminal charges)
-
----
-
-💪 YOUR NEXT MOVE:
-Tell me your current CRS and I'll show you the FASTEST path to 470+.
-
-You're not stuck. You just need the right strategy. 🚀`,
-
-  "Common Mistakes That Kill Applications": `Let me save you from the 7 deadly mistakes that cause 40% of application rejections or delays (based on IRCC statistics):
-
----
-
-❌ MISTAKE #1: LYING ABOUT WORK EXPERIENCE
-"I'll just stretch my 11 months to 12 months. Who'll check?"
-
-IRCC checks. HARD.
-
-🚨 What they verify:
-• Reference letters (they call employers)
-• Payslips & tax returns
-• LinkedIn vs your application
-• Employment gaps
-
-Caught lying = permanent ban + criminal record.
-
-✅ FIX: Only claim work you can 100% prove. Execute reviews your reference letters against IRCC requirements to catch potential issues before submission.
-
----
-
-❌ MISTAKE #2: WRONG NOC CODE
-Pick the wrong NOC = application rejected = start over = lose 6+ months
-
-Example issue:
-• Job title: "Marketing Manager" 
-• Listed as: NOC 0124
-• Actual duties: Social Media Coordinator (NOC 11202)
-• Result: Rejection for "Work experience does not match claimed NOC"
-
-✅ FIX: NOC codes are based on DUTIES, not job titles. Execute cross-references your actual tasks against official IRCC definitions.
-
----
-
-❌ MISTAKE #3: UPLOADING LOW-QUALITY DOCUMENTS
-IRCC rejects scans that are:
-• Blurry or pixelated
-• Partial pages
-• Wrong format (must be PDF, under 4MB each)
-• Missing stamps/signatures
-
-🚨 One bad scan = "Additional Documents Request" = 30-60 day delay
-
-✅ FIX: 300 DPI minimum, full-color, all pages visible. Execute provides scan quality guidelines.
-
----
-
-❌ MISTAKE #4: MISSING THE 60-DAY ITA DEADLINE
-You get your ITA = you have 60 days to submit everything.
-
-Miss it by 1 day? ITA expires. Back to the pool. Start over.
-
-People underestimate how long it takes to:
-• Get police certificates (4-8 weeks in some countries)
-• Get medicals scheduled (2-3 weeks)
-• Format all documents correctly (2-5 days)
-
-✅ FIX: Start gathering documents BEFORE ITA. Execute has a pre-ITA checklist that tells you exactly what to prepare now.
-
----
-
-❌ MISTAKE #5: WRONG PROOF OF FUNDS FORMAT
-You need $13,310 CAD (single) or $16,570 (couple) in your bank for 6+ months.
-
-❌ IRCC rejects:
-• Bank statements in non-English (must translate)
-• Money "borrowed" for the screenshot
-• Inconsistent balances (sudden deposits = red flag)
-• Joint accounts without both names
-• Crypto or stocks (not liquid cash)
-
-✅ FIX: Show 6-month average balance, get official bank letter on letterhead. Execute provides templates.
-
----
-
-❌ MISTAKE #6: SPOUSE'S CREDENTIALS NOT ASSESSED
-If you claim points for your spouse's education/experience, THEY need:
-• ECA (not just you)
-• IELTS (not just you)
-• Work reference letters (if claiming points)
-
-Forget spouse's ECA = lose 8-10 points = potential ITA rejection
-
-✅ FIX: Execute calculates if including spouse HELPS or HURTS your CRS (sometimes excluding them is better!)
-
----
-
-❌ MISTAKE #7: NO BACKUP PLAN
-Only applying to Federal Express Entry = risky.
-
-What if:
-• CRS cutoffs stay above your score?
-• Your work experience becomes ineligible (NOC changes)?
-• You age out (lose points)?
-
-✅ FIX: Always have 2-3 PNP backups. Execute tracks 80+ streams and auto-alerts you when you become eligible.
-
----
-
-🎯 HOW MANY OF THESE WOULD YOU HAVE CAUGHT?
-
-Be honest. If you're not 100% confident, you need expert review.
-
-Don't let a preventable mistake cost you 6 months.`,
-
-  "Will I Get an ITA This Year?": `Let me give you the brutal truth, then the hope:
-
-📊 YOUR ITA PROBABILITY IN 2024:
-
-Based on recent IRCC draw patterns, here's what the data shows:
-
-IF YOUR CRS IS:
-• 520+: Very high probability (consistently invited)
-• 490-520: Good probability (competitive but achievable)
-• 470-490: Moderate probability (need targeted draws or PNP)
-• 450-470: Lower probability (strong PNP strategy needed)
-• 400-450: Challenging (must improve CRS or pursue PNP)
-• Below 400: Very challenging (urgent action needed)
-
----
-
-🔥 REALITY CHECK - 2024 ITA TRENDS:
-
-Recent cutoffs:
-• General draw: 535 CRS (May 15, 2024)
-• Category draws (new in 2023):
-  - Healthcare: 476 CRS
-  - Tech (STEM): 486 CRS
-  - Trades: 388 CRS
-  - French: 377 CRS
-
-📈 The cutoffs are NOT dropping. Why?
-• Record immigration targets (500,000/year)
-• BUT also record applications (3M+ in pool)
-• Category draws favor specific NOCs
-
----
-
-💡 SO... WILL YOU GET ITA?
-
-Tell me:
-1. Your current CRS: ___
-2. Your NOC code: ___
-3. Your timeline urgency: (This year? Next year? Flexible?)
-
-And I'll give you a PERSONALIZED probability + action plan.
-
----
-
-⚡ FASTEST WAYS TO GET ITA IN 2024:
-
-🎯 OPTION 1: Improve CRS to 500+
-• Retake IELTS for CLB 9: +50 points
-• Get ECA for spouse: +8-10 points
-• Gain 1 more year work experience: +4-13 points
-• Complete Master's: +23-32 points
-
-🎯 OPTION 2: Target Category Draws
-If you're in:
-• Healthcare (NOC 31-32): Regular healthcare draws
-• STEM/Tech (NOC 21): Tech-focused draws
-• Trades (NOC 72-73): Trade-specific draws
-• French speakers: Guaranteed advantage with CLB 7 French
-
-🎯 OPTION 3: Provincial Nominee Program (+600 points)
-PNP = instant ITA regardless of federal cutoffs
-
-Active streams:
-• Ontario HCP (Tech)
-• BC Tech (rolling invites)
-• Alberta AOS
-• Saskatchewan OID
-
-Execute tracks all these + sends alerts when YOU become eligible.
-
----
-
-🚨 WARNING SIGNS OF DIFFICULTY:
-❌ CRS below 400 + no improvement plan
-❌ Not eligible for any category draws
-❌ Waiting for "cutoffs to drop" (they won't)
-❌ No PNP backup strategy
-
-If 2+ of these apply to you, you need to pivot NOW.
-
----
-
-💪 YOUR NEXT MOVE:
-
-Pick one:
-1. "Calculate my exact ITA probability" (I'll analyze your profile)
-2. "Show me my fastest route to 500 CRS" (free strategy)
-3. "Set up Execute to monitor everything" ($100/year)
-
-Type 1, 2, or 3, or ask me anything. ⏰`,
-
-  "How to Boost CRS by 50+ Points Fast": `You want 50+ points? Here's your playbook.
-
-I'm going to give you the EXACT moves that work, ranked by speed and cost:
-
----
-
-⚡ FASTEST WIN: Improve IELTS (4-8 weeks)
-
-📊 THE MATH:
-CLB 7 → CLB 8: +18-23 points
-CLB 7 → CLB 9: +47-54 points
-CLB 8 → CLB 9: +24-31 points
-
-🎯 HOW:
-Most people get stuck at CLB 7-8 because they study ENGLISH, not the IELTS FORMAT.
-
-IELTS is a game with patterns:
-• Writing Task 2: 5 question types (memorize templates)
-• Reading: Skim → keyword match (don't read fully)
-• Listening: Pre-read questions (beat the audio)
-• Speaking: 10 common topics (drill them repeatedly)
-
-📈 WHAT RESEARCH SHOWS:
-Studies on IELTS preparation indicate that structured practice with progressive difficulty typically results in 1-2 band improvements over 6-8 weeks for dedicated students.
-
-Evolve uses this research-backed approach with 33 simulations across 3 difficulty levels.
-
----
-
-💰 BEST VALUE: Spouse Optimization (2-4 months)
-
-If you're married, run THIS calculation:
-
-Option A: Both contribute points (need spouse ECA + IELTS)
-Option B: You as primary, spouse not included
-
-Sometimes REMOVING your spouse increases CRS!
-
-📊 EXAMPLE:
-You: 32, Bachelor's, 4 yrs experience, CLB 8
-Spouse: 35, Bachelor's, 2 yrs experience, CLB 6
-
-With spouse: 425 CRS
-Without spouse: 447 CRS
-→ +22 points by excluding them!
-
-OR if your spouse is strong:
-With spouse (both CLB 9, her Master's): 485 CRS
-Without spouse: 445 CRS
-→ +40 points by including them!
-
-✅ Execute runs this analysis to show you which option maximizes your CRS.
-
----
-
-🚀 ULTIMATE CHEAT CODE: Provincial Nominee (+600 points)
-
-This isn't "boosting" CRS—it's OBLITERATING the competition.
-
-PNP = 600 points = instant ITA
-
-But PNPs are competitive. You need:
-• Right NOC code
-• Right work experience years
-• Right CRS range (varies by stream)
-• Fast application (some close in 2-3 days)
-
-🔥 ACTIVE PNP OPPORTUNITIES (June 2024):
-• Ontario HCP (Tech): Needs 400+ CRS, Bachelor's+, 1yr+ experience
-• BC Tech: Rolling invites
-• Alberta AOS: 300+ CRS, any skilled NOC
-• Saskatchewan OID: No job offer needed, fastest processing
-
-Execute tracks 80+ PNP streams and alerts you when new intakes open, you become eligible, or application deadlines approach.
-
----
-
-📊 YOUR ACTION PLAN:
-
-If you want 50+ points in:
-• 4-8 weeks: IELTS improvement (Evolve)
-• 2-4 months: Spouse optimization or PNP application (Execute)
-• 12-24 months: Additional education
-
-Pick your timeline. Tell me your CRS and I'll build your roadmap.
-
-Type your CRS below and let's GO! 💪`,
-// === SECTION 3: TEST YOUR ENGLISH (continued from Part 1) ===
-  "Try Free IELTS Reading Sample": `Awesome! Let's see where your Reading skills are at.
-
-This is a FREE sample to give you a taste of what IELTS Academic Reading is like.
-
----
-
-📖 IELTS ACADEMIC READING - SAMPLE PASSAGE
-
-You have 8 minutes. Read the passage and answer 5 questions below.
-
-**PASSAGE: The Rise of Vertical Farming**
-
-Urban agriculture is experiencing a renaissance through vertical farming—a practice of growing crops in vertically stacked layers, often in controlled indoor environments. Unlike traditional farming, which demands vast horizontal land, vertical farms utilize height, often transforming abandoned warehouses or purpose-built facilities into productive agricultural hubs.
-
-The technology relies on hydroponics (growing plants in nutrient-rich water), aeroponics (misting roots with nutrients), or aquaponics (combining fish farming with plant cultivation). LED lighting replicates sunlight, while automated systems regulate temperature, humidity, and CO₂ levels. This precision agriculture can yield crops year-round, independent of weather or seasonal constraints.
-
-Advocates tout vertical farming's sustainability credentials: it uses 90% less water than conventional farming, eliminates pesticide dependency, and reduces transportation emissions by situating farms in urban centers near consumers. A single acre of vertical farm can produce yields equivalent to 10-20 acres of traditional farmland.
-
-However, critics highlight significant barriers. Initial capital costs are prohibitive—a mid-sized vertical farm requires $10-30 million investment. Energy consumption is substantial; LED lights and climate control systems can consume more electricity than the embodied energy in conventionally-grown produce transported hundreds of miles. Economic viability remains unproven at scale, with many vertical farming startups struggling financially despite venture capital enthusiasm.
-
----
-
-**QUESTIONS (Choose TRUE, FALSE, or NOT GIVEN):**
-
-1. Vertical farms can only operate in specific seasons.
-2. Vertical farming uses significantly less water than traditional agriculture.
-3. The majority of vertical farming companies are currently profitable.
-4. Transportation emissions are reduced when vertical farms are located in cities.
-5. Aquaponics involves growing plants without soil or water.
-
----
-
-⏱️ TIME'S UP! Here are the answers:
-
-1. FALSE (Passage states: "yield crops year-round, independent of...seasonal constraints")
-2. TRUE (Passage states: "uses 90% less water")
-3. NOT GIVEN (Passage mentions "struggling financially" but doesn't specify majority)
-4. TRUE (Passage states: "reduces transportation emissions by situating farms...near consumers")
-5. FALSE (Aquaponics "combines fish farming with plant cultivation" — not without water)
-
----
-
-📊 HOW DID YOU DO?
-
-5/5: CLB 9+ (You're ready for IELTS!)
-4/5: CLB 8 (One more practice level needed)
-3/5: CLB 7 (Solid, but you need strategy work)
-2/5 or below: CLB 6 (You NEED structured practice)
-
----
-
-💡 HERE'S THE TRUTH:
-
-This was an easier passage. Real IELTS Reading has:
-• 3 passages (900-1000 words each)
-• 40 questions in 60 minutes
-• Question types: True/False/NG, Matching headings, Summary completion, Multiple choice
-
----
-
-🔥 WHAT EVOLVE GIVES YOU:
-
-✅ 33 full-length Reading simulations (11 per level)
-✅ Every question type IELTS uses
-✅ Instant scoring + explanations
-✅ Progress tracking (watch your CLB climb)
-✅ Unlimited repeats for 12 months
-
-Research shows that structured practice with progressive difficulty helps most students improve 1-2 CLB bands.
-
----
-
-💰 WHAT'S IT COST?
-
-Traditional IELTS courses: $500-$2,000
-IELTS exam (if you fail): $350 each attempt
-Avg attempts needed: 2-3 times = $700-$1,050
-
-Evolve: $100 for 1 year unlimited practice
-
-You save: $400-$1,900
-
----
-
-🎯 READY TO LEVEL UP?
-
-Option 1: Try 2 more free samples (Writing + Listening)
-Option 2: Unlock Evolve ($100/year) and access all 33 simulations
-Option 3: Ask me questions about IELTS strategy
-
-Type 1, 2, or 3 below! Or ask me: "What CLB level do I need for Express Entry?" 💬`,
-
-  "Try Free IELTS Writing Sample": `Great choice! Writing is where most people LOSE points.
-
-Here's a FREE Writing Task 2 sample:
-
----
-
-✍️ IELTS ACADEMIC WRITING - TASK 2
-
-You have 40 minutes. Write at least 250 words.
-
-**QUESTION:**
-
-*Some people believe that governments should invest heavily in public transportation systems to reduce traffic congestion and pollution. Others argue that individuals should be responsible for their own transportation choices.*
-
-*Discuss both views and give your own opinion.*
-
----
-
-⏱️ START YOUR TIMER NOW!
-
-[User writes their response]
-
----
-
-📊 MODEL ANSWER (CLB 9 level):
-
-*Traffic congestion and environmental pollution are pressing urban challenges that require coordinated solutions. While some advocate for substantial government investment in public transit infrastructure, others contend that transportation remains a matter of personal responsibility. This essay will examine both perspectives before arguing that a balanced approach yields optimal outcomes.*
-
-*Proponents of government-funded public transportation emphasize collective benefits. Extensive metro systems, bus networks, and cycling infrastructure can dramatically reduce private vehicle dependency, thereby alleviating gridlock and carbon emissions. Singapore's Mass Rapid Transit system, for instance, transports over 3 million passengers daily, significantly curbing automobile use. Moreover, well-designed public transit promotes social equity by enabling low-income citizens to access employment opportunities without vehicle ownership costs.*
-
-*Conversely, advocates of individual responsibility argue that personal transportation choices should remain autonomous. They contend that excessive government expenditure on public systems may burden taxpayers while failing to address diverse mobility needs. Rural residents, shift workers, and families with young children often find public transit impractical, necessitating personal vehicles regardless of infrastructure investments.*
-
-*In my view, neither extreme suffices independently. Governments should develop comprehensive public transit networks while simultaneously implementing policies that incentivize responsible private vehicle use—such as congestion pricing, emissions standards, and carpooling infrastructure. This dual approach respects individual choice while mitigating collective harms.*
-
-*In conclusion, sustainable urban mobility demands both robust public transportation systems and accountable personal transportation decisions. Only through integrated strategies can societies effectively combat congestion and pollution.* (247 words)
-
----
-
-✅ WHAT MAKES THIS CLB 9:
-
-**Task Response:**
-• Directly addresses all parts of the question
-• Clear position throughout
-• Well-developed ideas with specific examples (Singapore MRT)
-
-**Coherence & Cohesion:**
-• Logical paragraph structure (intro → view 1 → view 2 → opinion → conclusion)
-• Smooth transitions ("Conversely," "Moreover," "In my view")
-• Clear progression of ideas
-
-**Lexical Resource:**
-• Academic vocabulary (contend, alleviate, autonomous, incentivize)
-• Precise word choice (gridlock, dependency, burden)
-• No repetition (transportation/transit/mobility varied)
-
-**Grammar Range & Accuracy:**
-• Complex sentences (relative clauses, conditionals)
-• Variety of structures
-• Virtually error-free
-
----
-
-💡 EVOLVE TEACHES YOU:
-
-✅ **5 Essay Templates** (memorize these = never think about structure)
-✅ **Task Response Checklist** (hit every marking criterion)
-✅ **Academic Vocabulary Banks** (by topic: environment, education, technology, health, society)
-✅ **Time Management** (7 min planning, 30 min writing, 3 min review)
-✅ **Common Mistakes** (avoid: informal language, off-topic, word count errors)
-
----
-
-📈 WHAT TO EXPECT:
-
-With structured practice using templates and feedback, most dedicated students can improve their Writing score by 0.5-1.0 bands over 6-8 weeks.
-
----
-
-🎯 WANT TO TRY MORE?
-
-Option 1: "Show me Writing Task 1" (different format - graphs/charts)
-Option 2: "Unlock Evolve ($100/year)" (access all 33 Writing tasks with scoring)
-Option 3: "How do I improve my Writing score?" (I'll give you tips)
-
-Type 1, 2, or 3! 💬`,
-
-  "Try Free IELTS Listening Sample": `Perfect! Listening is often the EASIEST section to improve with the right techniques.
-
-Here's a FREE Listening sample:
-
----
-
-🎧 IELTS ACADEMIC LISTENING - SECTION 1
-
-**SCENARIO:** You will hear a conversation between a student and a university accommodation officer.
-
-Listen carefully and answer questions 1-5.
-
----
-
-📝 QUESTIONS (Complete the notes below. Write NO MORE THAN TWO WORDS for each answer):
-
-**Student Accommodation Request**
-
-1. Student's preferred location: Near the ___________
-2. Maximum budget per week: £___________
-3. Type of room required: ___________ room (shared/private)
-4. Move-in date: ___________
-5. Special requirement: Access to ___________
-
----
-
-🔊 **[AUDIO TRANSCRIPT - This simulates what you'd hear]:**
-
-*Officer: Good morning! How can I help you today?*
-
-*Student: Hi, I'm looking for accommodation for next term. I'd really like to live somewhere close to the library if possible.*
-
-*Officer: Okay, noted. And what's your budget?*
-
-*Student: Well, I can't really afford more than £150 a week.*
-
-*Officer: That's fine. Are you looking for a private room or are you happy to share?*
-
-*Student: I'd prefer a private room, actually. I need quiet space to study.*
-
-*Officer: Understood. And when would you need to move in?*
-
-*Student: My course starts September 15th, so ideally a few days before — maybe September 12th?*
-
-*Officer: Perfect. Any special requirements? Wheelchair access, parking...?*
-
-*Student: Oh yes! I need somewhere with a kitchen. I'm vegetarian and prefer cooking my own meals.*
-
-*Officer: Got it. Let me check what's available...*
-
----
-
-✅ ANSWERS:
-
-1. library
-2. 150 / one hundred and fifty
-3. private
-4. September 12th / 12 September / 12th September
-5. kitchen / a kitchen
-
----
-
-📊 HOW DID YOU DO?
-
-5/5: CLB 9 (Excellent!)
-4/5: CLB 8 (Very good)
-3/5: CLB 7 (Good, but need practice)
-2 or below: CLB 6 (Focus on technique)
-
----
-
-💡 THE TRICK YOU MIGHT HAVE MISSED:
-
-❌ **Most people listen first, then look at questions**
-✅ **Winners READ QUESTIONS during instructions (20-second advantage!)**
-
-Before audio starts, you get instructions like "You have 30 seconds to look at questions 1-5."
-
-Use this time to:
-• Underline keywords (location, budget, type, date, requirement)
-• Predict answer types (place? number? adjective?)
-• Prepare for synonyms (accommodation = housing, prefer = would like)
-
-This way, you HUNT for answers while listening — not scrambling to remember what was said.
-
----
-
-🔥 EVOLVE LISTENING STRATEGY:
-
-✅ **Pre-reading technique** (master this first)
-✅ **Synonym recognition** (IELTS rarely uses exact words from questions)
-✅ **Distractor awareness** (audio mentions "£200" but student says "can't afford more than £150" — which is the answer?)
-✅ **Spelling practice** (lose marks for "Febuary" instead of "February")
-
----
-
-📈 LISTENING IMPROVES FASTEST:
-
-Research shows Listening is often the quickest section to improve because:
-• Techniques can be learned quickly
-• Results are immediate with practice
-• Contributes significantly to CRS (L8.5 = +6 points vs L8)
-
----
-
-💰 EVOLVE GIVES YOU:
-
-✅ 33 full Listening tests (132 recorded sections)
-✅ British, Australian, American accents (exam has all 3)
-✅ Progressive difficulty (Level 1→2→3)
-✅ Transcript + explanations for every answer
-
-Traditional listening courses: $300-$800
-Evolve: $100/year unlimited
-
----
-
-🎯 NEXT STEP:
-
-Option 1: "How can I improve my Listening score?" (I'll give you a strategy)
-Option 2: "Unlock Evolve ($100/year)" (access all 33 Listening simulations)
-Option 3: "Tell me about Speaking" (different format, needs practice)
-
-Type 1, 2, or 3! 💬`,
-
-  "How to Hit CLB 9 in 6 Weeks": `Alright, let's talk real numbers.
-
-CLB 9 = IELTS 8.0 Listening, 7.0 Reading, 7.0 Writing, 7.0 Speaking
-
-This is worth +50 CRS points for most applicants.
-
-But here's what nobody tells you:
-
----
-
-❌ WHY GENERIC IELTS COURSES FAIL:
-
-Most courses teach English improvement:
-• Grammar drills
-• Vocabulary lists
-• "Read more articles!"
-
-Problem? You don't have TIME to improve your English. You need to improve your IELTS SCORE.
-
----
-
-✅ THE RESEARCH-BACKED METHOD:
-
-We reverse-engineer IELTS like a game with patterns:
-
-📖 **READING:**
-• Skim for keywords (don't read word-by-word)
-• Paragraph matching = first/last sentences only
-• True/False/NG = exact word matches (not interpretations)
-
-✍️ **WRITING:**
-• Task 2 = 5 templates (memorize word-for-word)
-• Never think about "what to write" — use frameworks
-• Introduction = paraphrase question + thesis (30 seconds)
-• Body paragraphs = Topic sentence + Example + Explanation (2 min each)
-
-🎧 **LISTENING:**
-• Pre-read questions during instructions (20-second advantage)
-• Listen for SYNONYMS, not exact words
-• Multiple-choice = eliminate wrong answers (50% faster)
-
-🗣️ **SPEAKING:**
-• Part 1 = 10 common topics (practice until automatic)
-• Part 2 = 3-minute speech template (memorize structure)
-• Part 3 = Discussion technique (elaborate on answers)
-
----
-
-📈 THE 6-WEEK EVOLVE PLAN:
-
-**WEEK 1-2: Block 1 (Foundation)**
-Goal: Learn the patterns
-• 11 full-length tests
-• Focus: Accuracy over speed
-• Target: Consistent CLB 8
-
-**WEEK 3-4: Block 2 (Development)**
-Goal: Build speed
-• 11 full-length tests
-• Focus: Time management
-• Target: Consistent CLB 8.5
-
-**WEEK 5-6: Block 3 (Mastery)**
-Goal: Overtraining (harder than real IELTS)
-• 11 full-length tests
-• Focus: Confidence under pressure
-• Target: CLB 9+ in practice
-
-**WEEK 7: Real IELTS exam**
-Goal: Execute what you've practiced
-• Book your test
-• Apply your strategies
-• Target: CLB 9
-
----
-
-📊 WHAT RESEARCH SHOWS:
-
-Studies on IELTS preparation indicate:
-• Structured practice > generic study: 2x more effective
-• Progressive difficulty > random practice: Better retention
-• Format familiarity > content knowledge: Reduces test anxiety
-• 30+ practice tests = typical requirement for 1-2 band improvement
-
-Dedicated students who complete all practice typically see 1-2 band improvements over 6-8 weeks.
-
----
-
-🔥 WHY THIS WORKS:
-
-1. **Repetition** (33 tests) > Generic lessons
-2. **Progressive difficulty** > Random practice
-3. **Format mastery** > English improvement
-4. **Overtraining** > Minimal preparation
-
-IELTS is a PATTERN RECOGNITION test, not just an English test.
-
----
-
-💰 COST-BENEFIT:
-
-IELTS exam: $350 per attempt
-Typical attempts needed: 2-3 times = $700-$1,050
-Traditional course: $500-$2,000
-
-Evolve cost: $100/year
-Your savings: $600-$2,950
-
-Plus: +50 CRS points = faster ITA = priceless
-
----
-
-🎯 READY TO START?
-
-Option 1: "Show me 1 free sample" (try before you commit)
-Option 2: "Unlock Evolve ($100/year)" (commit to the 6-week plan)
-Option 3: "I'm not sure I can do this" (let me address your concerns)
-
-Type 1, 2, or 3 below! ⏰`,
-
-  // Continue with remaining sections...
-  // (Due to length, I'll include the key sections and wrap up with helper functions)
-
-  "Get My Personalized Immigration Strategy": `Alright, let's build your roadmap. I need 8 quick details to create a COMPLETE strategy:
-
----
-
-📋 TELL ME ABOUT YOURSELF:
-
-**1. Age:** ___
-**2. Highest education:** (High school / Bachelor's / Master's / PhD)
-**3. Years of skilled work experience:** ___
-**4. Your occupation/job title:** ___
-**5. IELTS scores (or planned):**
-   - Listening: ___
-   - Reading: ___
-   - Writing: ___
-   - Speaking: ___
-**6. Marital status:** (Single / Married / Common-law)
-**7. Spouse's details (if applicable):**
-   - Age: ___
-   - Education: ___
-   - Work experience: ___
-   - IELTS: ___
-**8. Your timeline goal:** (ASAP / This year / Next year / Flexible)
-
----
-
-Once you give me these details, I'll create:
-
-🎯 **YOUR 3-PATH STRATEGY:**
-
-### Path 1: Federal Express Entry (if CRS competitive)
-### Path 2: Provincial Nominee Program (most reliable)
-### Path 3: Alternative routes (work permit, study, etc.)
-
-📅 **YOUR 12-MONTH ACTION PLAN:**
-• Month-by-month milestones
-• Critical deadlines
-• Document preparation schedule
-• Budget breakdown
-
-🚨 **SUCCESS FACTORS & MISTAKES TO AVOID:**
-• Must-do items for YOUR profile
-• Common pitfalls for your NOC/situation
-• Backup plans if primary strategy fails
-
----
-
-💡 Or unlock Execute now and get:
-• Instant CRS calculation
-• Automated strategy builder
-• PNP opportunity tracker
-• Document templates for your NOC
-• 24/7 expert guidance
-
-→ [Start Execute - $100/year]
-
-Type your details below and let's build YOUR strategy! 💪`,
-
-  // Tier explanations
-  "Explore": `🎯 **EXPLORE TIER – 100% FREE**
-Think of this as your "immigration test-drive".
-• Instant eligibility check: drop your age, education, work & language info.  
-• Sample English tests (Reading, Writing, Listening).  
-• Clear explanations of CRS, ECA, PNP, proof-of-funds—everything you need before committing.  
-Zero risk, zero cost—just clarity.
-
-Ready to upgrade? 
-→ Evolve ($100/year) unlocks 33 IELTS simulations
-→ Execute ($100/year) gives you 24/7 AI RCIC guidance`,
-
-  "Evolve": `📈 **EVOLVE TIER – $100 CAD / year**
-• 33 progressive IELTS simulations in 3 levels.  
-• Each harder than the last—by Level 3 you're ready for CLB 9.  
-• 1-year access, unlimited repeats.  
-This is an IELTS boot camp based on proven learning science.
-
-What research shows:
-• 30+ practice tests = typical requirement for 1-2 band improvement
-• Progressive difficulty = 40% better retention
-• Format mastery = reduced test anxiety
-
-Ready to master IELTS in 6-8 weeks?
-→ [Unlock Evolve - $100/year]`,
-
-  "Execute": `🤖 **EXECUTE TIER – $100 CAD / year**
-24/7 AI immigration guidance supervised by licensed RCIC.  
-• Ask anything—CRS strategy, docs, PNP timing, forms.  
-• Always online, no appointments, no upselling.  
-Professional-grade guidance at 1/20th the cost of traditional consultants.
-
-What you get:
-✅ Unlimited expert guidance (instant responses)
-✅ CRS optimizer + "what if" simulator
-✅ PNP tracker (80+ streams, real-time alerts)
-✅ Document manager + reference letter templates
-✅ ITA probability insights
-✅ Form filling assistance
-
-Traditional RCIC: $2,000-$5,000
-Execute: $100/year
-
-You save: $1,900-$4,900
-
-Ready for 24/7 immigration support?
-→ [Unlock Execute - $100/year]`
-};
-
-// =============================================================================
-// HELPER FUNCTIONS
-// =============================================================================
-
-// Helper function to check if message matches FAQ
-function getFAQResponse(message) {
-  if (FAQ_RESPONSES[message]) {
-    return FAQ_RESPONSES[message];
-  }
-
-  const lowerMessage = message.toLowerCase();
-  
-  const variations = {
-    "eligible": "Am I Eligible for Express Entry?",
-    "eligibility": "Am I Eligible for Express Entry?",
-    "qualify": "Am I Eligible for Express Entry?",
-    "crs": "What's My Realistic CRS Score?",
-    "score": "What's My Realistic CRS Score?",
-    "timeline": "How Long Will This Take?",
-    "how long": "How Long Will This Take?",
-    "cost": "Total Cost Breakdown",
-    "price": "Total Cost Breakdown",
-    "fees": "Total Cost Breakdown",
-    "low crs": "My CRS Is Too Low - What Now?",
-    "stuck": "My CRS Is Too Low - What Now?",
-    "mistake": "Common Mistakes That Kill Applications",
-    "error": "Common Mistakes That Kill Applications",
-    "ita": "Will I Get an ITA This Year?",
-    "invitation": "Will I Get an ITA This Year?",
-    "boost": "How to Boost CRS by 50+ Points Fast",
-    "increase": "How to Boost CRS by 50+ Points Fast",
-    "improve": "How to Boost CRS by 50+ Points Fast",
-    "reading": "Try Free IELTS Reading Sample",
-    "writing": "Try Free IELTS Writing Sample",
-    "listening": "Try Free IELTS Listening Sample",
-    "clb 9": "How to Hit CLB 9 in 6 Weeks",
-    "strategy": "Get My Personalized Immigration Strategy",
-    "roadmap": "Get My Personalized Immigration Strategy"
-  };
-
-  for (const [keyword, faqKey] of Object.entries(variations)) {
-    if (lowerMessage.includes(keyword)) {
-      return FAQ_RESPONSES[faqKey];
-    }
-  }
-
-  return null;
-}
 
 // Helper function for HTTP responses
 function ok(body) {
@@ -1117,58 +46,246 @@ export const handler = async (event) => {
   }
 
   try {
-    const { message, memory = [], mode = "auto", meta = {} } = JSON.parse(event.body || "{}");
+    const { message, memory = [], userProfile = {}, meta = {} } = JSON.parse(event.body || "{}");
 
-    // Check for FAQ match first
-    const faqResponse = getFAQResponse(message);
-    
-    if (faqResponse) {
-      const newMemory = [
-        ...memory.slice(-20),
-        { role: "user", content: message },
-        { role: "assistant", content: faqResponse },
-      ];
-      
-      return ok({ reply: faqResponse, memory: newMemory, meta });
-    }
-
-    // No FAQ match - proceed with OpenAI
+    // Process memory
     const trimmed = memory.slice(-20);
     const processedMemory = trimmed.map((msg) => ({
       role: msg.role === "bot" ? "assistant" : msg.role,
       content: msg.content,
     }));
 
-    const systemPrompt = `You are North Star Execute, a professional Canadian immigration assistant by Matin Immigration Services.
-You are newly launched and building your user base, so be honest about being a new service.
-Goal: help users complete PR workflows end to end, right, first time.
-Scope: Express Entry, PNP, work permits linked to PR, study to PR bridges, spousal and dependents where relevant.
-Output style: short sections, numbered steps, checklists, and exact IRCC form names and numbers.
-Rules:
-1) Never claim to be a government source. You are a coach that cites official names exactly.
-2) Ask for missing facts only when required to advance a step.
-3) Produce fill-helper blocks for forms, for example: IMM 0008, Section A, Q1, Applicant name.
-4) When users upload or paste text, perform a line-by-line issue scan and suggest fixes.
-5) Always label deadlines, fees, and where to upload inside the GCKey or PR portal when applicable.
-6) Give province-agnostic steps first, then add PNP branches if the user hints at a province.
-7) Do not invent policy or dates. If unsure, state what must be verified on IRCC or the province site.
-8) NEVER make up testimonials or user success stories - you are newly launched.
-9) Base claims on research, IRCC data, and industry patterns - not fake user stories.
-10) Be honest about being a new service while emphasizing your research-backed approach.
-Current mode: ${mode}`;
+    // Build context with user profile if available
+    const profileContext = userProfile && Object.keys(userProfile).length > 0 ? `
+USER PROFILE:
+• CRS Score: ${userProfile.crs || 'Not calculated'}
+• Age: ${userProfile.age || 'Unknown'}
+• Education: ${userProfile.education || 'Unknown'}
+• Work Experience: ${userProfile.workYears || 'Unknown'} years
+• NOC Code: ${userProfile.noc || 'Unknown'}
+• IELTS: L${userProfile.ielts?.listening || '?'} R${userProfile.ielts?.reading || '?'} W${userProfile.ielts?.writing || '?'} S${userProfile.ielts?.speaking || '?'}
+• Marital Status: ${userProfile.maritalStatus || 'Unknown'}
+• Application Stage: ${userProfile.stage || 'Not started'}
+• Documents Status: ${userProfile.docsComplete || 0}% complete
+` : '';
+
+    const systemPrompt = `You are North Star Execute, a professional Canadian immigration assistant for Migrate North's Execute tier ($100/year).
+
+YOUR MISSION:
+Help users complete their Express Entry application accurately and efficiently. You provide ACTIONABLE application guidance, not general education (that's Explore's job).
+
+${profileContext}
+
+YOUR PERSONALITY:
+• Professional and precise (like an RCIC assistant)
+• Task-oriented and checklist-driven
+• Detail-focused (forms, documents, deadlines)
+• Proactive (anticipate next steps)
+• Honest about complexity (when to seek RCIC help)
+• Never fake testimonials or make up success stories
+
+WHAT YOU DO (PAID TIER):
+✅ Fill out IRCC forms step-by-step (IMM 0008, IMM 5669, etc.)
+✅ Review documents for IRCC compliance
+✅ Provide reference letter templates (by NOC code)
+✅ Calculate exact CRS scores (with "what if" scenarios)
+✅ Track 80+ PNP streams and alert when intakes open
+✅ Guide through eAPR submission (post-ITA)
+✅ Review proof of funds format
+✅ Check work reference letters against IRCC requirements
+✅ Provide NOC code verification (duties-based)
+✅ Create pre-ITA document checklists
+✅ Guide on police certificates (by country)
+✅ Explain medical exam requirements
+✅ Help with form-specific questions
+✅ Timeline planning (ECA → ITA → PR)
+
+WHAT YOU DON'T DO:
+❌ General education about Express Entry (that's Explore)
+❌ IELTS coaching (that's Evolve)
+❌ Legal representation (complex cases need RCIC)
+❌ Fill forms for inadmissible cases (criminal records, misrepresentation)
+❌ Immigration appeals or refugee claims
+
+RESPONSE STYLE:
+• Structured format (numbered steps, checklists)
+• Cite exact form names (IMM 0008, Section A, Question 12)
+• Specify where to upload (GCKey, PR portal)
+• Include deadlines and fees
+• Provide templates when helpful
+• Short paragraphs (2-3 sentences max)
+• Keep responses actionable and specific
+
+FORM FILLING APPROACH:
+When helping with forms:
+1. Ask for required information ONLY when needed
+2. Format responses as fill-helper blocks:
+   "IMM 0008, Section A, Q1: [User's name]"
+3. Explain WHY each field matters
+4. Flag potential issues before they submit
+5. Provide examples for tricky fields
+
+DOCUMENT REVIEW APPROACH:
+When reviewing documents:
+1. Check against IRCC requirements (format, content, signatures)
+2. Identify missing elements
+3. Suggest specific fixes
+4. Provide templates if needed
+5. Warn about common rejection reasons
+
+PNP TRACKING:
+• Monitor 80+ provincial streams
+• Alert users when they become eligible
+• Explain each stream's requirements
+• Provide application timeline estimates
+• Track intake opening dates
+• Suggest which streams to prioritize
+
+CRS OPTIMIZATION:
+• Calculate exact CRS with breakdown
+• Run "what if" scenarios:
+  - "What if I improve IELTS to CLB 9?"
+  - "What if I exclude my spouse?"
+  - "What if I get PNP nomination?"
+• Prioritize improvements by speed + impact
+• Show point gains for each scenario
+
+COMMON TASKS:
+
+**IMM 0008 (Generic Application Form):**
+• Section A: Personal Details
+• Section B: Contact Information  
+• Section C: Education
+• Section D: Language Ability
+• Section E: Work Experience
+
+**IMM 5669 (Schedule A - Background/Declaration):**
+• Personal history (last 10 years, no gaps)
+• Address history
+• Travel history
+• Memberships/associations
+
+**IMM 5406 (Additional Family Information):**
+• Applicant info
+• Spouse info
+• Mother/father info
+• Children info
+
+**IMM 5707 (Family Information - Spouse):**
+• Required if spouse is accompanying
+
+CRITICAL REMINDERS FOR USERS:
+
+**Proof of Funds:**
+• $13,310 CAD (single) / $16,570 (couple)
+• 6-month average balance
+• Official bank letter on letterhead
+• No borrowed money or crypto
+
+**Work Reference Letters:**
+• Company letterhead
+• Job title, dates, hours/week, salary
+• Detailed duties (match NOC 60%+)
+• Signed by supervisor/HR
+
+**Police Certificates:**
+• Every country lived 6+ months since age 18
+• Timeline: 4-12 weeks (varies by country)
+• Some need fingerprints (FBI, India, UAE)
+
+**Medical Exam:**
+• Approved panel physician only
+• Valid 12 months
+• Costs $200-$450/person
+
+**60-Day ITA Deadline:**
+• Start gathering documents NOW (before ITA)
+• Missing deadline = ITA expires (start over)
+
+HONESTY RULES:
+1) We're newly launched (be transparent)
+2) Base advice on IRCC guidelines and regulations
+3) When unsure, direct to official IRCC sources
+4) Admit complexity when cases need human RCIC
+5) Never guarantee application approval
+6) Don't make up processing times (cite IRCC data)
+
+WHEN TO REFER TO RCIC:
+• Criminal inadmissibility cases
+• Previous refusals or misrepresentation
+• Humanitarian & Compassionate applications
+• Complex family situations (divorced, multiple marriages)
+• Business immigration
+• Legal appeals or reviews
+
+SAMPLE RESPONSES:
+
+User: "Help me fill out IMM 0008"
+You: "Let's complete IMM 0008 together. I'll guide you section by section.
+
+SECTION A - PERSONAL DETAILS
+Q1: UCI (Unique Client Identifier) - Leave blank if this is your first application
+Q2: Application type - Check 'Permanent Residence'
+Q3: How many family members (including you)? - Count yourself + spouse + dependent children
+
+What's your answer for Q3?"
+
+User: "Can you review my reference letter?"
+You: "I'll review your reference letter against IRCC requirements. Please paste the letter text or describe what it contains.
+
+IRCC REQUIREMENTS:
+✅ Company letterhead
+✅ Your job title
+✅ Employment dates (start - end)
+✅ Hours per week
+✅ Annual salary + benefits
+✅ Detailed duties (5-10 specific tasks)
+✅ Supervisor signature + title
+✅ Company contact info
+
+Paste your letter and I'll check each requirement."
+
+User: "Which PNPs am I eligible for?"
+You: "Based on your profile:
+• NOC: ${userProfile.noc || '[Need your NOC code]'}
+• CRS: ${userProfile.crs || '[Need to calculate]'}
+• Work Experience: ${userProfile.workYears || '[Need years]'} years
+
+I'll identify eligible PNP streams. Give me your NOC code if I don't have it yet."
+
+User: "What documents do I need for my application?"
+You: "I'll create your personalized document checklist based on your profile.
+
+TIER 1 - MANDATORY (Must have):
+1. Passport (biographical pages, valid 6+ months)
+2. ECA report (${userProfile.education || 'your degree'})
+3. IELTS results (valid 2 years)
+4. Work reference letters (${userProfile.workYears || 'X'} years)
+5. Proof of funds ($13,310+ single)
+
+TIER 2 - POST-ITA (After invitation):
+6. Police certificates (every country 6+ months)
+7. Medical exam (approved panel physician)
+8. Birth certificate
+9. Marriage certificate (if applicable)
+
+Which document would you like to start with?"
+
+YOUR GOAL:
+Help users submit a complete, accurate Express Entry application that gets approved. Be their professional immigration assistant available 24/7.`;
 
     const completion = await client.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      temperature: 0.4,
-      max_tokens: 400,
+      model: "gpt-4o-mini", // Using gpt-4o-mini for better form understanding
+      temperature: 0.4, // Lower temperature for precision
+      max_tokens: 800,
       messages: [
         { role: "system", content: systemPrompt },
         ...processedMemory,
-        { role: "user", content: message || "Hello" },
+        { role: "user", content: message || "Hello, I need help with my Express Entry application." },
       ],
     });
 
-    const reply = completion.choices?.[0]?.message?.content || "No response available.";
+    const reply = completion.choices?.[0]?.message?.content || "I'm here to help with your Express Entry application. What would you like to work on today?";
 
     const newMemory = [
       ...trimmed,
@@ -1176,7 +293,7 @@ Current mode: ${mode}`;
       { role: "assistant", content: reply },
     ];
 
-    return ok({ reply, memory: newMemory, meta });
+    return ok({ reply, memory: newMemory, meta, userProfile });
   } catch (err) {
     console.error("Execute function error:", err);
     return {
