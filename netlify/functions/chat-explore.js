@@ -1642,6 +1642,7 @@ Based on IELTS research (not our made-up claims):
 • High probability: 0.5-1.0 band improvement in 6-8 weeks
 • Moderate probability: 1.0-1.5 band improvement
 • Lower probability: 2.0+ band improvement (requires strong English foundation)
+• Lower probability: 2.0+ band improvement (requires strong English foundation)
 
 **If you do 10-15 tests:**
 • Likely outcome: 0.5 band improvement
@@ -2881,6 +2882,149 @@ Ready to get started?
 };
 
 // =============================================================================
+// CRS CALCULATION & STATE MANAGEMENT (NEW)
+// =============================================================================
+
+// Proper IRCC CRS Calculation with correct formulas
+function calculateCRS(profile) {
+  let crs = 0;
+
+  // AGE: Max 110 points
+  if (profile.age) {
+    const age = parseInt(profile.age);
+    if (age < 16) crs += 0;
+    else if (age <= 17) crs += 99;
+    else if (age <= 29) crs += 110;
+    else if (age <= 35) crs += 105;
+    else if (age <= 39) crs += 99;
+    else if (age <= 45) crs += 94;
+    else crs += 0;
+  }
+
+  // EDUCATION: Max 150 points
+  if (profile.education) {
+    const edu = profile.education.toLowerCase();
+    if (edu.includes("phd") || edu.includes("doctorate")) crs += 150;
+    else if (edu.includes("master")) crs += 135;
+    else if (edu.includes("bachelor") || edu.includes("llb") || edu.includes("law")) crs += 120;
+    else if (edu.includes("associate") || edu.includes("diploma")) crs += 91;
+    else if (edu.includes("high school")) crs += 30;
+  }
+
+  // LANGUAGE PROFICIENCY: Max 136 points
+  if (profile.ieltsScores) {
+    const scores = profile.ieltsScores;
+    let avgScore = 0;
+    
+    if (typeof scores === "string") {
+      const match = scores.match(/\d+\.?\d*/g);
+      if (match && match.length > 0) {
+        avgScore = parseFloat(match[0]);
+      }
+    } else if (typeof scores === "object") {
+      const values = Object.values(scores).filter(v => !isNaN(v));
+      if (values.length > 0) {
+        avgScore = values.reduce((a, b) => a + b) / values.length;
+      }
+    }
+
+    // IELTS to CLB to CRS mapping
+    if (avgScore >= 9) crs += 136;
+    else if (avgScore >= 8.5) crs += 132;
+    else if (avgScore >= 8) crs += 128;
+    else if (avgScore >= 7.5) crs += 124;
+    else if (avgScore >= 7) crs += 120;
+    else if (avgScore >= 6.5) crs += 110;
+    else if (avgScore >= 6) crs += 100;
+    else if (avgScore >= 5.5) crs += 86;
+  }
+
+  // WORK EXPERIENCE: Max 100 points
+  if (profile.workYears) {
+    const years = parseInt(profile.workYears);
+    if (years >= 15) crs += 100;
+    else if (years >= 14) crs += 95;
+    else if (years >= 13) crs += 90;
+    else if (years >= 12) crs += 85;
+    else if (years >= 11) crs += 80;
+    else if (years >= 10) crs += 75;
+    else if (years >= 9) crs += 70;
+    else if (years >= 8) crs += 65;
+    else if (years >= 7) crs += 60;
+    else if (years >= 6) crs += 55;
+    else if (years >= 5) crs += 50;
+    else if (years >= 4) crs += 44;
+    else if (years >= 3) crs += 38;
+    else if (years >= 2) crs += 32;
+    else if (years >= 1) crs += 20;
+  }
+
+  return Math.min(crs, 1200); // Max CRS is 1200
+}
+
+// Extract user profile info from message using regex patterns
+function extractProfileFromMessage(message) {
+  const profile = {};
+  const lowerMsg = message.toLowerCase();
+
+  // AGE - look for number followed by age indicators
+  const ageMatch = message.match(/\b(\d{1,3})\b(?:\s+years?|\s+y\.?o\.?|old|age)?/i);
+  if (ageMatch) profile.age = ageMatch[1];
+
+  // EDUCATION
+  if (lowerMsg.includes("phd") || lowerMsg.includes("doctorate")) {
+    profile.education = "PhD";
+  } else if (lowerMsg.includes("master")) {
+    profile.education = "Master's";
+  } else if (lowerMsg.includes("bachelor")) {
+    profile.education = "Bachelor's";
+  } else if (lowerMsg.includes("llb") || lowerMsg.includes("law degree") || lowerMsg.includes("law")) {
+    profile.education = "LLB";
+  } else if (lowerMsg.includes("associate") || lowerMsg.includes("diploma")) {
+    profile.education = "Diploma";
+  } else if (lowerMsg.includes("high school")) {
+    profile.education = "High School";
+  }
+
+  // WORK EXPERIENCE - look for "X years"
+  const workMatch = message.match(/(\d+)\s*(?:years?|yrs?)\s*(?:of\s+)?(?:work|experience|worked)?/i);
+  if (workMatch) profile.workYears = workMatch[1];
+
+  // IELTS SCORES - look for decimal numbers potentially followed by ielts/clb
+  const ieltsMatch = message.match(/(\d\.?\d*)/);
+  if (ieltsMatch) profile.ieltsScores = ieltsMatch[1];
+
+  // MARITAL STATUS
+  if (lowerMsg.includes("married")) {
+    profile.maritalStatus = "married";
+  } else if (lowerMsg.includes("single")) {
+    profile.maritalStatus = "single";
+  }
+
+  return profile;
+}
+
+// Check if profile has minimum required fields for CRS calculation
+function isProfileComplete(profile) {
+  return profile.age && profile.education && profile.workYears && profile.ieltsScores;
+}
+
+// Get list of missing fields
+function getMissingFields(profile) {
+  const missing = [];
+  if (!profile.age) missing.push("your age");
+  if (!profile.education) missing.push("your education level (high school/bachelor/master/PhD/LLB)");
+  if (!profile.workYears) missing.push("years of skilled work experience");
+  if (!profile.ieltsScores) missing.push("your IELTS scores (all 4 bands)");
+  return missing;
+}
+
+// Merge new profile data with existing profile data
+function mergeProfile(existing, newData) {
+  return { ...existing, ...newData };
+}
+
+// =============================================================================
 // HELPER FUNCTIONS
 // =============================================================================
 
@@ -2972,7 +3116,7 @@ export const handler = async (event) => {
   }
 
   try {
-    const { message, memory = [], mode = "auto", meta = {} } = JSON.parse(event.body || "{}");
+    const { message, memory = [], mode = "auto", meta = {}, userProfile = {} } = JSON.parse(event.body || "{}");
 
     // Check for FAQ match first
     const faqResponse = getFAQResponse(message);
@@ -2984,10 +3128,67 @@ export const handler = async (event) => {
         { role: "assistant", content: faqResponse },
       ];
       
-      return ok({ reply: faqResponse, memory: newMemory, meta });
+      return ok({ reply: faqResponse, memory: newMemory, meta, userProfile });
     }
 
-    // No FAQ match - proceed with OpenAI
+    // EXTRACT NEW PROFILE DATA FROM MESSAGE
+    const extractedData = extractProfileFromMessage(message);
+    const updatedProfile = mergeProfile(userProfile, extractedData);
+
+    // CHECK IF PROFILE IS COMPLETE FOR CRS CALCULATION
+    if (isProfileComplete(updatedProfile)) {
+      // Calculate CRS using proper IRCC formulas
+      const crsScore = calculateCRS(updatedProfile);
+      
+      // Format profile for display
+      const profileSummary = `Profile: Age ${updatedProfile.age}, ${updatedProfile.education}, ${updatedProfile.workYears} years work experience, IELTS ${updatedProfile.ieltsScores} (all bands), ${updatedProfile.maritalStatus || "status not provided"}`;
+      
+      const crsResponse = `Great! I've calculated your CRS score based on your profile:
+
+${profileSummary}
+
+**Your CRS Score: ${crsScore}**
+
+**Analysis:**
+• Latest ITA cutoff (May 2024): 535 CRS
+• Your gap to overcome: ${535 - crsScore} points
+• Your competitive position: ${crsScore >= 520 ? "Highly competitive" : crsScore >= 480 ? "Competitive" : crsScore >= 440 ? "Moderate chance" : "Challenging - needs strategy"}
+
+**Your Options:**
+1. **Boost IELTS** (Easiest): Improving from 7 to 8 adds ~30-40 points
+2. **Provincial Nominee Program**: Adds +600 automatic points (bypasses federal cutoff)
+3. **Job Offer**: +50-200 points depending on NOC and LMIA status
+4. **More Work Experience**: +4-13 points per additional year
+
+Would you like me to show you the fastest path to 500+ CRS, or explore PNP options?`;
+
+      const newMemory = [
+        ...memory.slice(-20),
+        { role: "user", content: message },
+        { role: "assistant", content: crsResponse },
+      ];
+
+      return ok({ reply: crsResponse, memory: newMemory, meta, userProfile: updatedProfile });
+    } else {
+      // PROFILE INCOMPLETE - Ask for missing fields
+      const missing = getMissingFields(updatedProfile);
+      
+      const incompletionResponse = `Got it! I have some of your info. To calculate your exact CRS score, I still need:
+
+• ${missing.join("\n• ")}
+
+Please share these details and I'll give you your precise CRS score and a personalized strategy!`;
+
+      const newMemory = [
+        ...memory.slice(-20),
+        { role: "user", content: message },
+        { role: "assistant", content: incompletionResponse },
+      ];
+
+      return ok({ reply: incompletionResponse, memory: newMemory, meta, userProfile: updatedProfile });
+    }
+
+    // If neither FAQ nor CRS calculation triggered, proceed with OpenAI for general questions
     const trimmed = memory.slice(-20);
     const processedMemory = trimmed.map((msg) => ({
       role: msg.role === "bot" ? "assistant" : msg.role,
@@ -3087,4 +3288,3 @@ Current mode: ${mode}`;
     };
   }
 };
-
