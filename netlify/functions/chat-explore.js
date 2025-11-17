@@ -3116,19 +3116,19 @@ export const handler = async (event) => {
   }
 
   try {
-    const { message, memory = [], mode = "auto", meta = {}, userProfile = {} } = JSON.parse(event.body || "{}");
+    const { message, history = [], mode = "auto", meta = {}, userProfile = {} } = JSON.parse(event.body || "{}");
 
     // Check for FAQ match first
-    const faqResponse = getFAQResponse(message);
+    const faqResponse = message.length < 10 ? getFAQResponse(message) : null;
     
     if (faqResponse) {
-      const newMemory = [
-        ...memory.slice(-20),
+      const newHistory = [
+        ...history.slice(-20),
         { role: "user", content: message },
         { role: "assistant", content: faqResponse },
       ];
       
-      return ok({ reply: faqResponse, memory: newMemory, meta, userProfile });
+      return ok({ reply: faqResponse, history: newHistory, meta, userProfile });
     }
 
     // EXTRACT NEW PROFILE DATA FROM MESSAGE
@@ -3162,13 +3162,13 @@ ${profileSummary}
 
 Would you like me to show you the fastest path to 500+ CRS, or explore PNP options?`;
 
-      const newMemory = [
-        ...memory.slice(-20),
+      const newHistory = [
+        ...history.slice(-20),
         { role: "user", content: message },
         { role: "assistant", content: crsResponse },
       ];
 
-      return ok({ reply: crsResponse, memory: newMemory, meta, userProfile: updatedProfile });
+      return ok({ reply: crsResponse, history: newHistory, meta, userProfile: updatedProfile });
     } else {
       // PROFILE INCOMPLETE - Ask for missing fields
       const missing = getMissingFields(updatedProfile);
@@ -3179,18 +3179,18 @@ Would you like me to show you the fastest path to 500+ CRS, or explore PNP optio
 
 Please share these details and I'll give you your precise CRS score and a personalized strategy!`;
 
-      const newMemory = [
-        ...memory.slice(-20),
+      const newHistory = [
+        ...history.slice(-20),
         { role: "user", content: message },
         { role: "assistant", content: incompletionResponse },
       ];
 
-      return ok({ reply: incompletionResponse, memory: newMemory, meta, userProfile: updatedProfile });
+      return ok({ reply: incompletionResponse, history: newHistory, meta, userProfile: updatedProfile });
     }
 
     // If neither FAQ nor CRS calculation triggered, proceed with OpenAI for general questions
-    const trimmed = memory.slice(-20);
-    const processedMemory = trimmed.map((msg) => ({
+    const trimmed = history.slice(-20);
+    const processedHistory = trimmed.map((msg) => ({
       role: msg.role === "bot" ? "assistant" : msg.role,
       content: msg.content,
     }));
@@ -3265,20 +3265,20 @@ Current mode: ${mode}`;
       max_tokens: 400,
       messages: [
         { role: "system", content: systemPrompt },
-        ...processedMemory,
+        ...processedHistory,
         { role: "user", content: message || "Hello" },
       ],
     });
 
     const reply = completion.choices?.[0]?.message?.content || "No response available.";
 
-    const newMemory = [
+    const newHistory = [
       ...trimmed,
       { role: "user", content: message },
       { role: "assistant", content: reply },
     ];
 
-    return ok({ reply, memory: newMemory, meta });
+    return ok({ reply, history: newHistory, meta });
   } catch (err) {
     console.error("Explore function error:", err);
     return {
