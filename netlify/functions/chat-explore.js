@@ -1,6 +1,5 @@
 // /netlify/functions/chat-explore.js
-// North Star Explore server function v3 - FULLY CORRECTED
-// ✅ ONLY FIX: System prompt goes IN messages array (line ~315)
+// North Star Explore server function v4 - A1 PROFILE + CRS LOGIC, FIXED OPENAI CALL
 
 import OpenAI from "openai";
 
@@ -573,7 +572,7 @@ A completed master's recognized by ECA can also add a noticeable amount.
 3. PROVINCIAL NOMINATION
 
 This is the most powerful single lever:
-- A PNP nomination gives you 600 extra CRS points
+- A PNP nomination gives you 600 CRS points
 
 That turns almost any score into an ITA level score.
 
@@ -1079,11 +1078,10 @@ function extractProfileFromMessage(message, existingProfile = {}) {
   const text = String(message || "");
   const lower = text.toLowerCase();
 
-  // Age: multiple patterns for better coverage
   const agePatterns = [
     /\b(\d{1,2})\s*(?:years?\s*old|y\.?o\.?|yrs?\s*old|age)\b/i,
     /\bi\s*am\s*(\d{1,2})\b/i,
-    /\bm[yi]\s+(?:age|age\s+is)?\s*(\d{1,2})\b/i,
+    /\bmy\s+age\s*(?:is)?\s*(\d{1,2})\b/i,
     /\b(?:aged?|currently)\s*(\d{1,2})\b/i,
     /\b(\d{1,2})\s*(?:year\s*)?old\s*(?:male|female|man|woman)\b/i
   ];
@@ -1099,7 +1097,6 @@ function extractProfileFromMessage(message, existingProfile = {}) {
     }
   }
 
-  // Education
   if (lower.includes("phd") || lower.includes("doctorate")) {
     profile.education = "PhD";
   } else if (lower.includes("master")) {
@@ -1112,7 +1109,6 @@ function extractProfileFromMessage(message, existingProfile = {}) {
     profile.education = "High school";
   }
 
-  // Work experience: improved patterns
   const workPatterns = [
     /(\d{1,2})\s*(?:years?|yrs?)\s*(?:of\s+)?(?:work|experience|exp|worked)/i,
     /work(?:ed)?\s+for\s+(\d{1,2})\s*(?:years?|yrs?)/i,
@@ -1130,7 +1126,6 @@ function extractProfileFromMessage(message, existingProfile = {}) {
     }
   }
 
-  // IELTS or CELPIP scores
   let ieltsSummary = profile.ieltsSummary || null;
 
   const singleBandAllMatch = lower.match(/(\d(?:\.\d)?)\s*(?:band)?s?\s*(?:in\s*all|all\s*around|overall|across\s+the\s+board)/i);
@@ -1167,7 +1162,6 @@ function extractProfileFromMessage(message, existingProfile = {}) {
     profile.ieltsSummary = ieltsSummary;
   }
 
-  // Marital status
   if (lower.includes("married")) {
     profile.maritalStatus = "married";
   } else if (lower.includes("single")) {
@@ -1191,7 +1185,6 @@ function isProfileComplete(profile) {
   );
 }
 
-// CRS Tables
 const CRS_AGE_TABLE = {
   20: 100, 21: 100, 22: 100, 23: 100, 24: 100, 25: 100,
   26: 100, 27: 100, 28: 100, 29: 100, 30: 95,
@@ -1326,13 +1319,13 @@ If you tell me your field (for example nurse, engineer, software developer, trad
 }
 
 // =============================================================================
-// ✅ FIXED: OPENAI CALLBACK - System prompt IN messages array
+// OPENAI CALLBACK - A1, USING CHAT COMPLETIONS
 // =============================================================================
 
 async function callOpenAI(historyMessages, userMessage, profile = {}, meta = {}) {
   const profileContext = isProfileComplete(profile)
     ? `\n\n[USER PROFILE FROM CONVERSATION]\n${JSON.stringify(profile, null, 2)}\n\nUse this profile context when providing guidance.`
-    : '';
+    : "";
 
   const systemPrompt = `
 You are North Star GPS, the front door assistant for Migrate North.
@@ -1352,8 +1345,7 @@ ${profileContext}
 `.trim();
 
   const normHistory = normalizeHistory(historyMessages).slice(-30);
-  
-  // ✅ KEY FIX: System message goes IN the messages array as first element
+
   const messages = [
     { role: "system", content: systemPrompt },
     ...normHistory,
@@ -1361,12 +1353,14 @@ ${profileContext}
   ];
 
   try {
-    const completion = await client.messages.create({
-      model: "gpt-4o-mini",
-      messages: messages
+    const completion = await client.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages
     });
 
-    const reply = completion?.choices?.[0]?.message?.content ?? "Sorry, I was not able to generate a response. Please try again.";
+    const reply =
+      completion?.choices?.[0]?.message?.content ||
+      "Sorry, I was not able to generate a response. Please try again.";
 
     return reply;
   } catch (error) {
@@ -1380,9 +1374,6 @@ ${profileContext}
 }
 
 // =============================================================================
-// MAIN HANDLER
-// =============================================================================
-
 export const handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
     return {
@@ -1422,7 +1413,6 @@ export const handler = async (event) => {
 
     const trimmedMessage = message.trim();
 
-    // 1) FAQ short circuit
     const faqReply = getFAQResponse(trimmedMessage);
     if (faqReply) {
       const newHistory = [
@@ -1438,10 +1428,8 @@ export const handler = async (event) => {
       });
     }
 
-    // 2) Extract profile
     const updatedProfile = extractProfileFromMessage(trimmedMessage, incomingProfile);
 
-    // 3) Check for special follow up like "tell me both"
     const lastAssistant = getLastAssistantMessage(history).toLowerCase();
     const lowerCurrent = trimmedMessage.toLowerCase();
     const asksForBoth =
@@ -1475,8 +1463,6 @@ export const handler = async (event) => {
       });
     }
 
-    // 4) If the message looks like a profile description, and we have enough info,
-    //    provide a CRS style explanation instead of calling the model first.
     const looksLikeProfile =
       /\b\d{1,2}\s*years?\b/i.test(trimmedMessage) ||
       trimmedMessage.toLowerCase().includes("ielts") ||
@@ -1503,7 +1489,6 @@ export const handler = async (event) => {
       });
     }
 
-    // 5) Fallback: call OpenAI with correct API and profile context
     const modelReply = await callOpenAI(history, trimmedMessage, updatedProfile, meta);
     const newHistory = [
       ...normalizeHistory(history).slice(-30),
