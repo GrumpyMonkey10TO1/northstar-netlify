@@ -1,5 +1,5 @@
-// MIGRATE NORTH ACADEMY EVOLVE FUNCTION (Updated for Analytics Ribbon)
-// Full IELTS Coach + Boot Camp + Timed Tests + Progress Tracking + Coaching Mode
+// MIGRATE NORTH ACADEMY EVOLVE FUNCTION (Updated for Universal Writing Coach)
+// Boot Camp + Timed Tests + Progress Tracking + Coaching Mode
 
 import OpenAI from "openai";
 import tests from "../evolve_test.json" assert { type: "json" };
@@ -31,7 +31,8 @@ function getSpecificTest(level, testIndex) {
   return range[testIndex] || null;
 }
 
-// Feedback prompt
+// CLEAN FEEDBACK PROMPT
+// No rubric, no IELTS instructions, no format. Pure task and student essay.
 function buildFeedbackPrompt(task, essay) {
   return `
 Task:
@@ -56,7 +57,6 @@ function getProgressStats(memory) {
   const total = level1Done + level2Done + level3Done;
   const percentage = Math.round((total / 33) * 100);
 
-  // Analytics extras for ribbon
   const wordsEntry = memory.find(m => m.role === "stat" && m.key === "total_words");
   const streakEntry = memory.find(m => m.role === "stat" && m.key === "streak_days");
 
@@ -82,7 +82,6 @@ function getProgressStats(memory) {
 }
 
 export const handler = async (event) => {
-  // Preflight
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 200, headers: corsHeaders(), body: "ok" };
   }
@@ -110,7 +109,6 @@ export const handler = async (event) => {
     let memory = expired ? [] : previousMemory;
     let reply = "";
 
-    // Per session helpers
     function getProgress(level) {
       const key = "progress_" + level;
       const rec = memory.find(m => m.role === "progress" && m.key === key);
@@ -153,12 +151,10 @@ export const handler = async (event) => {
           if (!t) {
             reply = "Test not found.";
           } else {
-            // Clear any previous task info
             memory = memory.filter(
               m => !(m.role === "system" && m.content && m.content.includes('"task_id":'))
             );
 
-            // Store current task context in memory
             memory.push({
               role: "system",
               content: JSON.stringify({ ...t, level, testIndex: index })
@@ -201,7 +197,6 @@ export const handler = async (event) => {
         if (!essay || essay.split(/\s+/).filter(Boolean).length < 20) {
           reply = "Please write at least 20 words before submitting.";
         } else {
-          // Update analytics: total words and streak
           const wordCount = essay.split(/\s+/).filter(Boolean).length;
           const previousWords = Number(getStat("total_words") || 0);
           setStat("total_words", previousWords + wordCount);
@@ -215,9 +210,7 @@ export const handler = async (event) => {
           } else {
             const lastDate = new Date(lastDateStr);
             const todayDate = new Date(todayStr);
-            const diffDays = Math.floor(
-              (todayDate.getTime() - lastDate.getTime()) / 86400000
-            );
+            const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / 86400000);
 
             if (diffDays === 0) {
               if (streak < 1) streak = 1;
@@ -232,49 +225,47 @@ export const handler = async (event) => {
           setStat("streak_days", streak);
 
           const feedbackPrompt = buildFeedbackPrompt(task, essay);
+
           const completion = await client.chat.completions.create({
             model: "gpt-4o-mini",
             temperature: 0.7,
-            max_tokens: 900,
+            max_tokens: 950,
             messages: [
               {
                 role: "system",
-                content: `You are the Universal Writing Coach for Migrate North Academy. You teach writing for all English proficiency exams, including IELTS Academic, IELTS General Training, CELPIP General, CELPIP LS, and any other standardized English test. Adapt your feedback to the user and be direct, instructional, and detailed. Never skip obvious errors.
+                content: `
+You are the Universal Writing Coach for Migrate North Academy. You teach writing for all English proficiency exams, including IELTS Academic, IELTS General Training, CELPIP General, CELPIP LS, and any other standardized English test. Be direct, instructional, and detailed. Never skip obvious errors.
 
 When evaluating a student essay, always use this structure:
 
 1. SCORES AND CALCULATION
 - Give Structure, Vocabulary, and Grammar scores from 0 to 9.
-- Then calculate the Overall score as the average of the three skills, rounded to the nearest 0.5.
+- Calculate the Overall score as the average of the three skills, rounded to the nearest 0.5.
 - State clearly that the Overall Score equals the average of the three skill scores, rounded.
 
 2. EXPLANATION OF SCORES
-Give 2 to 3 short bullet points per skill describing why the user received the score.
+Give 2 to 3 short bullet points per skill.
 
 3. ERROR LIST WITH CORRECTIONS
-List at least 5 specific mistakes. For each:
-- Original
-- Corrected
-- One sentence reason
+List at least 5 concrete mistakes. For each:
+Original
+Corrected
+One sentence reason
 
 4. IMPROVED VERSION
-Rewrite the full answer in a clean paragraph, keeping the student's ideas but improving clarity, structure, vocabulary, and grammar.
+Rewrite the full answer in one clean paragraph.
 
-ADAPTATION FOR TEST TYPE
-If the user mentions IELTS Academic, IELTS General, CELPIP, or another test, add a short adaptation note describing the expectations for that test, but do not change the feedback structure.
+If the user mentions IELTS Academic, IELTS General, CELPIP, or another test, include a short adaptation note.
 
-TONE
-Be honest, direct, and specific. Always correct errors such as lowercase i, missing capitalization of proper nouns, sentence fragments, run ons, and agreement problems. The goal is to help the student advance in English for immigration, study, or employment.`
+Always correct issues like lowercase i, missing capitalization, sentence fragments, run ons, and agreement problems.
+`
               },
               { role: "user", content: feedbackPrompt }
             ]
           });
 
-          reply =
-            completion.choices?.[0]?.message?.content?.trim() ||
-            "I could not generate feedback just now.";
+          reply = completion.choices?.[0]?.message?.content?.trim() || "I could not generate feedback just now.";
 
-          // Unlock the next test in this level
           if (task.level && Number.isInteger(task.testIndex)) {
             const done = getProgress(task.level);
             const needed = task.testIndex + 1;
@@ -282,7 +273,9 @@ Be honest, direct, and specific. Always correct errors such as lowercase i, miss
           }
 
           const updated = getProgressStats(memory);
-          reply += `\n\nProgress: ${updated.totalDone} of 33 tests done.`;
+          reply += `
+
+Progress: ${updated.totalDone} of 33 tests done.`;
         }
       }
 
@@ -323,34 +316,13 @@ Be honest, direct, and specific. Always correct errors such as lowercase i, miss
     }
 
     // MAIN COACH RESPONSE
-    const systemPrompt = `You are the Universal Writing Coach for Migrate North Academy. You teach writing for all English proficiency exams, including IELTS Academic, IELTS General Training, CELPIP General, CELPIP LS, and any other standardized English test. Adapt your answers to the user and be direct, instructional, and detailed. Never skip obvious errors.
+    const systemPrompt = `
+You are the Universal Writing Coach for Migrate North Academy. You teach writing for all English proficiency exams, including IELTS Academic, IELTS General Training, CELPIP General, CELPIP LS, and any other standardized English test. Be direct, practical, and helpful.
 
-When evaluating or discussing a student essay, you normally use this structure:
+If the user provides writing, offer corrections and suggestions. If they ask questions, explain clearly without forcing the scoring format. When evaluating writing, you normally use the structure of scores, explanations, error list, and improved version.
 
-1. SCORES AND CALCULATION
-- Give Structure, Vocabulary, and Grammar scores from 0 to 9.
-- Then calculate the Overall score as the average of the three skills, rounded to the nearest 0.5.
-- State clearly that the Overall Score equals the average of the three skill scores, rounded.
-
-2. EXPLANATION OF SCORES
-Give 2 to 3 short bullet points per skill describing why the user received the score.
-
-3. ERROR LIST WITH CORRECTIONS
-List at least 5 specific mistakes. For each:
-- Original
-- Corrected
-- One sentence reason
-
-4. IMPROVED VERSION
-Rewrite the full answer in a clean paragraph, keeping the student's ideas but improving clarity, structure, vocabulary, and grammar.
-
-If the user is only asking a question and has not provided an essay, answer clearly and practically about English writing, IELTS, CELPIP, or other exams without forcing the full scoring structure.
-
-ADAPTATION FOR TEST TYPE
-If the user mentions IELTS Academic, IELTS General, CELPIP, or another test, add a short adaptation note describing the expectations for that test, when relevant.
-
-TONE
-Be honest, direct, and specific. Always correct errors such as lowercase i, missing capitalization of proper nouns, sentence fragments, run ons, and agreement problems when you see them in user writing. The goal is to help the student advance in English for immigration, study, or employment.`;
+Always correct issues like lowercase i, missing capitalization of proper nouns, fragments, run ons, and agreement errors.
+`;
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
@@ -358,10 +330,7 @@ Be honest, direct, and specific. Always correct errors such as lowercase i, miss
       max_tokens: 700,
       messages: [
         { role: "system", content: systemPrompt },
-        // only conversation turns, skip progress/stat/system entries
-        ...memory
-          .filter(m => m.role === "user" || m.role === "assistant")
-          .slice(-10),
+        ...memory.filter(m => m.role === "user" || m.role === "assistant").slice(-10),
         { role: "user", content: rawUserMessage || "Help me with English exam preparation." }
       ]
     });
@@ -370,9 +339,7 @@ Be honest, direct, and specific. Always correct errors such as lowercase i, miss
       completion.choices?.[0]?.message?.content?.trim() ||
       "How can I help next with your English exam preparation.";
 
-    if (rawUserMessage) {
-      memory.push({ role: "user", content: rawUserMessage });
-    }
+    if (rawUserMessage) memory.push({ role: "user", content: rawUserMessage });
     memory.push({ role: "assistant", content: response });
 
     return {
@@ -385,6 +352,7 @@ Be honest, direct, and specific. Always correct errors such as lowercase i, miss
         stats: getProgressStats(memory)
       })
     };
+
   } catch (err) {
     return {
       statusCode: 500,
