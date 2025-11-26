@@ -1,5 +1,6 @@
-// MIGRATE NORTH ACADEMY EVOLVE FUNCTION (Updated for Universal Writing Coach)
-// Boot Camp + Timed Tests + Progress Tracking + Coaching Mode
+// MIGRATE NORTH ACADEMY EVOLVE FUNCTION
+// North Star GPS Reading and Writing Coach
+// Boot Camp plus Timed Tests plus Progress Tracking plus Dual Mode Coaching
 
 import OpenAI from "openai";
 import tests from "../evolve_test.json" assert { type: "json" };
@@ -24,15 +25,13 @@ const LEVEL_RANGES = {
   "level 3": [22, 33]
 };
 
-// Fetch test
 function getSpecificTest(level, testIndex) {
   const [start, end] = LEVEL_RANGES[level];
   const range = tests.slice(start, end);
   return range[testIndex] || null;
 }
 
-// CLEAN FEEDBACK PROMPT
-// No rubric, no IELTS instructions, no format. Pure task and student essay.
+// Build feedback prompt
 function buildFeedbackPrompt(task, essay) {
   return `
 Task:
@@ -98,7 +97,6 @@ export const handler = async (event) => {
     const action = body.action || null;
     const params = body.params || {};
     const rawUserMessage = (body.message || "").trim();
-    const lowerMsg = rawUserMessage.toLowerCase();
     const previousMemory = body.memory || [];
     const sessionTime = body.timestamp || Date.now();
 
@@ -114,18 +112,15 @@ export const handler = async (event) => {
       const rec = memory.find(m => m.role === "progress" && m.key === key);
       return rec ? rec.value : 0;
     }
-
     function setProgress(level, val) {
       const key = "progress_" + level;
       memory = memory.filter(m => !(m.role === "progress" && m.key === key));
       memory.push({ role: "progress", key, value: val });
     }
-
     function getStat(key) {
       const rec = memory.find(m => m.role === "stat" && m.key === key);
       return rec ? rec.value : undefined;
     }
-
     function setStat(key, value) {
       memory = memory.filter(m => !(m.role === "stat" && m.key === key));
       memory.push({ role: "stat", key, value });
@@ -148,9 +143,8 @@ export const handler = async (event) => {
           reply = "This test is locked. Complete the previous test first.";
         } else {
           const t = getSpecificTest(level, index);
-          if (!t) {
-            reply = "Test not found.";
-          } else {
+          if (!t) reply = "Test not found.";
+          else {
             memory = memory.filter(
               m => !(m.role === "system" && m.content && m.content.includes('"task_id":'))
             );
@@ -160,7 +154,7 @@ export const handler = async (event) => {
               content: JSON.stringify({ ...t, level, testIndex: index })
             });
 
-            reply = "Test loaded. When you are ready, write your full answer and then submit.";
+            reply = "Test loaded. When ready, write your full answer and submit.";
           }
         }
       }
@@ -177,6 +171,7 @@ export const handler = async (event) => {
         })
       };
     }
+
     // SUBMIT ESSAY
     if (action === "submit_essay") {
       const lastTask = [...memory]
@@ -195,7 +190,7 @@ export const handler = async (event) => {
         }
 
         if (!essay || essay.split(/\s+/).filter(Boolean).length < 20) {
-          reply = "Please write at least 20 words before submitting.";
+          reply = "Write at least 20 words before submitting.";
         } else {
           const wordCount = essay.split(/\s+/).filter(Boolean).length;
           const previousWords = Number(getStat("total_words") || 0);
@@ -205,9 +200,8 @@ export const handler = async (event) => {
           const lastDateStr = getStat("last_study_date");
           let streak = Number(getStat("streak_days") || 0);
 
-          if (!lastDateStr) {
-            streak = 1;
-          } else {
+          if (!lastDateStr) streak = 1;
+          else {
             const lastDate = new Date(lastDateStr);
             const todayDate = new Date(todayStr);
             const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / 86400000);
@@ -226,45 +220,32 @@ export const handler = async (event) => {
 
           const feedbackPrompt = buildFeedbackPrompt(task, essay);
 
+          // TASK MODE SYSTEM PROMPT
+          const taskModeSystemPrompt = `
+You are North Star GPS, the Reading and Writing tutor of Migrate North Academy, created by Matin Immigration Services. You are in TASK MODE. You evaluate IELTS Writing using the North Star skill framework. Perform the following steps:
+
+1. Give a short overall comment.
+2. Give an estimated IELTS band RANGE, not a single number.
+3. Provide the rubric breakdown: Task Achievement or Response, Coherence and Cohesion, Lexical Resource, Grammar Range and Accuracy.
+4. Provide the top three priorities for improvement.
+5. Provide two improved versions: a sentence level correction example and a full paragraph improved rewrite.
+6. Provide one next step exercise.
+
+Be honest, clear and practical. Never copy rubric text word for word. Use natural tutor language. Only talk about IELTS and academic writing. Do not mention CELPIP or any other exam. Stay inside Task Mode until the user leaves it.
+`;
+
           const completion = await client.chat.completions.create({
             model: "gpt-4o-mini",
             temperature: 0.7,
             max_tokens: 950,
             messages: [
-              {
-                role: "system",
-                content: `
-You are the Universal Writing Coach for Migrate North Academy. You teach writing for all English proficiency exams, including IELTS Academic, IELTS General Training, CELPIP General, CELPIP LS, and any other standardized English test. Be direct, instructional, and detailed. Never skip obvious errors.
-
-When evaluating a student essay, always use this structure:
-
-1. SCORES AND CALCULATION
-- Give Structure, Vocabulary, and Grammar scores from 0 to 9.
-- Calculate the Overall score as the average of the three skills, rounded to the nearest 0.5.
-- State clearly that the Overall Score equals the average of the three skill scores, rounded.
-
-2. EXPLANATION OF SCORES
-Give 2 to 3 short bullet points per skill.
-
-3. ERROR LIST WITH CORRECTIONS
-List at least 5 concrete mistakes. For each:
-Original
-Corrected
-One sentence reason
-
-4. IMPROVED VERSION
-Rewrite the full answer in one clean paragraph.
-
-If the user mentions IELTS Academic, IELTS General, CELPIP, or another test, include a short adaptation note.
-
-Always correct issues like lowercase i, missing capitalization, sentence fragments, run ons, and agreement problems.
-`
-              },
+              { role: "system", content: taskModeSystemPrompt },
               { role: "user", content: feedbackPrompt }
             ]
           });
 
-          reply = completion.choices?.[0]?.message?.content?.trim() || "I could not generate feedback just now.";
+          reply = completion.choices?.[0]?.message?.content?.trim()
+            || "I could not generate feedback right now.";
 
           if (task.level && Number.isInteger(task.testIndex)) {
             const done = getProgress(task.level);
@@ -275,7 +256,7 @@ Always correct issues like lowercase i, missing capitalization, sentence fragmen
           const updated = getProgressStats(memory);
           reply += `
 
-Progress: ${updated.totalDone} of 33 tests done.`;
+Progress: ${updated.totalDone} of 33 tests completed.`;
         }
       }
 
@@ -293,14 +274,14 @@ Progress: ${updated.totalDone} of 33 tests done.`;
     }
 
     // RANDOM TEST
-    if (action === "generate_random" || /generate test/.test(lowerMsg)) {
+    if (action === "generate_random") {
       const chosen = tests[Math.floor(Math.random() * tests.length)];
       memory.push({
         role: "system",
         content: JSON.stringify({ ...chosen, level: "random", testIndex: -1 })
       });
 
-      reply = "Random practice test loaded. Write your answer when you are ready.";
+      reply = "Random practice test loaded. Write your answer when ready.";
 
       memory.push({ role: "assistant", content: reply });
       return {
@@ -315,13 +296,20 @@ Progress: ${updated.totalDone} of 33 tests done.`;
       };
     }
 
-    // MAIN COACH RESPONSE
+    // MAIN CHAT MODE SYSTEM PROMPT (DUAL MODE)
     const systemPrompt = `
-You are the Universal Writing Coach for Migrate North Academy. You teach writing for all English proficiency exams, including IELTS Academic, IELTS General Training, CELPIP General, CELPIP LS, and any other standardized English test. Be direct, practical, and helpful.
+You are North Star GPS, the Reading and Writing tutor of Migrate North Academy. The academy is operated by Matin Immigration Services. You are a friendly expert who teaches IELTS Reading and Writing. You do not teach Listening or Speaking in this chat.
 
-If the user provides writing, offer corrections and suggestions. If they ask questions, explain clearly without forcing the scoring format. When evaluating writing, you normally use the structure of scores, explanations, error list, and improved version.
+DUAL MODE:
+Conversation Mode: default mode for answering questions, teaching concepts, explaining reading strategies, writing structures, vocabulary, grammar and general coaching.
+Task Mode: activated when the user starts a test, submits an essay or asks for a practice task. In Task Mode you are structured, exam focused and specific.
 
-Always correct issues like lowercase i, missing capitalization of proper nouns, fragments, run ons, and agreement errors.
+NORTH STAR LEVEL SYSTEM:
+Level 1: Fundamentals. Reading basics like skimming, scanning and paraphrasing. Writing basics like sentence structure and clear paragraphs.
+Level 2: Development. Reading includes inference, summary completion and distractors. Writing includes complex sentences, cause and effect, problem and solution, and better cohesion.
+Level 3: Mastery. Reading includes dense academic texts, Section 3 logic, author attitude and timed passages. Writing aims for Band 7 to 9 quality with advanced vocabulary and sophisticated cohesion.
+
+You always keep explanations clear, structured and practical. Correct grammar, vocabulary and structure when needed. Do not provide immigration legal advice. Only Reading and Writing.
 `;
 
     const completion = await client.chat.completions.create({
@@ -331,13 +319,13 @@ Always correct issues like lowercase i, missing capitalization of proper nouns, 
       messages: [
         { role: "system", content: systemPrompt },
         ...memory.filter(m => m.role === "user" || m.role === "assistant").slice(-10),
-        { role: "user", content: rawUserMessage || "Help me with English exam preparation." }
+        { role: "user", content: rawUserMessage || "Help me with IELTS reading and writing." }
       ]
     });
 
     const response =
-      completion.choices?.[0]?.message?.content?.trim() ||
-      "How can I help next with your English exam preparation.";
+      completion.choices?.[0]?.message?.content?.trim()
+      || "How can I help next with your reading or writing practice.";
 
     if (rawUserMessage) memory.push({ role: "user", content: rawUserMessage });
     memory.push({ role: "assistant", content: response });
