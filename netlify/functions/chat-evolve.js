@@ -80,6 +80,51 @@ function getProgressStats(memory) {
   };
 }
 
+// ADD UNDER: chooseNextTest function
+function chooseNextTest(memory) {
+  const stats = getProgressStats(memory);
+
+  function nextIndexForLevel(level) {
+    const done = getProgressHelper(memory, level);
+    const [start, end] = LEVEL_RANGES[level];
+    const maxIndex = end - start - 1;
+    if (done > maxIndex) return null;
+    return done;
+  }
+
+  let currentLevel = "level 1";
+  if (stats.level3Done > 0) currentLevel = "level 3";
+  else if (stats.level2Done > 0) currentLevel = "level 2";
+  else if (stats.level1Done > 0) currentLevel = "level 1";
+
+  let levelToUse = currentLevel;
+  let nextIndex = nextIndexForLevel(levelToUse);
+
+  if (nextIndex === null) {
+    if (currentLevel === "level 1") levelToUse = "level 2";
+    else if (currentLevel === "level 2") levelToUse = "level 3";
+    nextIndex = nextIndexForLevel(levelToUse);
+  }
+
+  if (nextIndex === null) {
+    const randomTest = tests[Math.floor(Math.random() * tests.length)];
+    return { task: randomTest, level: "random", index: -1, message: "You have completed all boot camp tests. Here is a random practice task." };
+  }
+
+  const t = getSpecificTest(levelToUse, nextIndex);
+  if (!t) {
+    const randomTest = tests[Math.floor(Math.random() * tests.length)];
+    return { task: randomTest, level: "random", index: -1, message: "Could not load the next sequential task. Here is a random task." };
+  }
+
+  return {
+    task: t,
+    level: levelToUse,
+    index: nextIndex,
+    message: `Next task selected for ${levelToUse}, Test ${nextIndex + 1}.`
+  };
+}
+
 export const handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 200, headers: corsHeaders(), body: "ok" };
@@ -127,6 +172,35 @@ export const handler = async (event) => {
     }
 
     const stats = getProgressStats(memory);
+
+    // AUTO TEST
+    if (action === "auto_test") {
+      const choice = chooseNextTest(memory);
+      const t = choice.task;
+
+      memory = memory.filter(
+        m => !(m.role === "system" && m.content && m.content.includes('"task_id":'))
+      );
+
+      memory.push({
+        role: "system",
+        content: JSON.stringify({ ...t, level: choice.level, testIndex: choice.index })
+      });
+
+      reply = choice.message + " When you are ready, write your full answer and submit.";
+
+      memory.push({ role: "assistant", content: reply });
+      return {
+        statusCode: 200,
+        headers: corsHeaders(),
+        body: JSON.stringify({
+          message: reply,
+          memory,
+          timestamp: now,
+          stats: getProgressStats(memory)
+        })
+      };
+    }
 
     // START TEST
     if (action === "start_test") {
