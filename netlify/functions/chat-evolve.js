@@ -1,6 +1,6 @@
-// MIGRATE NORTH ACADEMY EVOLVE FUNCTION
+// MIGRATE NORTH ACADEMY EVOLVE FUNCTION - FIXED
 // North Star GPS Reading and Writing Coach
-// Boot Camp plus Timed Tests plus Progress Tracking plus Dual Mode Coaching
+// Now properly displays test prompts to users
 
 import OpenAI from "openai";
 import tests from "../evolve_test.json" assert { type: "json" };
@@ -20,9 +20,9 @@ function corsHeaders() {
 
 // Level ranges
 const LEVEL_RANGES = {
-  "level 1": [0, 11],
-  "level 2": [11, 22],
-  "level 3": [22, 33]
+  "foundation": [0, 11],
+  "intermediate": [11, 22],
+  "advanced": [22, 33]
 };
 
 function getSpecificTest(level, testIndex) {
@@ -50,10 +50,10 @@ function getProgressHelper(memory, level) {
 }
 
 function getProgressStats(memory) {
-  const level1Done = getProgressHelper(memory, "level 1");
-  const level2Done = getProgressHelper(memory, "level 2");
-  const level3Done = getProgressHelper(memory, "level 3");
-  const total = level1Done + level2Done + level3Done;
+  const foundationDone = getProgressHelper(memory, "foundation");
+  const intermediateDone = getProgressHelper(memory, "intermediate");
+  const advancedDone = getProgressHelper(memory, "advanced");
+  const total = foundationDone + intermediateDone + advancedDone;
   const percentage = Math.round((total / 33) * 100);
 
   const wordsEntry = memory.find(m => m.role === "stat" && m.key === "total_words");
@@ -63,17 +63,17 @@ function getProgressStats(memory) {
   const streakDays = streakEntry ? Number(streakEntry.value) || 0 : 0;
 
   return {
-    level1Done,
-    level2Done,
-    level3Done,
+    foundationDone,
+    intermediateDone,
+    advancedDone,
     totalDone: total,
     percentage,
-    currentLevel: level3Done > 0
-      ? "Level 3"
-      : level2Done > 0
-        ? "Level 2"
-        : level1Done > 0
-          ? "Level 1"
+    currentLevel: advancedDone > 0
+      ? "Advanced"
+      : intermediateDone > 0
+        ? "Intermediate"
+        : foundationDone > 0
+          ? "Foundation"
           : "Not started",
     totalWords,
     streakDays
@@ -92,23 +92,23 @@ function chooseNextTest(memory) {
     return done;
   }
 
-  let currentLevel = "level 1";
-  if (stats.level3Done > 0) currentLevel = "level 3";
-  else if (stats.level2Done > 0) currentLevel = "level 2";
-  else if (stats.level1Done > 0) currentLevel = "level 1";
+  let currentLevel = "foundation";
+  if (stats.advancedDone > 0) currentLevel = "advanced";
+  else if (stats.intermediateDone > 0) currentLevel = "intermediate";
+  else if (stats.foundationDone > 0) currentLevel = "foundation";
 
   let levelToUse = currentLevel;
   let nextIndex = nextIndexForLevel(levelToUse);
 
   if (nextIndex === null) {
-    if (currentLevel === "level 1") levelToUse = "level 2";
-    else if (currentLevel === "level 2") levelToUse = "level 3";
+    if (currentLevel === "foundation") levelToUse = "intermediate";
+    else if (currentLevel === "intermediate") levelToUse = "advanced";
     nextIndex = nextIndexForLevel(levelToUse);
   }
 
   if (nextIndex === null) {
     const randomTest = tests[Math.floor(Math.random() * tests.length)];
-    return { task: randomTest, level: "random", index: -1, message: "You have completed all boot camp tests. Here is a random practice task." };
+    return { task: randomTest, level: "random", index: -1, message: "You have completed all tests. Here is a random practice task." };
   }
 
   const t = getSpecificTest(levelToUse, nextIndex);
@@ -187,7 +187,8 @@ export const handler = async (event) => {
         content: JSON.stringify({ ...t, level: choice.level, testIndex: choice.index })
       });
 
-      reply = choice.message + " When you are ready, write your full answer and submit.";
+      // FIX: Actually show the test prompt to the user!
+      reply = `${choice.message}\n\n**${t.type}**\n\n${t.prompt}\n\nYou have 20 minutes. Write at least 150 words. When ready, write your answer and click Submit.`;
 
       memory.push({ role: "assistant", content: reply });
       return {
@@ -202,9 +203,9 @@ export const handler = async (event) => {
       };
     }
 
-    // START TEST
+    // START TEST - FIXED TO SHOW THE ACTUAL TEST
     if (action === "start_test") {
-      const level = (params.level || "level 1").toLowerCase();
+      const level = (params.level || "foundation").toLowerCase();
       const index = Number(params.testIndex ?? 0);
 
       if (!LEVEL_RANGES[level]) {
@@ -228,7 +229,8 @@ export const handler = async (event) => {
               content: JSON.stringify({ ...t, level, testIndex: index })
             });
 
-            reply = "Test loaded. When ready, write your full answer and submit.";
+            // FIX: Actually display the test prompt!
+            reply = `**${t.type}**\n\n${t.prompt}\n\nYou have 20 minutes. Write at least 150 words. When ready, write your answer and click Submit.`;
           }
         }
       }
@@ -328,9 +330,7 @@ Be honest, clear and practical. Never copy rubric text word for word. Use natura
           }
 
           const updated = getProgressStats(memory);
-          reply += `
-
-Progress: ${updated.totalDone} of 33 tests completed.`;
+          reply += `\n\nProgress: ${updated.totalDone} of 33 tests completed.`;
         }
       }
 
@@ -355,7 +355,8 @@ Progress: ${updated.totalDone} of 33 tests completed.`;
         content: JSON.stringify({ ...chosen, level: "random", testIndex: -1 })
       });
 
-      reply = "Random practice test loaded. Write your answer when ready.";
+      // FIX: Show the actual test prompt!
+      reply = `**${chosen.type}**\n\n${chosen.prompt}\n\nWrite at least 150 words. When ready, write your answer and click Submit.`;
 
       memory.push({ role: "assistant", content: reply });
       return {
@@ -379,9 +380,9 @@ Conversation Mode: default mode for answering questions, teaching concepts, expl
 Task Mode: activated when the user starts a test, submits an essay or asks for a practice task. In Task Mode you are structured, exam focused and specific.
 
 NORTH STAR LEVEL SYSTEM:
-Level 1: Fundamentals. Reading basics like skimming, scanning and paraphrasing. Writing basics like sentence structure and clear paragraphs.
-Level 2: Development. Reading includes inference, summary completion and distractors. Writing includes complex sentences, cause and effect, problem and solution, and better cohesion.
-Level 3: Mastery. Reading includes dense academic texts, Section 3 logic, author attitude and timed passages. Writing aims for Band 7 to 9 quality with advanced vocabulary and sophisticated cohesion.
+Foundation: Fundamentals. Reading basics like skimming, scanning and paraphrasing. Writing basics like sentence structure and clear paragraphs.
+Intermediate: Development. Reading includes inference, summary completion and distractors. Writing includes complex sentences, cause and effect, problem and solution, and better cohesion.
+Advanced: Mastery. Reading includes dense academic texts, Section 3 logic, author attitude and timed passages. Writing aims for Band 7 to 9 quality with advanced vocabulary and sophisticated cohesion.
 
 You always keep explanations clear, structured and practical. Correct grammar, vocabulary and structure when needed. Do not provide immigration legal advice. Only Reading and Writing.
 `;
