@@ -18,11 +18,11 @@ function corsHeaders() {
   };
 }
 
-// Level ranges
+// Level ranges - FIXED TO MATCH FRONTEND
 const LEVEL_RANGES = {
-  "foundation": [0, 11],
-  "intermediate": [11, 22],
-  "advanced": [22, 33]
+  "level 1": [0, 11],
+  "level 2": [11, 22],
+  "level 3": [22, 33]
 };
 
 function getSpecificTest(level, testIndex) {
@@ -50,9 +50,9 @@ function getProgressHelper(memory, level) {
 }
 
 function getProgressStats(memory) {
-  const foundationDone = getProgressHelper(memory, "foundation");
-  const intermediateDone = getProgressHelper(memory, "intermediate");
-  const advancedDone = getProgressHelper(memory, "advanced");
+  const foundationDone = getProgressHelper(memory, "level 1");
+  const intermediateDone = getProgressHelper(memory, "level 2");
+  const advancedDone = getProgressHelper(memory, "level 3");
   const total = foundationDone + intermediateDone + advancedDone;
   const percentage = Math.round((total / 33) * 100);
 
@@ -92,17 +92,17 @@ function chooseNextTest(memory) {
     return done;
   }
 
-  let currentLevel = "foundation";
-  if (stats.advancedDone > 0) currentLevel = "advanced";
-  else if (stats.intermediateDone > 0) currentLevel = "intermediate";
-  else if (stats.foundationDone > 0) currentLevel = "foundation";
+  let currentLevel = "level 1";
+  if (stats.advancedDone > 0) currentLevel = "level 3";
+  else if (stats.intermediateDone > 0) currentLevel = "level 2";
+  else if (stats.foundationDone > 0) currentLevel = "level 1";
 
   let levelToUse = currentLevel;
   let nextIndex = nextIndexForLevel(levelToUse);
 
   if (nextIndex === null) {
-    if (currentLevel === "foundation") levelToUse = "intermediate";
-    else if (currentLevel === "intermediate") levelToUse = "advanced";
+    if (currentLevel === "level 1") levelToUse = "level 2";
+    else if (currentLevel === "level 2") levelToUse = "level 3";
     nextIndex = nextIndexForLevel(levelToUse);
   }
 
@@ -188,7 +188,7 @@ export const handler = async (event) => {
       });
 
       // FIX: Actually show the test prompt to the user!
-      reply = `${choice.message}\n\n**${t.type}**\n\n${t.prompt}\n\nYou have 20 minutes. Write at least 150 words. When ready, write your answer and click Submit.`;
+      reply = `${choice.message}\n\n${t.type ? '**' + t.type + '**\n\n' : ''}${t.prompt}\n\nYou have 20 minutes. Write at least 150 words. When ready, write your answer and click Submit.`;
 
       memory.push({ role: "assistant", content: reply });
       return {
@@ -205,7 +205,7 @@ export const handler = async (event) => {
 
     // START TEST - FIXED TO SHOW THE ACTUAL TEST
     if (action === "start_test") {
-      const level = (params.level || "foundation").toLowerCase();
+      const level = (params.level || "level 1").toLowerCase();
       const index = Number(params.testIndex ?? 0);
 
       if (!LEVEL_RANGES[level]) {
@@ -230,7 +230,7 @@ export const handler = async (event) => {
             });
 
             // FIX: Actually display the test prompt!
-            reply = `**${t.type}**\n\n${t.prompt}\n\nYou have 20 minutes. Write at least 150 words. When ready, write your answer and click Submit.`;
+            reply = `${t.type ? '**' + t.type + '**\n\n' : ''}${t.prompt}\n\nYou have 20 minutes. Write at least 150 words. When ready, write your answer and click Submit.`;
           }
         }
       }
@@ -356,7 +356,7 @@ Be honest, clear and practical. Never copy rubric text word for word. Use natura
       });
 
       // FIX: Show the actual test prompt!
-      reply = `**${chosen.type}**\n\n${chosen.prompt}\n\nWrite at least 150 words. When ready, write your answer and click Submit.`;
+      reply = `${chosen.type ? '**' + chosen.type + '**\n\n' : ''}${chosen.prompt}\n\nWrite at least 150 words. When ready, write your answer and click Submit.`;
 
       memory.push({ role: "assistant", content: reply });
       return {
