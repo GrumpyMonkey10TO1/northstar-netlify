@@ -372,10 +372,65 @@ Be honest, clear and practical. Never copy rubric text word for word. Use natura
       };
     }
 
-    // ✅ FIXED: Detect if this is a REFINE request
-    const isRefineRequest = rawUserMessage.includes("CRITICAL INSTRUCTIONS") && rawUserMessage.includes("USER TEXT:");
+    // Detect if this is a REFINE request
+    const isRefineRequest =
+      rawUserMessage.includes("CRITICAL INSTRUCTIONS") &&
+      rawUserMessage.includes("USER TEXT:");
 
-    // MAIN CHAT MODE SYSTEM PROMPT (DUAL MODE)
+    // SPECIAL BRANCH: REFINE MODE
+    if (isRefineRequest) {
+      // Try to extract only the user text after "USER TEXT:"
+      const parts = rawUserMessage.split("USER TEXT:");
+      const userText = (parts[1] || "").trim() || rawUserMessage;
+
+      const refineSystemPrompt = `
+You are North Star GPS, the Reading and Writing tutor of Migrate North Academy.
+
+You are in REFINE MODE.
+
+Your job is to help a student improve a short piece of writing. Work ONLY with the text the student has written. Do not invent examples that are not actually in the text.
+
+Steps:
+1. Brief overall comment on the writing quality.
+2. List weak or vague words or phrases that appear in the student's text (for example: very, good, bad, a lot, really, stuff), but ONLY if they actually appear in the text.
+3. For each weak word you find, give 2 or 3 stronger alternatives that match the context.
+4. Give a short improved version of one key sentence or a short section of the text.
+5. End with one clear suggestion for how the student could rewrite the paragraph.
+
+If there are no weak or vague words in the text, clearly say so and give one suggestion for making the writing more precise or more formal.
+      `.trim();
+
+      const completion = await client.chat.completions.create({
+        model: "gpt-4o-mini",
+        temperature: 0.4,
+        max_tokens: 600,
+        messages: [
+          { role: "system", content: refineSystemPrompt },
+          { role: "user", content: userText }
+        ]
+      });
+
+      const refineReply =
+        completion.choices?.[0]?.message?.content?.trim() ||
+        "Your writing looks strong. I did not find obvious weak words. You can focus on adding more precise detail or clearer examples.";
+
+      // Store a simplified version of the interaction in memory
+      memory.push({ role: "user", content: userText });
+      memory.push({ role: "assistant", content: refineReply });
+
+      return {
+        statusCode: 200,
+        headers: corsHeaders(),
+        body: JSON.stringify({
+          message: refineReply,
+          memory,
+          timestamp: now,
+          stats: getProgressStats(memory)
+        })
+      };
+    }
+
+    // MAIN CHAT MODE SYSTEM PROMPT (DUAL MODE) - for normal conversation
     const systemPrompt = `
 You are North Star GPS, the Reading and Writing tutor of Migrate North Academy. The academy is operated by Matin Immigration Services. You are a friendly expert who teaches IELTS Reading and Writing. You do not teach Listening or Speaking in this chat.
 
@@ -389,12 +444,12 @@ Intermediate: Development. Reading includes inference, summary completion and di
 Advanced: Mastery. Reading includes dense academic texts, Section 3 logic, author attitude and timed passages. Writing aims for Band 7 to 9 quality with advanced vocabulary and sophisticated cohesion.
 
 You always keep explanations clear, structured and practical. Correct grammar, vocabulary and structure when needed. Do not provide immigration legal advice. Only Reading and Writing.
-`;
+    `.trim();
 
-    // ✅ FIXED: For refine requests, DO NOT include conversation history
-    const conversationHistory = isRefineRequest 
-      ? [] 
-      : memory.filter(m => m.role === "user" || m.role === "assistant").slice(-10);
+    // For normal chat, use last 10 turns of user/assistant history
+    const conversationHistory = memory
+      .filter(m => m.role === "user" || m.role === "assistant")
+      .slice(-10);
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
@@ -402,16 +457,21 @@ You always keep explanations clear, structured and practical. Correct grammar, v
       max_tokens: 700,
       messages: [
         { role: "system", content: systemPrompt },
-        ...conversationHistory,  // ✅ FIXED: Empty array for refine requests
-        { role: "user", content: rawUserMessage || "Help me with IELTS reading and writing." }
+        ...conversationHistory,
+        {
+          role: "user",
+          content: rawUserMessage || "Help me with IELTS reading and writing."
+        }
       ]
     });
 
     const response =
-      completion.choices?.[0]?.message?.content?.trim()
-      || "How can I help next with your reading or writing practice.";
+      completion.choices?.[0]?.message?.content?.trim() ||
+      "How can I help next with your reading or writing practice.";
 
-    if (rawUserMessage) memory.push({ role: "user", content: rawUserMessage });
+    if (rawUserMessage) {
+      memory.push({ role: "user", content: rawUserMessage });
+    }
     memory.push({ role: "assistant", content: response });
 
     return {
