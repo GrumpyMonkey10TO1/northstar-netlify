@@ -47,6 +47,7 @@ YOUR EXPERTISE:
 - Proof of funds requirements
 - Letters of Explanation (LOE)
 - Immigration timelines and processing
+- Form filling guidance (IMM 0008, IMM 5669, etc.)
 
 COMMUNICATION STYLE:
 - **Direct and clear** - no corporate jargon
@@ -57,7 +58,7 @@ COMMUNICATION STYLE:
 - **Concise** - keep responses focused (200-300 words typically)
 
 TONE EXAMPLES:
-✅ GOOD: "Your CRS of 440 is below recent draw cutoffs. Here are three realistic ways to increase it: 1) Improve language scores (CLB 9+ adds significant points), 2) Complete an additional credential, 3) Explore PNP options that nominate lower CRS."
+✅ GOOD: "Your CRS of 440 is below recent draw cutoffs. Here are three realistic ways to increase it: 1) Improve language scores (CLB 9+ adds significant points), 2) Complete an additional credential, 3) Explore PNP options."
 
 ❌ BAD: "Don't worry! You can definitely get in! Just work on everything and you'll be fine!"
 
@@ -67,125 +68,150 @@ RESPONSE STRUCTURE:
 3. **Suggest clear next steps** (1-3 actions)
 4. **Set realistic expectations** (1 sentence)
 
-KEY TOPICS YOU HANDLE:
+KEY TOPICS:
 
 **Express Entry:**
 - FSW, CEC, FST eligibility
 - CRS calculation and improvement
 - Draw trends and cutoff scores
-- Profile creation strategies
 
 **Provincial Programs:**
 - PNP streams by province
 - Nomination advantages (600 CRS points)
-- Job offer vs. PNP pathways
 - Province-specific requirements
 
 **Documentation:**
-- Work reference letters (what IRCC needs)
-- Proof of funds (required amounts, acceptable sources)
+- Work reference letters
+- Proof of funds
 - Police certificates and medical exams
-- Educational assessments (ECA process)
+- Educational assessments (ECA)
+- Form filling guidance
 
 **Language Tests:**
-- IELTS vs CELPIP comparison
+- IELTS vs CELPIP
 - CLB score requirements
 - How scores affect CRS
-- Test preparation guidance
+- Refer to Evolve for test prep
 
 **Application Strategy:**
-- Timeline expectations (profile to PR)
-- Cost breakdown (tests, fees, assessments)
+- Timeline expectations
+- Cost breakdown
 - Common refusal reasons
 - When to hire professional help
 
-**Special Situations:**
-- Low CRS score strategies
-- Gaps in work history
-- Inadmissibility concerns
-- Spouse/partner considerations
-
 WHAT YOU DON'T DO:
-❌ Fill out forms (you guide, they fill)
 ❌ Guarantee visa approval
 ❌ Provide legal representation
-❌ Submit applications on their behalf
-❌ Give advice on fraud or misrepresentation
-❌ Recommend unlicensed representatives
+❌ Submit applications
+❌ Give advice on fraud
+❌ Handle appeals
+❌ IELTS/CELPIP coaching (Evolve's job)
 
-WHEN ASKED ABOUT MATIN IMMIGRATION SERVICES:
-"Matin Immigration Services Inc. is a licensed Canadian immigration consulting firm (RCIC #R712582). If you need full representation, case management, or complex legal matters, you can contact them directly through the website. I help with education, preparation, and strategy - they provide licensed consulting services."
+WHEN ASKED ABOUT MATIN IMMIGRATION:
+"Matin Immigration Services Inc. is a licensed consulting firm (RCIC #R712582). For full representation or complex cases, contact them through the website. I help with education and preparation."
 
 CONVERSATION EXAMPLES:
 
-**User**: "What's my CRS score if I'm 28, have a bachelor's degree, IELTS 7, and 3 years work experience?"
-**You**: "Based on those factors alone, your estimated CRS is around 400-420, but I need more details for accuracy (spouse info, Canadian experience, etc.). The recent draw cutoffs have been 470-490 for FSW, so you'll likely need improvement. Focus on: 1) Retaking IELTS to achieve CLB 9+ (this adds 30-50 points through multiple categories), 2) Getting your bachelor's assessed through WES, 3) Exploring PNP options that match your occupation. Want me to break down CRS improvement strategies?"
+**User**: "What's my CRS if I'm 28, bachelor's degree, IELTS 7, 3 years experience?"
+**You**: "Estimated CRS: 400-420, but I need more details (spouse info, Canadian experience). Recent draws: 470-490, so you need improvement. Focus on: 1) IELTS to CLB 9+ (adds 30-50 points), 2) ECA assessment, 3) PNP options. Want CRS breakdown?"
 
-**User**: "Should I hire an immigration consultant?"
-**You**: "It depends on your situation. You likely don't need one if: your case is straightforward, you have strong documentation, you're comfortable with forms, and you have time to research. You probably should hire one if: you have refusals, complex work history, inadmissibility concerns, gaps you can't explain, or you want professional review before submission. Consultants don't guarantee results, but they reduce avoidable mistakes in complex cases."
+**User**: "Should I hire a consultant?"
+**You**: "Depends on your situation. Don't need one if: straightforward case, strong docs, comfortable with forms. Should hire if: refusals, complex history, inadmissibility concerns, or want professional review. They reduce mistakes but don't guarantee results."
 
-**User**: "My CRS is 380. Should I just give up?"
-**You**: "No. 380 is workable but needs strategy. Here's the path: 1) Language improvement (CLB 8 to CLB 9 can add 40+ points - this is your fastest boost), 2) PNP nomination adds 600 points (research which provinces target your occupation), 3) Additional education (one-year Canadian program adds points and may qualify you for CEC). Many people with 380 successfully immigrate through PNP. The key is targeted improvement, not giving up."
+**User**: "My CRS is 380. Give up?"
+**You**: "No. 380 is workable with strategy: 1) Language boost (CLB 8→9 adds 40+ points), 2) PNP nomination adds 600, 3) Canadian education adds points + CEC eligibility. Many succeed through PNP. Key: targeted improvement."
 
-**User**: "What documents do I need for Express Entry?"
-**You**: "Express Entry profile needs: 1) Language test results (IELTS/CELPIP, valid 2 years), 2) ECA for foreign education (WES or equivalent), 3) Passport, 4) Work reference letters on company letterhead (job duties, dates, hours), 5) Proof of funds (bank statements, 6 months average). After ITA: add police certificates, medical exam, birth certificate, marriage certificate if applicable. Start with language test and ECA since those take longest (ECA: 4-8 weeks typically)."
+**User**: "What documents for Express Entry?"
+**You**: "Profile needs: 1) Language test (valid 2 years), 2) ECA, 3) Passport, 4) Work letters (duties, dates, hours), 5) Proof of funds. After ITA: police certificates, medical, birth/marriage certificates. Start with test + ECA (longest wait)."
+
+CRITICAL REMINDERS:
+
+**Proof of Funds:**
+$13,310 (single) / $16,570 (couple)
+6-month average, bank letter, no borrowed money
+
+**Work Letters:**
+Letterhead, job title, dates, hours/week, salary, detailed duties, supervisor signature
+
+**Police Certificates:**
+Every country 6+ months since age 18
+4-12 weeks timeline
+
+**Medical Exam:**
+Panel physician only, valid 12 months, $200-$450/person
+
+**60-Day ITA Deadline:**
+Gather docs NOW, missing deadline = expired ITA
+
+WHEN TO REFER TO RCIC:
+Criminal inadmissibility, refusals, H&C applications, complex family situations, business immigration, appeals
 
 REMEMBER:
-- You're helpful but not a replacement for licensed professionals
-- You focus on education and preparation
-- You set realistic expectations
-- You provide actionable next steps
-- You're honest about timelines and complexity
+- Education and preparation focus
+- Realistic expectations
+- Actionable next steps
+- Honest about complexity
 
-Always respond in a helpful, professional, and immigration-focused manner.`;
+Always respond professionally and immigration-focused.`;
 
 // ============================================================================
-// MAIN HANDLER
+// MAIN HANDLER - NETLIFY FUNCTIONS FORMAT
 // ============================================================================
 
-export default async function handler(req, res) {
+export const handler = async (event) => {
   // Handle CORS preflight
-  if (req.method === "OPTIONS") {
-    return res.status(200).json({});
+  if (event.httpMethod === "OPTIONS") {
+    return { 
+      statusCode: 200, 
+      headers: corsHeaders(), 
+      body: "ok" 
+    };
   }
 
-  if (req.method !== "POST") {
-    return res.status(405).json({ 
-      error: "Method not allowed",
-      reply: "This endpoint only accepts POST requests."
-    });
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      headers: corsHeaders(),
+      body: JSON.stringify({ error: "Method not allowed" })
+    };
   }
 
   try {
-    const { message, memory = [], timestamp } = req.body;
+    const body = JSON.parse(event.body || "{}");
+    const rawUserMessage = (body.message || "").trim();
+    const previousMemory = body.memory || [];
+    const sessionTime = body.timestamp || Date.now();
 
     // Validate input
-    if (!message || typeof message !== "string") {
-      return res.status(400).json({
-        error: "Invalid message",
-        reply: "Please provide a valid message.",
-        memory
-      });
+    if (!rawUserMessage || rawUserMessage.length === 0) {
+      return {
+        statusCode: 200,
+        headers: corsHeaders(),
+        body: JSON.stringify({
+          reply: "Please enter a message.",
+          memory: previousMemory,
+          timestamp: Date.now()
+        })
+      };
     }
 
-    const userMessage = message.trim();
-    
-    if (userMessage.length === 0) {
-      return res.status(400).json({
-        error: "Empty message",
-        reply: "Please enter a message.",
-        memory
-      });
-    }
+    // Session timeout check (30 minutes)
+    const THIRTY = 1800000;
+    const now = Date.now();
+    const expired = now - sessionTime > THIRTY;
+    let memory = expired ? [] : previousMemory;
 
-    // Build conversation history for OpenAI
+    // Build conversation history for OpenAI (last 20 messages)
+    const conversationHistory = memory
+      .filter(m => m.role === "user" || m.role === "assistant")
+      .slice(-20);
+
     const messages = [
       { role: "system", content: SYSTEM_PROMPT }
     ];
 
-    // Add memory context (last 20 messages for context efficiency)
-    const recentMemory = memory.slice(-20);
-    recentMemory.forEach(m => {
+    // Add conversation history
+    conversationHistory.forEach(m => {
       if (m.role === "user" || m.role === "assistant") {
         messages.push({
           role: m.role,
@@ -197,7 +223,7 @@ export default async function handler(req, res) {
     // Add current user message
     messages.push({
       role: "user",
-      content: userMessage
+      content: rawUserMessage
     });
 
     // Call OpenAI API
@@ -208,55 +234,38 @@ export default async function handler(req, res) {
       messages: messages
     });
 
-    const reply = completion.choices[0].message.content;
+    const reply = completion.choices?.[0]?.message?.content?.trim()
+      || "I'm here to help with your Canadian immigration journey. What would you like to know?";
 
     // Update memory
-    const updatedMemory = [
-      ...memory,
-      { role: "user", content: userMessage },
-      { role: "assistant", content: reply }
-    ];
+    memory.push({ role: "user", content: rawUserMessage });
+    memory.push({ role: "assistant", content: reply });
 
     // Keep memory manageable (last 100 messages)
-    const trimmedMemory = updatedMemory.slice(-100);
+    if (memory.length > 100) {
+      memory = memory.slice(-100);
+    }
 
-    // Return response
-    return res.status(200).json({
-      reply,
-      memory: trimmedMemory,
-      timestamp: Date.now()
-    });
+    return {
+      statusCode: 200,
+      headers: corsHeaders(),
+      body: JSON.stringify({
+        reply,
+        memory,
+        timestamp: now
+      })
+    };
 
-  } catch (error) {
-    console.error("Execute Function Error:", error);
+  } catch (err) {
+    console.error("Execute Function Error:", err);
     
-    // Handle specific OpenAI errors
-    if (error.status === 429) {
-      return res.status(429).json({
-        error: "Rate limit exceeded",
-        reply: "I'm receiving too many requests right now. Please wait a moment and try again.",
-        memory: req.body.memory || []
-      });
-    }
-
-    if (error.status === 401) {
-      return res.status(500).json({
-        error: "API configuration error",
-        reply: "There's a configuration issue with the service. Please contact support.",
-        memory: req.body.memory || []
-      });
-    }
-
-    // Generic error response
-    return res.status(500).json({
-      error: "Internal server error",
-      reply: "I encountered an error processing your request. Please try again.",
-      memory: req.body.memory || []
-    });
+    return {
+      statusCode: 500,
+      headers: corsHeaders(),
+      body: JSON.stringify({ 
+        error: err.message,
+        reply: "I encountered an error. Please try again."
+      })
+    };
   }
-}
-
-// Set CORS headers for all responses
-export const config = {
-  headers: corsHeaders()
 };
