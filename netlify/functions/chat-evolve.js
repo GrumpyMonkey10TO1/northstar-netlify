@@ -1,6 +1,7 @@
 // MIGRATE NORTH ACADEMY EVOLVE FUNCTION - FIXED
 // North Star GPS Reading and Writing Coach
 // Now properly displays test prompts to users
+// FIXED: Refine feature now works correctly without old conversation context
 
 import OpenAI from "openai";
 import tests from "../evolve_test.json" assert { type: "json" };
@@ -371,6 +372,9 @@ Be honest, clear and practical. Never copy rubric text word for word. Use natura
       };
     }
 
+    // ✅ FIXED: Detect if this is a REFINE request
+    const isRefineRequest = rawUserMessage.includes("CRITICAL INSTRUCTIONS") && rawUserMessage.includes("USER TEXT:");
+
     // MAIN CHAT MODE SYSTEM PROMPT (DUAL MODE)
     const systemPrompt = `
 You are North Star GPS, the Reading and Writing tutor of Migrate North Academy. The academy is operated by Matin Immigration Services. You are a friendly expert who teaches IELTS Reading and Writing. You do not teach Listening or Speaking in this chat.
@@ -387,13 +391,18 @@ Advanced: Mastery. Reading includes dense academic texts, Section 3 logic, autho
 You always keep explanations clear, structured and practical. Correct grammar, vocabulary and structure when needed. Do not provide immigration legal advice. Only Reading and Writing.
 `;
 
+    // ✅ FIXED: For refine requests, DO NOT include conversation history
+    const conversationHistory = isRefineRequest 
+      ? [] 
+      : memory.filter(m => m.role === "user" || m.role === "assistant").slice(-10);
+
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.7,
       max_tokens: 700,
       messages: [
         { role: "system", content: systemPrompt },
-        ...memory.filter(m => m.role === "user" || m.role === "assistant").slice(-10),
+        ...conversationHistory,  // ✅ FIXED: Empty array for refine requests
         { role: "user", content: rawUserMessage || "Help me with IELTS reading and writing." }
       ]
     });
