@@ -1,14 +1,23 @@
 // /netlify/functions/chat-explore.js
-// North Star Explore server function v4 - A1 PROFILE + CRS LOGIC, FIXED OPENAI CALL
+// North Star Explore server function v5 - Full FAQ + CRS Logic + Supabase Logging
 
 import OpenAI from "openai";
+import { createClient } from "@supabase/supabase-js";
 
+// OpenAI client
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Supabase client
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
+
 const ORIGIN = "https://migratenorth.ca";
 
+// Rate limiting
 const requestCounts = new Map();
 const RATE_LIMIT_MAX = 20;
 const RATE_LIMIT_WINDOW = 5 * 60 * 1000;
@@ -1319,7 +1328,7 @@ If you tell me your field (for example nurse, engineer, software developer, trad
 }
 
 // =============================================================================
-// OPENAI CALLBACK - A1, USING CHAT COMPLETIONS
+// OPENAI CALLBACK - USING CHAT COMPLETIONS
 // =============================================================================
 
 async function callOpenAI(historyMessages, userMessage, profile = {}, meta = {}) {
@@ -1374,7 +1383,11 @@ ${profileContext}
 }
 
 // =============================================================================
+// MAIN HANDLER WITH SUPABASE LOGGING
+// =============================================================================
+
 export const handler = async (event) => {
+  // CORS preflight
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -1402,6 +1415,7 @@ export const handler = async (event) => {
     const history = parsed.history ?? [];
     const meta = parsed.meta ?? {};
     const incomingProfile = parsed.userProfile ?? {};
+    const userId = parsed.userId || null; // For Supabase logging
 
     if (typeof message !== "string" || !message.trim()) {
       return errorResponse(400, "Missing or invalid 'message'");
@@ -1413,6 +1427,7 @@ export const handler = async (event) => {
 
     const trimmedMessage = message.trim();
 
+    // FAQ shortcut
     const faqReply = getFAQResponse(trimmedMessage);
     if (faqReply) {
       const newHistory = [
@@ -1420,6 +1435,17 @@ export const handler = async (event) => {
         { role: "user", content: trimmedMessage },
         { role: "assistant", content: faqReply }
       ];
+
+      // Save FAQ reply in Supabase
+      if (userId) {
+        await supabase.from("explore_history").insert({
+          user_id: userId,
+          message_in: trimmedMessage,
+          message_out: faqReply,
+          timestamp: new Date().toISOString()
+        });
+      }
+
       return ok({
         reply: faqReply,
         history: newHistory,
@@ -1428,8 +1454,10 @@ export const handler = async (event) => {
       });
     }
 
+    // Update profile extraction
     const updatedProfile = extractProfileFromMessage(trimmedMessage, incomingProfile);
 
+    // Decision logic for CRS or both options
     const lastAssistant = getLastAssistantMessage(history).toLowerCase();
     const lowerCurrent = trimmedMessage.toLowerCase();
     const asksForBoth =
@@ -1448,6 +1476,7 @@ export const handler = async (event) => {
       crsScoreFromProfile = estimateCRS(updatedProfile);
     }
 
+    // Respond with both options
     if (asksForBoth && lastOfferedChoice) {
       const bothReply = buildBothOptionsFollowUp(updatedProfile, crsScoreFromProfile);
       const newHistory = [
@@ -1455,6 +1484,17 @@ export const handler = async (event) => {
         { role: "user", content: trimmedMessage },
         { role: "assistant", content: bothReply }
       ];
+
+      // Save to Supabase
+      if (userId) {
+        await supabase.from("explore_history").insert({
+          user_id: userId,
+          message_in: trimmedMessage,
+          message_out: bothReply,
+          timestamp: new Date().toISOString()
+        });
+      }
+
       return ok({
         reply: bothReply,
         history: newHistory,
@@ -1463,6 +1503,7 @@ export const handler = async (event) => {
       });
     }
 
+    // Profile complete, send CRS explanation
     const looksLikeProfile =
       /\b\d{1,2}\s*years?\b/i.test(trimmedMessage) ||
       trimmedMessage.toLowerCase().includes("ielts") ||
@@ -1481,6 +1522,16 @@ export const handler = async (event) => {
         { role: "assistant", content: crsReply }
       ];
 
+      // Save to Supabase
+      if (userId) {
+        await supabase.from("explore_history").insert({
+          user_id: userId,
+          message_in: trimmedMessage,
+          message_out: crsReply,
+          timestamp: new Date().toISOString()
+        });
+      }
+
       return ok({
         reply: crsReply,
         history: newHistory,
@@ -1489,12 +1540,23 @@ export const handler = async (event) => {
       });
     }
 
+    // Normal OpenAI flow
     const modelReply = await callOpenAI(history, trimmedMessage, updatedProfile, meta);
     const newHistory = [
       ...normalizeHistory(history).slice(-30),
       { role: "user", content: trimmedMessage },
       { role: "assistant", content: modelReply }
     ];
+
+    // Save to Supabase
+    if (userId) {
+      await supabase.from("explore_history").insert({
+        user_id: userId,
+        message_in: trimmedMessage,
+        message_out: modelReply,
+        timestamp: new Date().toISOString()
+      });
+    }
 
     return ok({
       reply: modelReply,
