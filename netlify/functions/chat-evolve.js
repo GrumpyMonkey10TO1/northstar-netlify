@@ -1,10 +1,12 @@
-// MIGRATE NORTH ACADEMY EVOLVE FUNCTION
+// MIGRATE NORTH ACADEMY EVOLVE FUNCTION - FIXED
 // North Star GPS Reading and Writing Coach
-// Now with optional Supabase logging for user progress
+// Now properly displays test prompts to users
+// FIXED: Refine feature now works correctly without old conversation context
+// UPDATED: Supabase logging added
 
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
-import tests from "../evolve_test.json" assert { type: "json" };
+import tests from "../evolve_test.json" with { type: "json" };
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -25,7 +27,7 @@ function corsHeaders() {
   };
 }
 
-// Level ranges
+// Level ranges - FIXED TO MATCH FRONTEND
 const LEVEL_RANGES = {
   "level 1": [0, 11],
   "level 2": [11, 22],
@@ -40,13 +42,11 @@ function getSpecificTest(level, testIndex) {
 
 // Build feedback prompt
 function buildFeedbackPrompt(task, essay) {
-  return `
-Task:
+  return `Task:
 ${task.prompt}
 
 Student Essay:
-${essay}
-`.trim();
+${essay}`.trim();
 }
 
 // Progress helpers
@@ -87,6 +87,7 @@ function getProgressStats(memory) {
   };
 }
 
+// chooseNextTest function
 function chooseNextTest(memory) {
   const stats = getProgressStats(memory);
 
@@ -101,6 +102,7 @@ function chooseNextTest(memory) {
   let currentLevel = "level 1";
   if (stats.advancedDone > 0) currentLevel = "level 3";
   else if (stats.intermediateDone > 0) currentLevel = "level 2";
+  else if (stats.foundationDone > 0) currentLevel = "level 1";
 
   let levelToUse = currentLevel;
   let nextIndex = nextIndexForLevel(levelToUse);
@@ -144,6 +146,7 @@ export const handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 200, headers: corsHeaders(), body: "ok" };
   }
+
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -158,7 +161,7 @@ export const handler = async (event) => {
     const params = body.params || {};
     const rawUserMessage = (body.message || "").trim();
     const previousMemory = body.memory || [];
-    const userId = body.userId || null; // added for supabase logging
+    const userId = body.userId || null; // For Supabase logging
     const sessionTime = body.timestamp || Date.now();
 
     const THIRTY = 1800000;
@@ -173,15 +176,18 @@ export const handler = async (event) => {
       const rec = memory.find(m => m.role === "progress" && m.key === key);
       return rec ? rec.value : 0;
     }
+
     function setProgress(level, val) {
       const key = "progress_" + level;
       memory = memory.filter(m => !(m.role === "progress" && m.key === key));
       memory.push({ role: "progress", key, value: val });
     }
+
     function getStat(key) {
       const rec = memory.find(m => m.role === "stat" && m.key === key);
       return rec ? rec.value : undefined;
     }
+
     function setStat(key, value) {
       memory = memory.filter(m => !(m.role === "stat" && m.key === key));
       memory.push({ role: "stat", key, value });
@@ -189,23 +195,378 @@ export const handler = async (event) => {
 
     const stats = getProgressStats(memory);
 
-    // The rest of your EVOLVE code remains unchanged.  
-    // All branches process the action, update memory, and generate reply.  
-    // After generating reply, we log to Supabase below.
+    // AUTO TEST
+    if (action === "auto_test") {
+      const choice = chooseNextTest(memory);
+      const t = choice.task;
 
-    // =========================================================
-    // Your existing EVOLVE logic continues here unchanged
-    // =========================================================
+      memory = memory.filter(
+        m => !(m.role === "system" && m.content && m.content.includes('"task_id":'))
+      );
+      memory.push({
+        role: "system",
+        content: JSON.stringify({ ...t, level: choice.level, testIndex: choice.index })
+      });
 
-    // (I am not repeating the full logic here. It stays intact.)
+      // FIX: Actually show the test prompt to the user!
+      reply = `${choice.message}\n\n${t.type ? '**' + t.type + '**\n\n' : ''}${t.prompt}\n\nYou have 20 minutes. Write at least 150 words. When ready, write your answer and click Submit.`;
 
-    // At the very bottom of the handler, before the return, add:
+      memory.push({ role: "assistant", content: reply });
+
+      // Save to Supabase
+      if (userId) {
+        await supabase.from("evolve_history").insert({
+          user_id: userId,
+          message_in: rawUserMessage || "auto_test",
+          message_out: reply,
+          action: action,
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      return {
+        statusCode: 200,
+        headers: corsHeaders(),
+        body: JSON.stringify({
+          message: reply,
+          memory,
+          timestamp: now,
+          stats: getProgressStats(memory)
+        })
+      };
+    }
+
+    // START TEST - FIXED TO SHOW THE ACTUAL TEST
+    if (action === "start_test") {
+      const level = (params.level || "level 1").toLowerCase();
+      const index = Number(params.testIndex ?? 0);
+
+      if (!LEVEL_RANGES[level]) {
+        reply = "Choose a valid level.";
+      } else if (isNaN(index) || index < 0 || index > 10) {
+        reply = "Choose a valid test number.";
+      } else {
+        const unlocked = getProgress(level);
+        if (index > unlocked) {
+          reply = "This test is locked. Complete the previous test first.";
+        } else {
+          const t = getSpecificTest(level, index);
+          if (!t) {
+            reply = "Test not found.";
+          } else {
+            memory = memory.filter(
+              m => !(m.role === "system" && m.content && m.content.includes('"task_id":'))
+            );
+            memory.push({
+              role: "system",
+              content: JSON.stringify({ ...t, level, testIndex: index })
+            });
+
+            // FIX: Actually display the test prompt!
+            reply = `${t.type ? '**' + t.type + '**\n\n' : ''}${t.prompt}\n\nYou have 20 minutes. Write at least 150 words. When ready, write your answer and click Submit.`;
+          }
+        }
+      }
+
+      memory.push({ role: "assistant", content: reply });
+
+      // Save to Supabase
+      if (userId) {
+        await supabase.from("evolve_history").insert({
+          user_id: userId,
+          message_in: rawUserMessage || `start_test:${level}:${index}`,
+          message_out: reply,
+          action: action,
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      return {
+        statusCode: 200,
+        headers: corsHeaders(),
+        body: JSON.stringify({
+          message: reply,
+          memory,
+          timestamp: now,
+          stats: getProgressStats(memory)
+        })
+      };
+    }
+
+    // SUBMIT ESSAY
+    if (action === "submit_essay") {
+      const lastTask = [...memory]
+        .reverse()
+        .find(m => m.role === "system" && m.content && m.content.includes('"task_id"'));
+
+      if (!lastTask) {
+        reply = "Start a test first, then submit your writing.";
+      } else {
+        const task = JSON.parse(lastTask.content);
+        let essay = (params.essay || "").trim();
+
+        if (!essay) {
+          const lastEssay = [...memory].reverse().find(m => m.role === "user");
+          essay = lastEssay ? (lastEssay.content || "").trim() : "";
+        }
+
+        if (!essay || essay.split(/\s+/).filter(Boolean).length < 20) {
+          reply = "Write at least 20 words before submitting.";
+        } else {
+          const wordCount = essay.split(/\s+/).filter(Boolean).length;
+          const previousWords = Number(getStat("total_words") || 0);
+          setStat("total_words", previousWords + wordCount);
+
+          const todayStr = new Date(now).toISOString().slice(0, 10);
+          const lastDateStr = getStat("last_study_date");
+          let streak = Number(getStat("streak_days") || 0);
+
+          if (!lastDateStr) {
+            streak = 1;
+          } else {
+            const lastDate = new Date(lastDateStr);
+            const todayDate = new Date(todayStr);
+            const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / 86400000);
+            if (diffDays === 0) {
+              if (streak < 1) streak = 1;
+            } else if (diffDays === 1) {
+              streak = (streak || 0) + 1;
+            } else {
+              streak = 1;
+            }
+          }
+
+          setStat("last_study_date", todayStr);
+          setStat("streak_days", streak);
+
+          const feedbackPrompt = buildFeedbackPrompt(task, essay);
+
+          // TASK MODE SYSTEM PROMPT
+          const taskModeSystemPrompt = `You are North Star GPS, the Reading and Writing tutor of Migrate North Academy, created by Matin Immigration Services.
+
+You are in TASK MODE. You evaluate IELTS Writing using the North Star skill framework.
+
+Perform the following steps:
+1. Give a short overall comment.
+2. Give an estimated IELTS band RANGE, not a single number.
+3. Provide the rubric breakdown: Task Achievement or Response, Coherence and Cohesion, Lexical Resource, Grammar Range and Accuracy.
+4. Provide the top three priorities for improvement.
+5. Provide two improved versions: a sentence level correction example and a full paragraph improved rewrite.
+6. Provide one next step exercise.
+
+Be honest, clear and practical. Never copy rubric text word for word. Use natural tutor language.
+
+Only talk about IELTS and academic writing. Do not mention CELPIP or any other exam.
+
+Stay inside Task Mode until the user leaves it.`;
+
+          const completion = await client.chat.completions.create({
+            model: "gpt-4o-mini",
+            temperature: 0.7,
+            max_tokens: 950,
+            messages: [
+              { role: "system", content: taskModeSystemPrompt },
+              { role: "user", content: feedbackPrompt }
+            ]
+          });
+
+          reply = completion.choices?.[0]?.message?.content?.trim() ||
+            "I could not generate feedback right now.";
+
+          if (task.level && Number.isInteger(task.testIndex)) {
+            const done = getProgress(task.level);
+            const needed = task.testIndex + 1;
+            if (needed > done) setProgress(task.level, needed);
+          }
+
+          const updated = getProgressStats(memory);
+          reply += `\n\nProgress: ${updated.totalDone} of 33 tests completed.`;
+        }
+      }
+
+      memory.push({ role: "assistant", content: reply });
+
+      // Save to Supabase
+      if (userId) {
+        await supabase.from("evolve_history").insert({
+          user_id: userId,
+          message_in: params.essay || rawUserMessage || "submit_essay",
+          message_out: reply,
+          action: action,
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      return {
+        statusCode: 200,
+        headers: corsHeaders(),
+        body: JSON.stringify({
+          message: reply,
+          memory,
+          timestamp: now,
+          stats: getProgressStats(memory)
+        })
+      };
+    }
+
+    // RANDOM TEST
+    if (action === "generate_random") {
+      const chosen = tests[Math.floor(Math.random() * tests.length)];
+
+      memory.push({
+        role: "system",
+        content: JSON.stringify({ ...chosen, level: "random", testIndex: -1 })
+      });
+
+      // FIX: Show the actual test prompt!
+      reply = `${chosen.type ? '**' + chosen.type + '**\n\n' : ''}${chosen.prompt}\n\nWrite at least 150 words. When ready, write your answer and click Submit.`;
+
+      memory.push({ role: "assistant", content: reply });
+
+      // Save to Supabase
+      if (userId) {
+        await supabase.from("evolve_history").insert({
+          user_id: userId,
+          message_in: rawUserMessage || "generate_random",
+          message_out: reply,
+          action: action,
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      return {
+        statusCode: 200,
+        headers: corsHeaders(),
+        body: JSON.stringify({
+          message: reply,
+          memory,
+          timestamp: now,
+          stats: getProgressStats(memory)
+        })
+      };
+    }
+
+    // Detect if this is a REFINE request
+    const isRefineRequest = rawUserMessage.includes("CRITICAL INSTRUCTIONS") &&
+      rawUserMessage.includes("USER TEXT:");
+
+    // SPECIAL BRANCH: REFINE MODE
+    if (isRefineRequest) {
+      // Try to extract only the user text after "USER TEXT:"
+      const parts = rawUserMessage.split("USER TEXT:");
+      const userText = (parts[1] || "").trim() || rawUserMessage;
+
+      const refineSystemPrompt = `You are North Star GPS, the Reading and Writing tutor of Migrate North Academy.
+
+You are in REFINE MODE. Your job is to help a student improve a short piece of writing.
+
+Work ONLY with the text the student has written. Do not invent examples that are not actually in the text.
+
+Steps:
+1. Brief overall comment on the writing quality.
+2. List weak or vague words or phrases that appear in the student's text (for example: very, good, bad, a lot, really, stuff), but ONLY if they actually appear in the text.
+3. For each weak word you find, give 2 or 3 stronger alternatives that match the context.
+4. Give a short improved version of one key sentence or a short section of the text.
+5. End with one clear suggestion for how the student could rewrite the paragraph.
+
+If there are no weak or vague words in the text, clearly say so and give one suggestion for making the writing more precise or more formal.`.trim();
+
+      const completion = await client.chat.completions.create({
+        model: "gpt-4o-mini",
+        temperature: 0.4,
+        max_tokens: 600,
+        messages: [
+          { role: "system", content: refineSystemPrompt },
+          { role: "user", content: userText }
+        ]
+      });
+
+      const refineReply = completion.choices?.[0]?.message?.content?.trim() ||
+        "Your writing looks strong. I did not find obvious weak words. You can focus on adding more precise detail or clearer examples.";
+
+      // Store a simplified version of the interaction in memory
+      memory.push({ role: "user", content: userText });
+      memory.push({ role: "assistant", content: refineReply });
+
+      // Save to Supabase
+      if (userId) {
+        await supabase.from("evolve_history").insert({
+          user_id: userId,
+          message_in: userText,
+          message_out: refineReply,
+          action: "refine",
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      return {
+        statusCode: 200,
+        headers: corsHeaders(),
+        body: JSON.stringify({
+          message: refineReply,
+          memory,
+          timestamp: now,
+          stats: getProgressStats(memory)
+        })
+      };
+    }
+
+    // MAIN CHAT MODE SYSTEM PROMPT (DUAL MODE) - for normal conversation
+    const systemPrompt = `You are North Star GPS, the Reading and Writing tutor of Migrate North Academy.
+
+The academy is operated by Matin Immigration Services.
+
+You are a friendly expert who teaches IELTS Reading and Writing. You do not teach Listening or Speaking in this chat.
+
+DUAL MODE:
+
+Conversation Mode: default mode for answering questions, teaching concepts, explaining reading strategies, writing structures, vocabulary, grammar and general coaching.
+
+Task Mode: activated when the user starts a test, submits an essay or asks for a practice task. In Task Mode you are structured, exam focused and specific.
+
+NORTH STAR LEVEL SYSTEM:
+
+Foundation: Fundamentals. Reading basics like skimming, scanning and paraphrasing. Writing basics like sentence structure and clear paragraphs.
+
+Intermediate: Development. Reading includes inference, summary completion and distractors. Writing includes complex sentences, cause and effect, problem and solution, and better cohesion.
+
+Advanced: Mastery. Reading includes dense academic texts, Section 3 logic, author attitude and timed passages. Writing aims for Band 7 to 9 quality with advanced vocabulary and sophisticated cohesion.
+
+You always keep explanations clear, structured and practical. Correct grammar, vocabulary and structure when needed.
+
+Do not provide immigration legal advice. Only Reading and Writing.`.trim();
+
+    // For normal chat, use last 10 turns of user/assistant history
+    const conversationHistory = memory
+      .filter(m => m.role === "user" || m.role === "assistant")
+      .slice(-10);
+
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0.7,
+      max_tokens: 700,
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...conversationHistory,
+        { role: "user", content: rawUserMessage || "Help me with IELTS reading and writing." }
+      ]
+    });
+
+    const response = completion.choices?.[0]?.message?.content?.trim() ||
+      "How can I help next with your reading or writing practice.";
+
+    if (rawUserMessage) {
+      memory.push({ role: "user", content: rawUserMessage });
+    }
+    memory.push({ role: "assistant", content: response });
+
+    // Save to Supabase
     if (userId) {
       await supabase.from("evolve_history").insert({
         user_id: userId,
-        message_in: rawUserMessage,
-        message_out: reply,
-        action: action,
+        message_in: rawUserMessage || "chat",
+        message_out: response,
+        action: action || "chat",
         timestamp: new Date().toISOString()
       });
     }
@@ -214,7 +575,7 @@ export const handler = async (event) => {
       statusCode: 200,
       headers: corsHeaders(),
       body: JSON.stringify({
-        message: reply,
+        message: response,
         memory,
         timestamp: now,
         stats: getProgressStats(memory)
