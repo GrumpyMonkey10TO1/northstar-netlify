@@ -3,8 +3,15 @@
 // NCLEX Training Support System
 
 import OpenAI from "openai";
+import { createClient } from "@supabase/supabase-js";
 
+// Load environment variables
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 // CORS Headers
 function corsHeaders() {
@@ -31,72 +38,33 @@ ROLE AND IDENTITY:
 - You are honest about limitations and complexity
 
 CORE PRINCIPLES:
-1. **You cannot give legal or medical advice**
-2. **You cannot guarantee exam results**
-3. **You provide guidance, not memorization**
-4. **You are honest about limitations**
+1. You cannot give legal or medical advice
+2. You cannot guarantee exam results
+3. You provide guidance, not memorization
+4. You are honest about limitations
 
 YOUR EXPERTISE:
 - NCLEX study strategies and timelines
 - NGN (Next Generation NCLEX) question formats
-- Content area review (all NCLEX categories)
-- Test-taking techniques and anxiety management
+- Content area review
+- Test-taking techniques
 - Practice question analysis and rationale review
-- Study schedules (30-day, 60-day, 90-day plans)
-- Resource recommendations (UWorld, Kaplan, Saunders)
+- Study schedules and resource recommendations
 - NCLEX scoring and CAT format explanation
-- High-yield topics and priority nursing concepts
-- Pharmacology mastery strategies
-- Lab values and clinical judgment
-- Safety and infection control principles
+- Pharmacology, lab values, clinical judgment, safety and infection control
 
 WHAT YOU DO:
-✓ Create personalized study plans based on exam date
-✓ Explain NCLEX content in simple terms
-✓ Teach test-taking strategies (elimination, priority, safety)
-✓ Help analyze practice questions and rationales
-✓ Guide on NGN question types (bowtie, trend, matrix)
-✓ Provide realistic readiness assessments
-✓ Offer encouragement and motivation
-✓ Explain NCLEX scoring and CAT format
-✓ Recommend study resources
-
-WHAT YOU DON'T DO:
-✗ Give medical diagnoses or patient care advice
-✗ Guarantee passing scores
-✗ Replace formal NCLEX prep courses
-✗ Provide actual NCLEX questions (they're confidential)
-✗ Make clinical judgments
-
-TONE:
-- Supportive like a study partner
-- Clear and practical
-- Honest about difficulty
-- Encouraging but realistic
-- Focus on strategy, not just content
-
-RESPONSE STYLE:
-- Keep responses focused (8-10 sentences for explanations)
-- Use bullet points for lists and strategies
-- Provide specific examples when teaching concepts
-- Always end with "What area would you like to focus on next?"
-- If asked about specific patient scenarios, teach the principle, not the answer
-
-When students ask for study plans, create realistic schedules based on their timeline.
-When they ask about readiness, give honest assessments based on their practice performance.
-When they feel overwhelmed, remind them: "NCLEX is passable with consistent, focused practice."`;
+Provide structured study help, explain concepts, and teach strategies in a supportive and realistic tone. End all replies with: "What area would you like to focus on next?"`;
 
 // =============================================================================
 // MAIN HANDLER
 // =============================================================================
 
 export async function handler(event) {
-  // Handle OPTIONS (CORS preflight)
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: corsHeaders(), body: "" };
   }
 
-  // Only allow POST
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -106,7 +74,7 @@ export async function handler(event) {
   }
 
   try {
-    const { message, memory } = JSON.parse(event.body);
+    const { message, memory, userId } = JSON.parse(event.body);
 
     if (!message) {
       return {
@@ -116,26 +84,17 @@ export async function handler(event) {
       };
     }
 
-    // Build conversation history
-    const messages = [
-      { role: "system", content: SYSTEM_PROMPT }
-    ];
+    const messages = [{ role: "system", content: SYSTEM_PROMPT }];
 
-    // Add memory (last 10 messages)
     if (Array.isArray(memory)) {
       memory.slice(-10).forEach((m) => {
-        if (m.role === "user") {
-          messages.push({ role: "user", content: m.content });
-        } else if (m.role === "assistant") {
-          messages.push({ role: "assistant", content: m.content });
-        }
+        if (m.role === "user") messages.push({ role: "user", content: m.content });
+        if (m.role === "assistant") messages.push({ role: "assistant", content: m.content });
       });
     }
 
-    // Add current message
     messages.push({ role: "user", content: message });
 
-    // Call OpenAI
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: messages,
@@ -143,14 +102,23 @@ export async function handler(event) {
       max_tokens: 1000
     });
 
-    const reply = completion.choices[0]?.message?.content || "I'm here to help with your NCLEX preparation. What would you like to focus on?";
+    const reply = completion.choices[0]?.message?.content 
+      || "I am here to help with NCLEX preparation. What would you like to focus on next?";
 
-    // Update memory
     const updatedMemory = [
       ...(memory || []),
       { role: "user", content: message },
       { role: "assistant", content: reply }
-    ].slice(-20); // Keep last 20 messages
+    ].slice(-20);
+
+    // Optional: save conversation to Supabase if userId is present
+    if (userId) {
+      await supabase.from("nclex_history").insert({
+        user_id: userId,
+        user_message: message,
+        assistant_reply: reply
+      });
+    }
 
     return {
       statusCode: 200,
@@ -168,7 +136,7 @@ export async function handler(event) {
       headers: corsHeaders(),
       body: JSON.stringify({
         error: "Internal server error",
-        reply: "I'm having trouble connecting right now. Please try again in a moment."
+        reply: "I am having trouble connecting right now. Please try again in a moment."
       })
     };
   }
