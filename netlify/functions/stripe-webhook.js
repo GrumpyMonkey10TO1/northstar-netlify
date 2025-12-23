@@ -14,7 +14,8 @@ const PRICE_TO_ROLE = {
 };
 
 export async function handler(event) {
-  const sig = event.headers["stripe-signature"];
+  const sig = event.headers["Stripe-Signature"] || event.headers["stripe-signature"];
+
 
   let stripeEvent;
   try {
