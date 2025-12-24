@@ -22,35 +22,23 @@
     Access-Control-Allow-Methods = "GET, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type"
 
-# HARD LOCK: protect Netlify Functions from SPA routing
+# Netlify Functions MUST resolve first
 [[redirects]]
   from = "/.netlify/functions/*"
   to = "/.netlify/functions/:splat"
   status = 200
-  force = true
 
 # Static asset routing
 [[redirects]]
   from = "/assets/*"
   to = "/assets/:splat"
   status = 200
-  force = true
 
 # SPA fallback LAST
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-
-
-
-
-
-
-
-
-
 
 
 
