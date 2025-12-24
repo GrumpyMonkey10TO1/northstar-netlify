@@ -1,22 +1,21 @@
-/import Stripe from "stripe";
+import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const PRICE_TO_ROLE = {
+const PRICE_TO_PRODUCT = {
   "price_1Sh0kq00H6DyReNfF28tuIsc": "execute",
   "price_1Sh0ht00H6DyReNfJtde3Qxx": "elevate",
   "price_1Sh0eC00H6DyReNfFQZXIBz4": "evolve"
 };
 
-
 export async function handler(event) {
-  const sig = event.headers["Stripe-Signature"] || event.headers["stripe-signature"];
-
+  const sig = event.headers["stripe-signature"];
 
   let stripeEvent;
   try {
@@ -31,18 +30,20 @@ export async function handler(event) {
 
   if (stripeEvent.type === "checkout.session.completed") {
     const session = stripeEvent.data.object;
-
-    const email = session.customer_email;
+    const email = session.customer_details.email;
     const priceId = session.metadata.price_id;
-    const role = PRICE_TO_ROLE[priceId];
+    const product = PRICE_TO_PRODUCT[priceId];
 
-    if (!email || !role) {
-      return { statusCode: 200, body: "Missing email or role mapping" };
-    }
+    if (!email || !product) return { statusCode: 200, body: "No mapping" };
 
-    await supabase
-      .from("profiles")
-      .upsert({ email, role, active: true });
+    const { data: user } = await supabase.auth.admin.getUserByEmail(email);
+    if (!user) return { statusCode: 200, body: "User not found" };
+
+    await supabase.from("entitlements").upsert({
+      user_id: user.id,
+      product,
+      active: true
+    });
   }
 
   return { statusCode: 200, body: "ok" };
