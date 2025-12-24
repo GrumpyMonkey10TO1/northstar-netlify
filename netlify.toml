@@ -3,33 +3,16 @@
   functions = "netlify/functions"
 
 [functions]
-  node_bundler = "esbuild"
   directory = "netlify/functions"
 
-[[headers]]
-  for = "/.netlify/functions/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "https://migratenorth.ca"
-    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
-    Access-Control-Allow-Headers = "Content-Type, Authorization"
-    Access-Control-Max-Age = "86400"
-    Cache-Control = "no-cache, no-store, must-revalidate"
-
-[[headers]]
-  for = "/assets/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
-    Access-Control-Allow-Methods = "GET, OPTIONS"
-    Access-Control-Allow-Headers = "Content-Type"
-
-# HARD LOCK functions first
+# Netlify function routing MUST come first
 [[redirects]]
   from = "/.netlify/functions/*"
   to = "/.netlify/functions/:splat"
   status = 200
   force = true
 
-# Static asset routing
+# Asset routing
 [[redirects]]
   from = "/assets/*"
   to = "/assets/:splat"
@@ -41,7 +24,3 @@
   from = "/*"
   to = "/index.html"
   status = 200
-
-
-
-
