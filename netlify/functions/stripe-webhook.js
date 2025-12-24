@@ -13,6 +13,7 @@ const PRICE_TO_ROLE = {
   "price_1Sh0eC00H6DyReNfFQZXIBz4": "evolve"
 };
 
+
 export async function handler(event) {
   const sig = event.headers["Stripe-Signature"] || event.headers["stripe-signature"];
 
