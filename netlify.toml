@@ -15,7 +15,6 @@
     Access-Control-Max-Age = "86400"
     Cache-Control = "no-cache, no-store, must-revalidate"
 
-# Allow JSON and other static assets (tests, images, etc.) to load directly
 [[headers]]
   for = "/assets/*"
   [headers.values]
@@ -23,14 +22,20 @@
     Access-Control-Allow-Methods = "GET, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type"
 
-# Ensure JSON and media assets can be fetched directly without redirect issues
+# Protect function routing first
+[[redirects]]
+  from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Static asset routing
 [[redirects]]
   from = "/assets/*"
   to = "/assets/:splat"
   status = 200
   force = true
 
-# Default fallback redirect for single-page apps (your Elementor setup)
+# SPA fallback LAST
 [[redirects]]
   from = "/*"
   to = "/index.html"
