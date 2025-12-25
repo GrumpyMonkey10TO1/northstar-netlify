@@ -11,7 +11,7 @@ const supabase = createClient(
 
 const PRICE_TO_PRODUCT = {
   "price_1Sh0kq00H6DyReNfF28tuIsc": "execute",
-  "price_1Sh0ht00H6DyReNfJtde3Qxx": "elevate",
+  "price_1Sh0ht00H6DyReNfJtde3Qxx": "eleva",
   "price_1Sh0eC00H6DyReNfFQZXIBz4": "evolve"
 };
 
