@@ -5,10 +5,10 @@
 [functions]
   node_bundler = "esbuild"
 
-# HARD LOCK NETLIFY API FIRST
+# Stripe webhook route
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
+  from = "/api/stripe-webhook"
+  to = "/.netlify/functions/stripe-webhook"
   status = 200
   force = true
 
