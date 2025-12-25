@@ -4,19 +4,11 @@
 
 [functions]
   node_bundler = "esbuild"
-  directory = "netlify/functions"
 
-# HARD LOCK NETLIFY FUNCTIONS
+# HARD LOCK NETLIFY API FIRST
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
-  force = true
-
-# Allow static assets
-[[redirects]]
-  from = "/assets/*"
-  to = "/assets/:splat"
+  to = "/.netlify/functions/api/:splat"
   status = 200
   force = true
 
@@ -25,11 +17,3 @@
   from = "/*"
   to = "/index.php"
   status = 200
-
-[[headers]]
-  for = "/api/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "https://migratenorth.ca"
-    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
-    Access-Control-Allow-Headers = "Content-Type, Authorization"
-    Cache-Control = "no-store"
