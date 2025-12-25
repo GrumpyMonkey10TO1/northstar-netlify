@@ -5,8 +5,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_KEY
 );
+
 
 const PRICE_TO_PRODUCT = {
   "price_1Sh0kq00H6DyReNfF28tuIsc": "execute",
