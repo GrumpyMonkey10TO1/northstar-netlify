@@ -6,16 +6,9 @@
   node_bundler = "esbuild"
   directory = "netlify/functions"
 
-# Public API route for Stripe webhook
+# HARD LOCK NETLIFY FUNCTIONS
 [[redirects]]
-  from = "/api/stripe-webhook"
-  to = "/.netlify/functions/api-stripe-webhook"
-  status = 200
-  force = true
-
-# Allow direct Netlify Functions access
-[[redirects]]
-  from = "/.netlify/functions/*"
+  from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
   force = true
@@ -34,7 +27,7 @@
   status = 200
 
 [[headers]]
-  for = "/.netlify/functions/*"
+  for = "/api/*"
   [headers.values]
     Access-Control-Allow-Origin = "https://migratenorth.ca"
     Access-Control-Allow-Methods = "GET, POST, OPTIONS"
