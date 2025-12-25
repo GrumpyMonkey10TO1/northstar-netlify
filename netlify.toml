@@ -6,7 +6,14 @@
   node_bundler = "esbuild"
   directory = "netlify/functions"
 
-# Always allow Netlify Functions first
+# Public API route for Stripe webhook
+[[redirects]]
+  from = "/api/stripe-webhook"
+  to = "/.netlify/functions/api-stripe-webhook"
+  status = 200
+  force = true
+
+# Allow direct Netlify Functions access
 [[redirects]]
   from = "/.netlify/functions/*"
   to = "/.netlify/functions/:splat"
@@ -20,7 +27,7 @@
   status = 200
   force = true
 
-# Only then allow WordPress fallback
+# WordPress fallback LAST
 [[redirects]]
   from = "/*"
   to = "/index.php"
