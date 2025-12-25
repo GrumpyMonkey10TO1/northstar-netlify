@@ -3,24 +3,33 @@
   functions = "netlify/functions"
 
 [functions]
+  node_bundler = "esbuild"
   directory = "netlify/functions"
 
-# Netlify function routing MUST come first
+# Always allow Netlify Functions first
 [[redirects]]
   from = "/.netlify/functions/*"
   to = "/.netlify/functions/:splat"
   status = 200
   force = true
 
-# Asset routing
+# Allow static assets
 [[redirects]]
   from = "/assets/*"
   to = "/assets/:splat"
   status = 200
   force = true
 
-# SPA fallback LAST
+# Only then allow WordPress fallback
 [[redirects]]
   from = "/*"
-  to = "/index.html"
+  to = "/index.php"
   status = 200
+
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "https://migratenorth.ca"
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+    Cache-Control = "no-store"
