@@ -1,10 +1,6 @@
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-export const config = {
-  bodyParser: false
-};
-
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const supabase = createClient(
@@ -21,9 +17,7 @@ const PRICE_TO_PRODUCT = {
 export async function handler(event) {
   const sig = event.headers["stripe-signature"];
 
-  const endpointSecret = event.headers["stripe-live-mode"] === "true"
-    ? process.env.STRIPE_WEBHOOK_SECRET
-    : process.env.STRIPE_WEBHOOK_SECRET_TEST;
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   let stripeEvent;
 
@@ -34,14 +28,14 @@ export async function handler(event) {
       endpointSecret
     );
   } catch (err) {
-    console.error("Webhook verification failed:", err.message);
-    return { statusCode: 400, body: `Invalid signature: ${err.message}` };
+    console.error("Signature verification failed:", err.message);
+    return { statusCode: 400, body: "Invalid signature" };
   }
 
   if (stripeEvent.type === "checkout.session.completed") {
     const session = stripeEvent.data.object;
-    const email = session.customer_details.email;
-    const priceId = session.metadata.price_id;
+    const email = session.customer_details?.email;
+    const priceId = session.metadata?.price_id;
     const product = PRICE_TO_PRODUCT[priceId];
 
     if (!email || !product) return { statusCode: 200, body: "No mapping" };
