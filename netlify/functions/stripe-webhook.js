@@ -1,11 +1,6 @@
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
-
-export const config = {
-  api: {
-    bodyParser: false
-  }
-};
+import getRawBody from "raw-body";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -20,24 +15,30 @@ const PRICE_TO_PRODUCT = {
   "price_1Sh0eC00H6DyReNfFQZXIBz4": "evolve"
 };
 
-export async function handler(event) {
-  const sig = event.headers["stripe-signature"];
-
+export async function handler(event, context) {
   const endpointSecret =
     event.headers["stripe-live-mode"] === "true"
       ? process.env.STRIPE_WEBHOOK_SECRET
       : process.env.STRIPE_WEBHOOK_SECRET_TEST;
 
-  let stripeEvent;
+  const sig = event.headers["stripe-signature"];
+
+  let rawBody;
 
   try {
+    rawBody = await getRawBody(context.req);
+  } catch (err) {
+    return { statusCode: 400, body: "Cannot read body" };
+  }
+
+  let stripeEvent;
+  try {
     stripeEvent = stripe.webhooks.constructEvent(
-      event.body,
+      rawBody,
       sig,
       endpointSecret
     );
   } catch (err) {
-    console.error("Webhook verification failed:", err.message);
     return { statusCode: 400, body: `Webhook Error: ${err.message}` };
   }
 
