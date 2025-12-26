@@ -17,18 +17,20 @@ const PRICE_TO_PRODUCT = {
 export async function handler(event) {
   const sig = event.headers["stripe-signature"];
 
-  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const secret = event.headers["stripe-live-mode"] === "true"
+    ? process.env.STRIPE_WEBHOOK_SECRET
+    : process.env.STRIPE_WEBHOOK_SECRET_TEST;
 
   let stripeEvent;
 
   try {
     stripeEvent = stripe.webhooks.constructEvent(
-      event.body,
+      Buffer.from(event.body, "utf8"),
       sig,
-      endpointSecret
+      secret
     );
   } catch (err) {
-    console.error("Signature verification failed:", err.message);
+    console.error("Webhook verification failed:", err.message);
     return { statusCode: 400, body: "Invalid signature" };
   }
 
@@ -38,7 +40,7 @@ export async function handler(event) {
     const priceId = session.metadata?.price_id;
     const product = PRICE_TO_PRODUCT[priceId];
 
-    if (!email || !product) return { statusCode: 200, body: "No mapping" };
+    if (!email || !product) return { statusCode: 200, body: "Missing mapping" };
 
     const { data: user } = await supabase.auth.admin.getUserByEmail(email);
     if (!user) return { statusCode: 200, body: "User not found" };
