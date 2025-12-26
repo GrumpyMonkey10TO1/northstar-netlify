@@ -8,7 +8,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-
 const PRICE_TO_PRODUCT = {
   "price_1Sh0kq00H6DyReNfF28tuIsc": "execute",
   "price_1Sh0ht00H6DyReNfJtde3Qxx": "eleva",
@@ -18,12 +17,18 @@ const PRICE_TO_PRODUCT = {
 export async function handler(event) {
   const sig = event.headers["stripe-signature"];
 
+  const endpointSecret =
+    event.headers["stripe-live-mode"] === "true"
+      ? process.env.STRIPE_WEBHOOK_SECRET
+      : process.env.STRIPE_WEBHOOK_SECRET_TEST;
+
   let stripeEvent;
+
   try {
     stripeEvent = stripe.webhooks.constructEvent(
       event.body,
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET
+      endpointSecret
     );
   } catch (err) {
     return { statusCode: 400, body: "Invalid signature" };
