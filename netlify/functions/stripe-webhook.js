@@ -6,7 +6,6 @@ export const config = {
 };
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
@@ -27,36 +26,46 @@ export async function handler(event) {
       : process.env.STRIPE_WEBHOOK_SECRET_TEST;
 
   let stripeEvent;
-
   try {
     const rawBody = Buffer.from(event.body, "utf8");
-
-    stripeEvent = stripe.webhooks.constructEvent(
-      rawBody,
-      sig,
-      endpointSecret
-    );
+    stripeEvent = stripe.webhooks.constructEvent(rawBody, sig, endpointSecret);
   } catch (err) {
-    return { statusCode: 400, body: `Invalid signature: ${err.message}` };
+    console.error("Webhook signature verification failed:", err.message);
+    return { statusCode: 400, body: `Webhook Error: ${err.message}` };
   }
+
+  const obj = stripeEvent.data.object;
 
   if (stripeEvent.type === "checkout.session.completed") {
-    const session = stripeEvent.data.object;
-    const email = session.customer_details?.email;
-    const priceId = session.metadata?.price_id;
-    const product = PRICE_TO_PRODUCT[priceId];
+    const email = obj.customer_details?.email || obj.customer_email;
+    const priceId = obj.metadata?.price_id || obj.line_items?.data?.[0]?.price?.id;
+    const tier = PRICE_TO_PRODUCT[priceId] || obj.metadata?.product || "unknown";
 
-    if (!email || !product) return { statusCode: 200, body: "No mapping" };
+    console.log("Checkout completed:", { email, tier, priceId });
 
-    const { data: user } = await supabase.auth.admin.getUserByEmail(email);
-    if (!user) return { statusCode: 200, body: "User not found" };
+    if (email && tier !== "unknown") {
+      const { error } = await supabase.from("user_memberships").upsert({
+        email: email.toLowerCase(),
+        tier: tier,
+        active: true,
+        stripe_customer_id: obj.customer,
+        stripe_subscription_id: obj.subscription,
+        created_at: new Date().toISOString()
+      }, { onConflict: 'email' });
 
-    await supabase.from("entitlements").upsert({
-      user_id: user.id,
-      product,
-      active: true
-    });
+      if (error) console.error("Supabase upsert error:", error);
+      else console.log("Membership created/updated for:", email);
+    }
   }
 
-  return { statusCode: 200, body: "ok" };
+  if (stripeEvent.type === "customer.subscription.deleted") {
+    await supabase.from("user_memberships").update({ active: false }).eq("stripe_subscription_id", obj.id);
+  }
+
+  if (stripeEvent.type === "customer.subscription.updated") {
+    const isActive = obj.status === "active" || obj.status === "trialing";
+    await supabase.from("user_memberships").update({ active: isActive }).eq("stripe_subscription_id", obj.id);
+  }
+
+  return { statusCode: 200, body: JSON.stringify({ received: true }) };
 }
