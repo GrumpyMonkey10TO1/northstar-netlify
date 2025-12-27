@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>North Star Academy - Evolve</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Aptos:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+  @font-face { font-family: 'Aptos'; src: local('Aptos'), local('Aptos Display'); font-weight: 400; }
+  @font-face { font-family: 'Aptos'; src: local('Aptos Bold'), local('Aptos Display Bold'); font-weight: 700; }
+
+  :root { 
+    --bg: #FFD1E3; --panel: #A367B1; --user: #8A4F9F; --ink: #E8ECEB;
+    --radius: 22px; --header-height: 120px; --footer-height: 120px;
+    --brand: var(--panel); --line: rgba(255,255,255,0.1);
+    --brand-30: color-mix(in srgb, var(--panel) 30%, transparent);
+    --brand-35: color-mix(in srgb, var(--panel) 35%, transparent);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); font-family: 'Aptos', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--ink); overflow: hidden; }
+
+  .mn-header-outer.evolve-header { background: var(--panel); width: 100%; height: var(--header-height); position: fixed; top: 0; left: 0; z-index: 9999; display: flex; justify-content: center; align-items: center; }
+  .mn-header-inner { display: flex; justify-content: center; align-items: center; gap: 50px; width: 100%; max-width: 1200px; padding: 0 20px; }
+  .mn-logo img { height: 38px; object-fit: contain; }
+  .mn-nav { display: flex; align-items: center; gap: 20px; }
+  .nav-tile { display: flex; flex-direction: column; align-items: center; text-decoration: none; padding: 8px 20px; border-radius: 12px; transition: all .25s ease; min-width: 140px; }
+  .nav-tile:hover { background: rgba(255,255,255,.3); transform: translateY(-2px); }
+  .nav-tile.active { background: #fff; }
+  .nav-tile .nav-name { font-size: 16px; font-weight: 700; color: #000; line-height: 1.2; }
+  .nav-tile .nav-desc { font-size: 10px; font-weight: 500; color: rgba(0,0,0,0.7); text-align: center; line-height: 1.2; }
+
+  #chat-input[disabled] { opacity: .45; cursor: not-allowed; }
+  button[disabled] { opacity: .4; cursor: not-allowed; pointer-events: none; }
+  .pay-btn { background: #FFD93D !important; color: #1A1A1A !important; font-weight: 700; border: 2px solid rgba(0,0,0,0.25) !important; }
+  .pay-btn:hover { background: #FFEB7A !important; transform: translateY(-2px); }
+
+  .mn-footer { background: var(--panel); width: 100%; height: var(--footer-height); position: fixed; bottom: 0; left: 0; display: flex; justify-content: center; align-items: center; z-index: 1000; }
+  #main-content-area { position: fixed; top: var(--header-height); bottom: var(--footer-height); left: 0; right: 0; display: flex; justify-content: center; align-items: center; padding: 20px; overflow: auto; }
+  .mn-footer-inner { width: 100%; max-width: 850px; display: flex; justify-content: space-between; align-items: center; }
+  .footer-left, .footer-center, .footer-right { display: flex; flex-direction: column; align-items: center; }
+  .footer-left img { width: 60px; margin-bottom: 3px; }
+  .footer-left .license-number, .footer-email, .footer-right span { color: #000; font-weight: 700; text-decoration: none; font-size: 0.8rem; }
+  .footer-right span { font-size: .75rem; line-height: 1.1; }
+
+  .contrast-panel { background: var(--panel); border-radius: var(--radius); padding: 24px; max-width: 1100px; width: 92%; box-shadow: 0 12px 48px rgba(163,103,177,0.25); animation: fadeIn 0.6s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .ns-grid { display: flex; width: 100%; gap: 28px; align-items: flex-start; }
+
+  .chat-box { flex: 2.5; display: flex; flex-direction: column; background: #000; border: 1px solid var(--line); border-radius: var(--radius); height: 580px; overflow: hidden; margin-right: 6px; }
+  #progress-container { display: flex; flex-direction: column; background: rgba(35,45,65,0.9); padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); gap: 10px; position: relative; }
+  .action-buttons-bar { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; }
+  .desktop-actions { display: flex; gap: 6px; flex: 1; width: 100%; }
+  .mobile-actions { display: none; width: 100%; flex: 1; }
+
+  .action-btn { flex: 1; min-width: 70px; padding: 8px 6px; border-radius: 8px; background: rgba(163,103,177,0.3); border: 1px solid rgba(163,103,177,0.5); color: #fff; font-weight: 600; font-size: 11px; cursor: pointer; transition: all 0.2s ease; font-family: 'Aptos', sans-serif; white-space: nowrap; position: relative; }
+  .action-btn:hover { background: rgba(163,103,177,0.5); border-color: var(--panel); transform: translateY(-2px); }
+  .action-btn.danger { background: rgba(255,80,80,0.25); border: 1px solid rgba(255,80,80,0.5); }
+  .action-btn-inner { flex: 1; width: 100%; padding: 8px 10px; border-radius: 8px; background: rgba(163,103,177,0.3); border: 1px solid rgba(163,103,177,0.5); color: #fff; font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.2s ease; font-family: 'Aptos', sans-serif; }
+  .action-btn-inner:hover { background: rgba(163,103,177,0.5); border-color: var(--panel); transform: translateY(-2px); }
+  .action-btn-inner.danger { background: rgba(255,80,80,0.25); border: 1px solid rgba(255,80,80,0.5); }
+
+  #mobile-menu-dropdown { display: none; background: rgba(20, 20, 40, 0.95); border-radius: 8px; padding: 6px; border: 1px solid var(--brand-30); width: 100%; gap: 6px; flex-direction: column; margin-top: 6px; }
+  #mobile-menu-dropdown.active { display: flex; }
+  #stats-dropdown { display: none; background: rgba(20,20,40,0.95); border-radius: 8px; padding: 10px; border: 1px solid rgba(163,103,177,0.3); width: 100%; max-width: 280px; position: absolute; top: 100%; left: 0; margin-top: 6px; z-index: 1000; }
+  #stats-dropdown.active { display: block; }
+  .stats-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(163,103,177,0.2); font-size: 11px; font-weight: 600; color: #E8ECEB; }
+  .stats-item:last-child { border-bottom: none; }
+  .stats-value { color: #FFD1E3; font-weight: 700; }
+
+  #quicklinks-dropdown { display: none; background: rgba(20,20,40,0.95); border-radius: 8px; padding: 8px; border: 1px solid rgba(163,103,177,0.3); width: 260px; position: absolute; top: 100%; right: 0; margin-top: 6px; z-index: 1000; }
+  #quicklinks-dropdown.active { display: block; }
+  .quicklink-item { display: block; padding: 8px 10px; color: #fff; text-decoration: none; font-size: 12px; font-weight: 600; border-radius: 6px; transition: all 0.2s ease; }
+  .quicklink-item:hover { background: rgba(163,103,177,0.4); }
+
+  #notebookPanel { position: fixed; top: var(--header-height); right: -420px; width: 400px; height: calc(100vh - var(--header-height) - var(--footer-height)); background: #FFD1E3; box-shadow: -4px 0 20px rgba(0,0,0,0.2); z-index: 10000; transition: right 0.3s ease; display: flex; flex-direction: column; }
+  #notebookPanel.open { right: 0; }
+  .notebook-header { background: var(--panel); padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+  .notebook-header h3 { margin: 0; color: #fff; font-size: 16px; }
+  .notebook-close { background: rgba(255,255,255,0.2); border: none; color: #fff; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 16px; }
+  .notebook-close:hover { background: rgba(255,255,255,0.3); }
+  .notebook-body { flex: 1; padding: 16px; display: flex; flex-direction: column; }
+  #notebookArea { flex: 1; width: 100%; border: 2px solid var(--panel); border-radius: 8px; padding: 12px; font-family: 'Aptos', sans-serif; font-size: 14px; resize: none; background: #fff; color: #1A1A1A; }
+  #notebookArea:focus { outline: none; border-color: #8A4F9F; }
+  .notebook-footer { padding: 12px 16px; background: rgba(163,103,177,0.1); font-size: 11px; color: #666; text-align: center; }
+
+  #chat-body { flex: 1; padding: 14px; overflow-y: auto; font-size: 14px; scroll-behavior: smooth; }
+  #chat-body::-webkit-scrollbar { width: 5px; }
+  #chat-body::-webkit-scrollbar-thumb { background: var(--brand-30); border-radius: 3px; }
+  #chat-footer { display: flex; flex-direction: column; gap: 10px; padding: 14px; background: rgba(35,45,65,0.9); border-top: 1px solid rgba(255,255,255,0.1); }
+  #input-area { display: flex; gap: 10px; align-items: stretch; }
+  .button-row { display: flex; gap: 10px; }
+  #chat-input { flex: 1; resize: none; height: 50px; border-radius: 12px; background: rgba(42,42,61,.8); color: #fff; padding: 10px; font-size: 14px; border: 2px solid var(--brand-35); font-family: 'Aptos', sans-serif; }
+  #chat-input:focus { outline: none; border-color: var(--panel); box-shadow: 0 0 12px var(--brand-30); }
+  #chat-send, #chat-skip { border-radius: 12px; background: var(--brand); color: #000; padding: 0 16px; font-weight: 600; cursor: pointer; border: none; transition: all .2s ease; font-family: 'Aptos', sans-serif; font-size: 14px; }
+  #chat-send:hover { filter: brightness(.92); transform: translateY(-2px); }
+  #chat-skip { background: rgba(163,103,177,0.4); color: #fff; border: 1px solid rgba(163,103,177,0.6); display: none; }
+  #chat-skip:hover { background: rgba(163,103,177,0.6); }
+  #chat-skip.active { display: block; }
+
+  .chat-message { display: flex; align-items: flex-end; gap: 8px; margin: 8px 0; animation: fadeInUp .4s ease forwards; }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .chat-message.bot { justify-content: flex-start; text-align: left; }
+  .chat-message.user { display: flex; flex-direction: row; justify-content: flex-end; align-items: flex-end; margin-left: auto; text-align: right; gap: 8px; }
+  .chat-message.bot .chat-bubble { background: linear-gradient(135deg,#FFD1E3,#FFE0EC); color: #1A1A1A; border-radius: 16px 16px 16px 5px; padding: 10px 14px; line-height: 1.4; max-width: 80%; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.1); word-wrap: break-word; font-size: 13px; }
+  .chat-message.user .chat-bubble { background: linear-gradient(135deg,#8A4F9F,#9B5FAF); color: #fff; border-radius: 16px 16px 5px 16px; padding: 10px 14px; line-height: 1.4; max-width: 80%; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.15); word-wrap: break-word; text-align: left; font-size: 13px; }
+  .chat-message img.avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; margin-bottom: 2px; border: 2px solid var(--brand-30); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+
+  .side-panel { flex: .7; display: flex; flex-direction: column; align-items: center; height: 580px; gap: 10px; }
+  .avatar-box { width: 100%; border-radius: var(--radius); overflow: hidden; }
+  .avatar-box img { width: 100%; height: auto; display: block; }
+  .faq-box { flex: 1; width: 100%; overflow-y: auto; padding: 14px; background: rgba(20,20,40,.95); border-radius: var(--radius); color: #fff; display: flex; flex-direction: column; gap: 8px; }
+  .faq-box::-webkit-scrollbar { width: 5px; }
+  .faq-box::-webkit-scrollbar-thumb { background: var(--panel); border-radius: 3px; }
+  .faq-box h3 { font-size: 11px; font-weight: 700; color: #FFD1E3; text-transform: uppercase; margin: 10px 0 6px 0; letter-spacing: 0.5px; }
+  .faq-box h3:first-child { margin-top: 0; }
+
+  .folder-header { background: rgba(42,42,61,0.85); color: #fff; border-radius: 11px; padding: 10px 12px; font-size: 12px; font-weight: 700; cursor: pointer; border: 2px solid rgba(163,103,177,0.35); transition: all 0.2s ease; display: flex; justify-content: space-between; align-items: center; }
+  .folder-header:hover { background: rgba(163,103,177,0.3); border-color: var(--panel); transform: translateX(3px); }
+  .folder-header .arrow { transition: transform 0.3s ease; font-size: 10px; }
+  .folder-header.open .arrow { transform: rotate(90deg); }
+  .test-list { display: none; padding-left: 6px; margin-top: 3px; }
+  .test-list.open { display: block !important; }
+  .sub-test-list { display: none; padding-left: 10px; margin-top: 3px; }
+  .sub-test-list.open { display: block !important; }
+  .sub-folder-header { background: rgba(60,60,80,0.75); color: #FFD1E3; border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid rgba(163,103,177,0.25); transition: all 0.2s ease; display: flex; justify-content: space-between; align-items: center; margin: 5px 0; }
+  .sub-folder-header:hover { background: rgba(80,80,100,0.85); transform: translateX(2px); }
+  .sub-folder-header .arrow { transition: transform 0.3s ease; font-size: 9px; }
+  .sub-folder-header.open .arrow { transform: rotate(90deg); }
+  .test-btn { background: rgba(42,42,61,0.85); color: #fff; border-radius: 8px; padding: 6px 10px; font-size: 11px; text-align: left; cursor: pointer; border: 2px solid rgba(163,103,177,0.35); transition: all 0.2s ease; font-family: 'Aptos', sans-serif; font-weight: 600; margin: 3px 0; display: block; width: 100%; }
+  .test-btn:hover { background: rgba(163,103,177,0.3); border-color: var(--panel); transform: translateX(3px); }
+  .ns-btn { background: rgba(42,42,61,0.85); color: #fff; border-radius: 11px; padding: 8px 10px; font-size: 12px; text-align: left; cursor: pointer; border: 2px solid var(--brand-35); transition: all .2s ease; font-family: 'Aptos', sans-serif; font-weight: 600; display: block; width: 100%; }
+  .ns-btn:hover { background: var(--brand-30); border-color: var(--panel); transform: translateX(3px); }
+
+  .login-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.65); display: flex; justify-content: center; align-items: center; z-index: 20000; }
+  .login-overlay.hidden { display: none; }
+  .login-modal { background: #ffffff; padding: 24px; width: 320px; border-radius: 16px; text-align: center; box-shadow: 0 8px 40px rgba(0,0,0,0.25); font-family: 'Aptos', sans-serif; }
+  .login-modal h2 { font-size: 20px; margin: 0 0 8px 0; color: #000; }
+  .login-desc { font-size: 13px; margin-bottom: 16px; color: #333; }
+  .login-modal .login-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #bbb; font-size: 13px; margin-bottom: 14px; box-sizing: border-box; font-family: 'Aptos', sans-serif; }
+  .login-submit { width: 100%; padding: 10px; background: var(--panel); color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; margin-bottom: 12px; font-family: 'Aptos', sans-serif; font-size: 14px; }
+  .login-submit:hover { filter: brightness(0.92); }
+  .login-close { width: 100%; padding: 8px; background: #ddd; border: none; border-radius: 6px; cursor: pointer; font-family: 'Aptos', sans-serif; font-size: 13px; }
+  .login-close:hover { background: #ccc; }
+  .login-status { margin-top: 8px; font-size: 13px; color: #333; min-height: 18px; }
+
+  .logged-in-bar { display: none; background: rgba(80,200,120,0.2); border: 1px solid rgba(80,200,120,0.5); border-radius: 6px; padding: 6px 10px; font-size: 11px; color: #90EE90; text-align: center; }
+  .logged-in-bar.active { display: block; }
+
+  @media (max-width:1024px) {
+    html, body { height: auto !important; min-height: 100vh !important; overflow-y: auto !important; overflow-x: hidden !important; }
+    .mn-header-outer.evolve-header { flex-direction: column !important; height: auto !important; padding: 14px 10px !important; position: relative !important; }
+    .mn-header-inner { flex-direction: column !important; gap: 12px !important; }
+    .mn-logo img { height: 45px !important; }
+    .mn-nav { gap: 8px !important; flex-wrap: wrap !important; justify-content: center !important; }
+    .nav-tile { padding: 6px 12px !important; min-width: 100px !important; }
+    #main-content-area { position: static !important; padding: 30px 8px 25px 8px !important; overflow: visible !important; }
+    .contrast-panel { padding: 10px; max-width: 100%; width: 100%; }
+    .ns-grid { flex-direction: column; align-items: center; gap: 10px; }
+    .side-panel { display: contents; }
+    .avatar-box { max-width: 400px; margin: 0 auto 20px auto; order: 1 !important; }
+    .chat-box { width: 100%; height: 600px !important; min-height: 600px !important; max-height: 600px !important; margin-bottom: 25px !important; order: 2 !important; }
+    .faq-box { width: 100%; height: 600px !important; min-height: 600px !important; max-height: 600px !important; margin-bottom: 42px !important; order: 3 !important; }
+    #progress-container { padding: 6px !important; gap: 8px !important; }
+    .desktop-actions { display: none !important; }
+    .mobile-actions { display: flex !important; }
+    #chat-footer { flex-direction: column !important; gap: 10px !important; padding: 12px !important; }
+    #input-area { flex-direction: column !important; gap: 10px !important; }
+    #chat-input { width: 100% !important; height: 80px !important; font-size: 16px !important; }
+    .button-row { display: flex !important; gap: 10px !important; width: 100% !important; }
+    #chat-send, #chat-skip { flex: 1 !important; padding: 12px !important; height: 48px !important; font-size: 15px !important; }
+    .mn-footer { position: relative !important; padding: 15px 0 !important; height: auto !important; }
+    .mn-footer-inner { flex-direction: column !important; gap: 8px !important; text-align: center; }
+    #notebookPanel { width: 100%; right: -100%; }
+    #notebookPanel.open { right: 0; }
+    #quicklinks-dropdown { right: -100px; width: 260px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="mn-header-outer evolve-header">
+  <div class="mn-header-inner">
+    <div class="mn-logo"><a href="/"><img src="https://migratenorth.ca/wp-content/uploads/2025/11/matin-logo-1-1.png" alt="Logo"></a></div>
+    <nav class="mn-nav">
+      <a href="/evolve" class="nav-tile active"><span class="nav-name">Evolve</span><span class="nav-desc">Language Proficiency</span></a>
+      <a href="/elevate" class="nav-tile"><span class="nav-name">Elevate</span><span class="nav-desc">Nursing & Licensing Path</span></a>
+      <a href="/execute" class="nav-tile"><span class="nav-name">Execute</span><span class="nav-desc">Immigration File Support</span></a>
+    </nav>
+  </div>
+</div>
+
+<div id="main-content-area">
+  <div class="contrast-panel">
+    <div class="ns-grid">
+      <div class="chat-box" id="chatbox">
+        <div id="progress-container">
+          <div class="action-buttons-bar desktop-actions">
+            <button class="action-btn" id="btn-stats">📊 Stats</button>
+            <button class="action-btn" id="btn-download">📥 Download</button>
+            <button class="action-btn" id="btn-notebook">📓 Notebook</button>
+            <button class="action-btn" id="btn-quicklinks">🔗 Resources</button>
+            <button class="action-btn danger" id="btn-reset">♻️ Reset</button>
+            <button class="action-btn" id="btn-login">Login</button>
+          </div>
+          <div class="action-buttons-bar mobile-actions"><button class="action-btn" id="btn-mobile-menu">☰ Menu</button></div>
+          <div id="mobile-menu-dropdown">
+            <button class="action-btn-inner" id="btn-stats-mobile">📊 Stats</button>
+            <button class="action-btn-inner" id="btn-download-mobile">📥 Download</button>
+            <button class="action-btn-inner" id="btn-notebook-mobile">📓 Notebook</button>
+            <button class="action-btn-inner" id="btn-quicklinks-mobile">🔗 Resources</button>
+            <button class="action-btn-inner danger" id="btn-reset-mobile">♻️ Reset</button>
+            <button class="action-btn-inner" id="btn-login-mobile">Login</button>
+          </div>
+          <div class="logged-in-bar" id="logged-in-bar">✓ Logged in as <span id="logged-in-email"></span></div>
+          <div id="stats-dropdown">
+            <div class="stats-item"><span>Total Tests:</span><span class="stats-value" id="stat-tests">0/66</span></div>
+            <div class="stats-item"><span>Writing:</span><span class="stats-value" id="stat-writing">0</span></div>
+            <div class="stats-item"><span>Reading:</span><span class="stats-value" id="stat-reading">0</span></div>
+            <div class="stats-item"><span>Streak:</span><span class="stats-value" id="stat-streak">0 days</span></div>
+          </div>
+          <div id="quicklinks-dropdown">
+            <a href="https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry.html" target="_blank" class="quicklink-item">🍁 IRCC Express Entry</a>
+            <a href="https://www.canada.ca/en/immigration-refugees-citizenship/services/application/account.html" target="_blank" class="quicklink-item">🍁 IRCC Account Portal</a>
+            <a href="https://www.wes.org/ca/" target="_blank" class="quicklink-item">📜 WES Canada</a>
+            <a href="https://www.ielts.org/" target="_blank" class="quicklink-item">📝 IELTS Official</a>
+            <a href="https://www.celpip.ca/" target="_blank" class="quicklink-item">📝 CELPIP Official</a>
+            <a href="https://www.jobbank.gc.ca/" target="_blank" class="quicklink-item">💼 Job Bank Canada</a>
+          </div>
+        </div>
+        <div id="chat-body"></div>
+        <div id="chat-footer">
+          <div id="input-area">
+            <textarea id="chat-input" placeholder="Login required to use Evolve" disabled></textarea>
+            <div class="button-row">
+              <button id="chat-send" disabled>Submit</button>
+              <button id="chat-skip">Skip ⏭️</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="side-panel">
+        <div class="avatar-box"><img src="https://migratenorth.ca/wp-content/uploads/2025/11/Gemini_Generated_Image_xe229lxe229lxe22-2.png" alt="Avatar"></div>
+        <div id="faq-dashboard" class="faq-box">
+          <h3>Start Here</h3>
+          <button class="ns-btn" data-faq="how-bootcamp-works">How the Academy Works</button>
+          <button class="ns-btn" data-faq="how-dashboard">How to Use This Dashboard</button>
+          <h3>Writing Practice</h3>
+          <div class="folder-header" data-folder="writing"><span>Open Writing</span><span class="arrow">►</span></div>
+          <div class="test-list" id="writing-tests">
+            <div class="sub-folder-header" data-subfolder="writing-foundation"><span>Foundation</span><span class="arrow">►</span></div>
+            <div class="sub-test-list" id="writing-foundation-tests"></div>
+            <div class="sub-folder-header" data-subfolder="writing-intermediate"><span>Intermediate</span><span class="arrow">►</span></div>
+            <div class="sub-test-list" id="writing-intermediate-tests"></div>
+            <div class="sub-folder-header" data-subfolder="writing-advanced"><span>Advanced</span><span class="arrow">►</span></div>
+            <div class="sub-test-list" id="writing-advanced-tests"></div>
+          </div>
+          <h3>Reading Practice</h3>
+          <div class="folder-header" data-folder="reading"><span>Open Reading</span><span class="arrow">►</span></div>
+          <div class="test-list" id="reading-tests">
+            <div class="sub-folder-header" data-subfolder="reading-foundation"><span>Foundation</span><span class="arrow">►</span></div>
+            <div class="sub-test-list" id="reading-foundation-tests"></div>
+            <div class="sub-folder-header" data-subfolder="reading-intermediate"><span>Intermediate</span><span class="arrow">►</span></div>
+            <div class="sub-test-list" id="reading-intermediate-tests"></div>
+            <div class="sub-folder-header" data-subfolder="reading-advanced"><span>Advanced</span><span class="arrow">►</span></div>
+            <div class="sub-test-list" id="reading-advanced-tests"></div>
+          </div>
+          <h3>Program Information</h3>
+          <button class="ns-btn" data-faq="about">About This Program</button>
+          <button class="ns-btn" data-faq="pricing">Pricing and Access</button>
+          <button class="ns-btn pay-btn" id="unlock-evolve">Unlock Full Evolve Access</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="notebookPanel">
+  <div class="notebook-header">
+    <h3>📓 My Notebook</h3>
+    <button class="notebook-close" id="notebook-close">✕</button>
+  </div>
+  <div class="notebook-body">
+    <textarea id="notebookArea" placeholder="Take notes during your training sessions..."></textarea>
+  </div>
+  <div class="notebook-footer">Auto-saved to your browser</div>
+</div>
+
+<div id="login-overlay" class="login-overlay hidden">
+  <div class="login-modal">
+    <h2>Login to Evolve</h2>
+    <p class="login-desc">Enter your email to check your subscription.</p>
+    <input type="email" id="login-email" placeholder="you@example.com" class="login-input">
+    <button id="login-submit" class="login-submit">Check Access</button>
+    <div id="login-status" class="login-status"></div>
+    <button id="login-close" class="login-close">Close</button>
+  </div>
+</div>
+
+<footer class="mn-footer">
+  <div class="mn-footer-inner">
+    <div class="footer-left">
+      <a href="https://college-ic.ca/" target="_blank"><img src="https://migratenorth.ca/wp-content/uploads/2025/09/WhatsApp-Image-2025-04-03-at-16.37.27-2.jpeg" alt="RCIC"></a>
+      <a class="license-number" href="https://college-ic.ca/protecting-the-public/find-an-immigration-consultant" target="_blank">RCIC License #R712582</a>
+    </div>
+    <div class="footer-center"><a class="footer-email" href="mailto:info@migratenorth.ca">info@migratenorth.ca</a></div>
+    <div class="footer-right">
+      <span>© 2025 Migrate North Academy</span>
+      <span>Results depend on consistent practice.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// =============================================================================
+// CONFIGURATION - UPDATE THIS URL TO YOUR NETLIFY SITE
+// =============================================================================
+const API_BASE = "https://startling-faun-f9dddb.netlify.app";
+const PAYMENT_LINKS = { 
+  evolve: 'https://migratenorth.ca/checkout/evolve', 
+  elevate: 'https://migratenorth.ca/checkout/elevate', 
+  execute: 'https://migratenorth.ca/checkout/execute' 
+};
+
+// =============================================================================
+// STATE
+// =============================================================================
+var userIsSubscribed = false;
+var currentUserEmail = localStorage.getItem('evolve_user_email') || null;
+
+// =============================================================================
+// UTILITIES
+// =============================================================================
+const Utils = {
+  escapeHtml(t) { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; },
+  scrollDown() { const e = document.getElementById("chat-body"); if (e) e.scrollTop = e.scrollHeight; }
+};
+
+// =============================================================================
+// CHAT ENGINE
+// =============================================================================
+const ChatEngine = {
+  interval: null, isTyping: false, skipBtn: null,
+  showSkipButton() { if (this.skipBtn) this.skipBtn.classList.add('active'); },
+  hideSkipButton() { if (this.skipBtn) this.skipBtn.classList.remove('active'); },
+  addBotMessage(t) {
+    if (this.isTyping) this.cleanup();
+    const b = document.getElementById("chat-body");
+    const d = document.createElement("div");
+    d.className = "chat-message bot";
+    d.innerHTML = '<img class="avatar" src="https://migratenorth.ca/wp-content/uploads/2025/11/Gemini_Generated_Image_xe229lxe229lxe22-2.png"><div class="chat-bubble"></div>';
+    b.appendChild(d);
+    this.typeWriter(t, d.querySelector(".chat-bubble"));
+  },
+  typeWriter(t, e) {
+    if (this.isTyping) this.cleanup();
+    this.isTyping = true;
+    let i = 0;
+    const c = t.replace(/\r/g, "");
+    this.showSkipButton();
+    const skipHandler = () => { clearInterval(this.interval); e.innerHTML = c.replace(/\n/g, "<br>"); this.cleanup(); Utils.scrollDown(); };
+    if (this.skipBtn) { this.skipBtn.removeEventListener('click', this.skipBtn._handler); this.skipBtn._handler = skipHandler; this.skipBtn.addEventListener('click', skipHandler); }
+    this.interval = setInterval(() => {
+      if (i >= c.length) { clearInterval(this.interval); this.cleanup(); return; }
+      e.innerHTML += c.charAt(i) === "\n" ? "<br>" : Utils.escapeHtml(c.charAt(i));
+      i++;
+      if (i % 50 === 0) Utils.scrollDown();
+    }, 15);
+  },
+  cleanup() { this.hideSkipButton(); if (this.interval) clearInterval(this.interval); this.interval = null; this.isTyping = false; },
+  init() { this.skipBtn = document.getElementById('chat-skip'); }
+};
+
+// =============================================================================
+// ACCESS CONTROL - REAL ENTITLEMENT CHECK
+// =============================================================================
+async function checkEntitlement(email) {
+  console.log("Checking entitlement for:", email);
+  try {
+    const res = await fetch(API_BASE + "/.netlify/functions/check-entitlement", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email, product: "evolve" })
+    });
+    const data = await res.json();
+    console.log("Entitlement response:", data);
+    return data;
+  } catch (err) {
+    console.error("Entitlement check failed:", err);
+    return { active: false, tier: null };
+  }
+}
+
+function applyAccess(isActive, email) {
+  userIsSubscribed = isActive;
+  const input = document.getElementById("chat-input");
+  const send = document.getElementById("chat-send");
+  const loginBtn = document.getElementById("btn-login");
+  const loginBtnMobile = document.getElementById("btn-login-mobile");
+  const loggedInBar = document.getElementById("logged-in-bar");
+  const loggedInEmail = document.getElementById("logged-in-email");
+
+  if (isActive) {
+    input.disabled = false;
+    send.disabled = false;
+    input.placeholder = "Type your answer here...";
+    if (loginBtn) loginBtn.textContent = "Logout";
+    if (loginBtnMobile) loginBtnMobile.textContent = "Logout";
+    if (loggedInBar) loggedInBar.classList.add("active");
+    if (loggedInEmail) loggedInEmail.textContent = email;
+  } else {
+    input.disabled = true;
+    send.disabled = true;
+    input.placeholder = "Login required to use Evolve";
+    if (loginBtn) loginBtn.textContent = "Login";
+    if (loginBtnMobile) loginBtnMobile.textContent = "Login";
+    if (loggedInBar) loggedInBar.classList.remove("active");
+  }
+}
+
+function logout() {
+  localStorage.removeItem('evolve_user_email');
+  currentUserEmail = null;
+  applyAccess(false, null);
+  ChatEngine.addBotMessage("You've been logged out. Login again to access your training.");
+}
+
+// =============================================================================
+// NOTEBOOK
+// =============================================================================
+function toggleNotebook() { document.getElementById('notebookPanel').classList.toggle('open'); }
+function loadNotebook() { const n = document.getElementById('notebookArea'); if (n) n.value = localStorage.getItem('evolve_notebook') || ''; }
+function saveNotebook() { const n = document.getElementById('notebookArea'); if (n) localStorage.setItem('evolve_notebook', n.value); }
+
+// =============================================================================
+// DROPDOWNS
+// =============================================================================
+function closeAllDropdowns() {
+  document.getElementById('stats-dropdown')?.classList.remove('active');
+  document.getElementById('quicklinks-dropdown')?.classList.remove('active');
+  document.getElementById('mobile-menu-dropdown')?.classList.remove('active');
+}
+
+function showLoginModal() { 
+  document.getElementById('login-overlay')?.classList.remove('hidden'); 
+  document.getElementById('login-status').textContent = '';
+}
+
+// =============================================================================
+// WELCOME
+// =============================================================================
+function welcome() {
+  ChatEngine.addBotMessage(userIsSubscribed 
+    ? "Welcome back to Evolve!\n\nYour full access is active. You have access to all 66 tests and training features.\n\nSelect a test from the dashboard to begin!"
+    : "Welcome to the Evolve preview.\n\nThis is where your IELTS and CELPIP training happens. You can see all 66 tests, micro drills, and progress tracking.\n\nTo unlock full access, please log in or subscribe.\n\nExplore the dashboard to see everything included.");
+}
+
+// =============================================================================
+// TEST BUTTONS
+// =============================================================================
+function initTestButtons() {
+  const configs = {
+    "writing-foundation-tests": { start: 1, count: 11 },
+    "writing-intermediate-tests": { start: 12, count: 11 },
+    "writing-advanced-tests": { start: 23, count: 11 },
+    "reading-foundation-tests": { start: 1, count: 11 },
+    "reading-intermediate-tests": { start: 12, count: 11 },
+    "reading-advanced-tests": { start: 23, count: 11 }
+  };
+  Object.entries(configs).forEach(([id, cfg]) => {
+    const c = document.getElementById(id);
+    if (!c) return;
+    const type = id.includes('writing') ? 'Writing' : 'Reading';
+    for (let i = 0; i < cfg.count; i++) {
+      const b = document.createElement("button");
+      b.className = "test-btn";
+      b.textContent = type + " Test " + (cfg.start + i);
+      b.addEventListener("click", () => {
+        if (userIsSubscribed) {
+          ChatEngine.addBotMessage("Starting " + type + " Test " + (cfg.start + i) + "...\n\nTest engine coming soon!");
+        } else {
+          ChatEngine.addBotMessage("This test is available in the full Evolve program. Login or subscribe to start.");
+        }
+      });
+      c.appendChild(b);
+    }
+  });
+}
+
+// =============================================================================
+// INITIALIZATION
+// =============================================================================
+document.addEventListener("DOMContentLoaded", async () => {
+  console.log("Evolve initializing...");
+  ChatEngine.init();
+  loadNotebook();
+  initTestButtons();
+
+  // Check if user was previously logged in
+  if (currentUserEmail) {
+    console.log("Found stored email:", currentUserEmail);
+    const result = await checkEntitlement(currentUserEmail);
+    if (result.active) {
+      applyAccess(true, currentUserEmail);
+    } else {
+      localStorage.removeItem('evolve_user_email');
+      currentUserEmail = null;
+    }
+  }
+
+  // Notebook
+  document.getElementById('btn-notebook')?.addEventListener('click', toggleNotebook);
+  document.getElementById('btn-notebook-mobile')?.addEventListener('click', () => { closeAllDropdowns(); toggleNotebook(); });
+  document.getElementById('notebook-close')?.addEventListener('click', toggleNotebook);
+  document.getElementById('notebookArea')?.addEventListener('input', saveNotebook);
+
+  // Quick Links
+  document.getElementById('btn-quicklinks')?.addEventListener('click', (e) => { 
+    e.stopPropagation(); 
+    closeAllDropdowns();
+    document.getElementById('quicklinks-dropdown')?.classList.toggle('active'); 
+  });
+  document.getElementById('btn-quicklinks-mobile')?.addEventListener('click', () => { 
+    closeAllDropdowns(); 
+    document.getElementById('quicklinks-dropdown')?.classList.toggle('active');
+  });
+
+  // Stats
+  document.getElementById('btn-stats')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeAllDropdowns();
+    document.getElementById('stats-dropdown')?.classList.toggle('active');
+  });
+  document.getElementById('btn-stats-mobile')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeAllDropdowns();
+    document.getElementById('stats-dropdown')?.classList.toggle('active');
+  });
+
+  // Download
+  document.getElementById('btn-download')?.addEventListener('click', () => {
+    ChatEngine.addBotMessage(userIsSubscribed ? "Download feature coming soon!" : "Download is available in the full Evolve program.");
+  });
+  document.getElementById('btn-download-mobile')?.addEventListener('click', () => { 
+    closeAllDropdowns(); 
+    ChatEngine.addBotMessage(userIsSubscribed ? "Download feature coming soon!" : "Download is available in the full Evolve program.");
+  });
+
+  // Reset
+  const resetHandler = () => {
+    if (!confirm("Clear chat and reset?")) return;
+    document.getElementById("chat-body").innerHTML = "";
+    welcome();
+  };
+  document.getElementById('btn-reset')?.addEventListener('click', resetHandler);
+  document.getElementById('btn-reset-mobile')?.addEventListener('click', () => { closeAllDropdowns(); resetHandler(); });
+
+  // Login/Logout
+  const handleLoginClick = () => {
+    if (userIsSubscribed && currentUserEmail) {
+      logout();
+    } else {
+      showLoginModal();
+    }
+  };
+  document.getElementById('btn-login')?.addEventListener('click', handleLoginClick);
+  document.getElementById('btn-login-mobile')?.addEventListener('click', () => { closeAllDropdowns(); handleLoginClick(); });
+
+  // Login modal
+  document.getElementById('login-close')?.addEventListener('click', () => document.getElementById('login-overlay')?.classList.add('hidden'));
+  document.getElementById('login-overlay')?.addEventListener('click', (e) => { if (e.target.id === 'login-overlay') document.getElementById('login-overlay')?.classList.add('hidden'); });
+  
+  // LOGIN SUBMIT - Real check
+  document.getElementById('login-submit')?.addEventListener('click', async () => {
+    const emailInput = document.getElementById("login-email");
+    const status = document.getElementById("login-status");
+    const email = emailInput.value.trim().toLowerCase();
+    
+    if (!email || !email.includes('@')) {
+      status.textContent = "Please enter a valid email.";
+      return;
+    }
+    
+    status.textContent = "Checking subscription...";
+    
+    const result = await checkEntitlement(email);
+    
+    if (result.active) {
+      currentUserEmail = email;
+      localStorage.setItem('evolve_user_email', email);
+      applyAccess(true, email);
+      document.getElementById('login-overlay')?.classList.add('hidden');
+      ChatEngine.addBotMessage("Welcome back! Your Evolve subscription is active.\n\nYou now have full access to all 66 tests.\n\nSelect a test from the dashboard to begin!");
+    } else {
+      status.innerHTML = 'No active subscription found.<br><a href="' + PAYMENT_LINKS.evolve + '" style="color:#A367B1;font-weight:bold;">Subscribe to Evolve →</a>';
+    }
+  });
+
+  // Mobile menu
+  document.getElementById('btn-mobile-menu')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('mobile-menu-dropdown')?.classList.toggle('active');
+  });
+
+  // Unlock button
+  document.getElementById('unlock-evolve')?.addEventListener('click', () => { window.location.href = PAYMENT_LINKS.evolve; });
+
+  // Folders
+  document.querySelectorAll('.folder-header').forEach(h => h.addEventListener('click', () => {
+    const l = document.getElementById(h.dataset.folder + '-tests');
+    h.classList.toggle('open');
+    l?.classList.toggle('open');
+  }));
+  document.querySelectorAll('.sub-folder-header').forEach(h => h.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const l = document.getElementById(h.dataset.subfolder + '-tests');
+    h.classList.toggle('open');
+    l?.classList.toggle('open');
+  }));
+
+  // FAQ buttons
+  document.querySelectorAll('[data-faq]').forEach(b => b.addEventListener('click', () => {
+    ChatEngine.addBotMessage(userIsSubscribed ? "Content coming soon!" : "This feature is available in the full Evolve program.");
+  }));
+
+  // Close dropdowns on outside click
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#progress-container')) closeAllDropdowns();
+  });
+
+  welcome();
+  console.log("Evolve ready!");
+});
+</script>
+</body>
+</html>
