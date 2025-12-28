@@ -92,12 +92,16 @@
   #chat-body::-webkit-scrollbar { width: 5px; }
   #chat-body::-webkit-scrollbar-thumb { background: var(--brand-30); border-radius: 3px; }
   #chat-footer { display: flex; flex-direction: column; gap: 10px; padding: 14px; background: rgba(35,45,65,0.9); border-top: 1px solid rgba(255,255,255,0.1); }
+  #test-info { display: none; justify-content: space-between; align-items: center; padding: 6px 10px; background: rgba(163,103,177,0.2); border-radius: 8px; border: 1px solid rgba(163,103,177,0.3); }
+  .info-item { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #FFD1E3; }
+  #timer { color: #FFD1E3; font-size: 14px; font-weight: 700; }
+  #word-count { color: #FFD1E3; font-size: 14px; font-weight: 700; }
   #input-area { display: flex; gap: 10px; align-items: stretch; }
   .button-row { display: flex; gap: 10px; }
   #chat-input { flex: 1; resize: none; height: 50px; border-radius: 12px; background: rgba(42,42,61,.8); color: #fff; padding: 10px; font-size: 14px; border: 2px solid var(--brand-35); font-family: 'Aptos', sans-serif; }
   #chat-input:focus { outline: none; border-color: var(--panel); box-shadow: 0 0 12px var(--brand-30); }
-  #chat-send, #chat-skip { border-radius: 12px; background: var(--brand); color: #000; padding: 0 16px; font-weight: 600; cursor: pointer; border: none; transition: all .2s ease; font-family: 'Aptos', sans-serif; font-size: 14px; }
-  #chat-send:hover { filter: brightness(.92); transform: translateY(-2px); }
+  #chat-send, #chat-refine, #chat-skip { border-radius: 12px; background: var(--brand); color: #000; padding: 0 16px; font-weight: 600; cursor: pointer; border: none; transition: all .2s ease; font-family: 'Aptos', sans-serif; font-size: 14px; }
+  #chat-send:hover, #chat-refine:hover { filter: brightness(.92); transform: translateY(-2px); }
   #chat-skip { background: rgba(163,103,177,0.4); color: #fff; border: 1px solid rgba(163,103,177,0.6); display: none; }
   #chat-skip:hover { background: rgba(163,103,177,0.6); }
   #chat-skip.active { display: block; }
@@ -119,7 +123,7 @@
   .faq-box h3 { font-size: 11px; font-weight: 700; color: #FFD1E3; text-transform: uppercase; margin: 10px 0 6px 0; letter-spacing: 0.5px; }
   .faq-box h3:first-child { margin-top: 0; }
 
-  .folder-header { background: rgba(42,42,61,0.85); color: #fff; border-radius: 11px; padding: 10px 12px; font-size: 12px; font-weight: 700; cursor: pointer; border: 2px solid rgba(163,103,177,0.35); transition: all 0.2s ease; display: flex; justify-content: space-between; align-items: center; }
+  .folder-header { background: rgba(42,42,61,0.85); color: #fff; border-radius: 11px; padding: 10px 12px; font-size: 12px; font-weight: 700; cursor: pointer; border: 2px solid rgba(163,103,177,0.35); transition: all 0.2s ease; display: flex; justify-content: space-between; align-items: center; user-select: none; }
   .folder-header:hover { background: rgba(163,103,177,0.3); border-color: var(--panel); transform: translateX(3px); }
   .folder-header .arrow { transition: transform 0.3s ease; font-size: 10px; }
   .folder-header.open .arrow { transform: rotate(90deg); }
@@ -127,8 +131,8 @@
   .test-list.open { display: block !important; }
   .sub-test-list { display: none; padding-left: 10px; margin-top: 3px; }
   .sub-test-list.open { display: block !important; }
-  .sub-folder-header { background: rgba(60,60,80,0.75); color: #FFD1E3; border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid rgba(163,103,177,0.25); transition: all 0.2s ease; display: flex; justify-content: space-between; align-items: center; margin: 5px 0; }
-  .sub-folder-header:hover { background: rgba(80,80,100,0.85); transform: translateX(2px); }
+  .sub-folder-header { background: rgba(60,60,80,0.75); color: #FFD1E3; border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid rgba(163,103,177,0.25); transition: all 0.2s ease; display: flex; justify-content: space-between; align-items: center; margin: 5px 0; user-select: none; }
+  .sub-folder-header:hover { background: rgba(80,80,100,0.85); border-color: rgba(163,103,177,0.4); transform: translateX(2px); }
   .sub-folder-header .arrow { transition: transform 0.3s ease; font-size: 9px; }
   .sub-folder-header.open .arrow { transform: rotate(90deg); }
   .test-btn { background: rgba(42,42,61,0.85); color: #fff; border-radius: 8px; padding: 6px 10px; font-size: 11px; text-align: left; cursor: pointer; border: 2px solid rgba(163,103,177,0.35); transition: all 0.2s ease; font-family: 'Aptos', sans-serif; font-weight: 600; margin: 3px 0; display: block; width: 100%; }
@@ -158,6 +162,8 @@
     .mn-logo img { height: 45px !important; }
     .mn-nav { gap: 8px !important; flex-wrap: wrap !important; justify-content: center !important; }
     .nav-tile { padding: 6px 12px !important; min-width: 100px !important; }
+    .nav-tile .nav-name { font-size: 14px !important; }
+    .nav-tile .nav-desc { font-size: 9px !important; }
     #main-content-area { position: static !important; padding: 30px 8px 25px 8px !important; overflow: visible !important; }
     .contrast-panel { padding: 10px; max-width: 100%; width: 100%; }
     .ns-grid { flex-direction: column; align-items: center; gap: 10px; }
@@ -172,7 +178,7 @@
     #input-area { flex-direction: column !important; gap: 10px !important; }
     #chat-input { width: 100% !important; height: 80px !important; font-size: 16px !important; }
     .button-row { display: flex !important; gap: 10px !important; width: 100% !important; }
-    #chat-send, #chat-skip { flex: 1 !important; padding: 12px !important; height: 48px !important; font-size: 15px !important; }
+    #chat-send, #chat-refine, #chat-skip { flex: 1 !important; padding: 12px !important; height: 48px !important; font-size: 15px !important; }
     .mn-footer { position: relative !important; padding: 15px 0 !important; height: auto !important; }
     .mn-footer-inner { flex-direction: column !important; gap: 8px !important; text-align: center; }
     #notebookPanel { width: 100%; right: -100%; }
@@ -221,7 +227,11 @@
             <div class="stats-item"><span>Total Tests:</span><span class="stats-value" id="stat-tests">0/66</span></div>
             <div class="stats-item"><span>Writing:</span><span class="stats-value" id="stat-writing">0</span></div>
             <div class="stats-item"><span>Reading:</span><span class="stats-value" id="stat-reading">0</span></div>
+            <div class="stats-item"><span>Micro Drills:</span><span class="stats-value" id="stat-micro">0</span></div>
+            <div class="stats-item"><span>Avg Speed:</span><span class="stats-value" id="stat-speed">-- WPM</span></div>
+            <div class="stats-item"><span>Accuracy Trend:</span><span class="stats-value" id="stat-accuracy">--%</span></div>
             <div class="stats-item"><span>Streak:</span><span class="stats-value" id="stat-streak">0 days</span></div>
+            <div class="stats-item"><span>Practice Time:</span><span class="stats-value" id="stat-time">0 min</span></div>
           </div>
           <div id="quicklinks-dropdown">
             <a href="https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry.html" target="_blank" class="quicklink-item">🍁 IRCC Express Entry</a>
@@ -229,15 +239,21 @@
             <a href="https://www.wes.org/ca/" target="_blank" class="quicklink-item">📜 WES Canada</a>
             <a href="https://www.ielts.org/" target="_blank" class="quicklink-item">📝 IELTS Official</a>
             <a href="https://www.celpip.ca/" target="_blank" class="quicklink-item">📝 CELPIP Official</a>
+            <a href="https://www.nnas.ca/" target="_blank" class="quicklink-item">🏥 NNAS for Nurses</a>
             <a href="https://www.jobbank.gc.ca/" target="_blank" class="quicklink-item">💼 Job Bank Canada</a>
           </div>
         </div>
         <div id="chat-body"></div>
         <div id="chat-footer">
+          <div id="test-info">
+            <div class="info-item"><span>Time:</span><span id="timer">--:--</span></div>
+            <div class="info-item"><span>Words:</span><span id="word-count">0</span></div>
+          </div>
           <div id="input-area">
             <textarea id="chat-input" placeholder="Login required to use Evolve" disabled></textarea>
             <div class="button-row">
               <button id="chat-send" disabled>Submit</button>
+              <button id="chat-refine" disabled>Refine</button>
               <button id="chat-skip">Skip ⏭️</button>
             </div>
           </div>
@@ -249,29 +265,65 @@
           <h3>Start Here</h3>
           <button class="ns-btn" data-faq="how-bootcamp-works">How the Academy Works</button>
           <button class="ns-btn" data-faq="how-dashboard">How to Use This Dashboard</button>
+          
+          <h3>NorthStar GPS</h3>
+          <button class="ns-btn" data-faq="speed-tips">Tips for Writing Faster</button>
+          <button class="ns-btn" data-faq="accuracy-tips">Tips for Better Accuracy</button>
+          <button class="ns-btn" data-faq="vocab-tips">How to Learn New Words</button>
+          <button class="ns-btn" data-faq="grammar-rules">Rules of Grammar</button>
+          <button class="ns-btn" data-faq="common-mistakes">Common Mistakes to Avoid</button>
+          <button class="ns-btn" data-faq="essay-structure">How to Structure an Essay</button>
+          <button class="ns-btn" data-faq="reading-analysis">How to Analyze a Reading Passage</button>
+          
           <h3>Writing Practice</h3>
           <div class="folder-header" data-folder="writing"><span>Open Writing</span><span class="arrow">►</span></div>
           <div class="test-list" id="writing-tests">
-            <div class="sub-folder-header" data-subfolder="writing-foundation"><span>Foundation</span><span class="arrow">►</span></div>
+            <div class="sub-folder-header" data-subfolder="writing-foundation"><span>Foundation (1-11)</span><span class="arrow">►</span></div>
             <div class="sub-test-list" id="writing-foundation-tests"></div>
-            <div class="sub-folder-header" data-subfolder="writing-intermediate"><span>Intermediate</span><span class="arrow">►</span></div>
+            <div class="sub-folder-header" data-subfolder="writing-intermediate"><span>Intermediate (12-22)</span><span class="arrow">►</span></div>
             <div class="sub-test-list" id="writing-intermediate-tests"></div>
-            <div class="sub-folder-header" data-subfolder="writing-advanced"><span>Advanced</span><span class="arrow">►</span></div>
+            <div class="sub-folder-header" data-subfolder="writing-advanced"><span>Advanced (23-33)</span><span class="arrow">►</span></div>
             <div class="sub-test-list" id="writing-advanced-tests"></div>
+            <div class="sub-folder-header" data-subfolder="writing-micro"><span>Micro Drills</span><span class="arrow">►</span></div>
+            <div class="sub-test-list" id="writing-micro-tests"></div>
+            <button class="ns-btn" data-faq="random-writing">🎲 Random Writing Test</button>
+            <button class="ns-btn" data-faq="sample-answers">📄 Sample High-Scoring Responses</button>
           </div>
+          
           <h3>Reading Practice</h3>
           <div class="folder-header" data-folder="reading"><span>Open Reading</span><span class="arrow">►</span></div>
           <div class="test-list" id="reading-tests">
-            <div class="sub-folder-header" data-subfolder="reading-foundation"><span>Foundation</span><span class="arrow">►</span></div>
+            <div class="sub-folder-header" data-subfolder="reading-foundation"><span>Foundation (1-11)</span><span class="arrow">►</span></div>
             <div class="sub-test-list" id="reading-foundation-tests"></div>
-            <div class="sub-folder-header" data-subfolder="reading-intermediate"><span>Intermediate</span><span class="arrow">►</span></div>
+            <div class="sub-folder-header" data-subfolder="reading-intermediate"><span>Intermediate (12-22)</span><span class="arrow">►</span></div>
             <div class="sub-test-list" id="reading-intermediate-tests"></div>
-            <div class="sub-folder-header" data-subfolder="reading-advanced"><span>Advanced</span><span class="arrow">►</span></div>
+            <div class="sub-folder-header" data-subfolder="reading-advanced"><span>Advanced (23-33)</span><span class="arrow">►</span></div>
             <div class="sub-test-list" id="reading-advanced-tests"></div>
+            <div class="sub-folder-header" data-subfolder="reading-micro"><span>Micro Drills</span><span class="arrow">►</span></div>
+            <div class="sub-test-list" id="reading-micro-tests"></div>
+            <button class="ns-btn" data-faq="random-reading">🎲 Random Reading Test</button>
           </div>
+          
+          <h3>Vocabulary Builder</h3>
+          <button class="ns-btn" data-faq="vocab-drill">Start Vocabulary Drill</button>
+          <button class="ns-btn" data-faq="vocab-review">Review My Words</button>
+          <button class="ns-btn" data-faq="word-list">Academic Word List Overview</button>
+          
+          <h3>My Progress</h3>
+          <button class="ns-btn" data-faq="progress-overview">My Progress Overview</button>
+          <button class="ns-btn" id="btn-new-test">Start New Test</button>
+          
+          <h3>Scoring Explained</h3>
+          <button class="ns-btn" data-faq="ielts-writing-scoring">IELTS Writing Scoring</button>
+          <button class="ns-btn" data-faq="ielts-reading-scoring">IELTS Reading Scoring</button>
+          <button class="ns-btn" data-faq="celpip-writing-scoring">CELPIP Writing Scoring</button>
+          <button class="ns-btn" data-faq="celpip-reading-scoring">CELPIP Reading Scoring</button>
+          <button class="ns-btn" data-faq="score-conversion">IELTS CELPIP to CLB</button>
+          
           <h3>Program Information</h3>
           <button class="ns-btn" data-faq="about">About This Program</button>
           <button class="ns-btn" data-faq="pricing">Pricing and Access</button>
+          <button class="ns-btn" data-faq="writing-review">📝 Request Writing Review</button>
           <button class="ns-btn pay-btn" id="unlock-evolve">Unlock Full Evolve Access</button>
         </div>
       </div>
@@ -279,6 +331,7 @@
   </div>
 </div>
 
+<!-- Notebook Panel -->
 <div id="notebookPanel">
   <div class="notebook-header">
     <h3>📓 My Notebook</h3>
@@ -290,6 +343,7 @@
   <div class="notebook-footer">Auto-saved to your browser</div>
 </div>
 
+<!-- Login Modal -->
 <div id="login-overlay" class="login-overlay hidden">
   <div class="login-modal">
     <h2>Login to Evolve</h2>
@@ -317,13 +371,531 @@
 
 <script>
 // =============================================================================
-// CONFIGURATION - UPDATE THIS URL TO YOUR NETLIFY SITE
+// CONFIGURATION
 // =============================================================================
 const API_BASE = "https://startling-faun-f9dddb.netlify.app";
 const PAYMENT_LINKS = { 
   evolve: 'https://migratenorth.ca/checkout/evolve', 
   elevate: 'https://migratenorth.ca/checkout/elevate', 
   execute: 'https://migratenorth.ca/checkout/execute' 
+};
+
+// =============================================================================
+// FAQ CONTENT - Real answers for all FAQ buttons
+// =============================================================================
+const FAQ_CONTENT = {
+  "how-bootcamp-works": `Welcome to Migrate North Academy's Evolve Program!
+
+This is your IELTS and CELPIP training center. Here's how it works:
+
+1. **66 Progressive Tests** - Writing and Reading tests organized by difficulty (Foundation → Intermediate → Advanced)
+
+2. **Micro Drills** - Targeted practice for specific skills like paraphrasing, grammar control, and reading comprehension
+
+3. **AI-Powered Feedback** - Submit your answers and receive instant scoring with detailed feedback on grammar, vocabulary, coherence, and task achievement
+
+4. **Vocabulary Builder** - Learn and review high-frequency academic words
+
+5. **Track Your Progress** - Your stats are saved so you can see improvement over time (accuracy trend, practice time, streak)
+
+Start with Foundation tests and work your way up. Consistency is key - aim for at least one test per day!`,
+
+  "how-dashboard": `How to Use This Dashboard:
+
+**Top Bar Controls:**
+• 📊 Stats - View your progress, accuracy trend, and practice time
+• 📥 Download - Export your results
+• 📓 Notebook - Take notes during training
+• 🔗 Resources - Quick links to official sites
+• ♻️ Reset - Clear the chat
+• Login/Logout - Manage your session
+
+**Right Panel:**
+• Select tests from Writing or Reading folders
+• Try Micro Drills for targeted skill practice
+• Use Vocabulary Builder to expand your word bank
+• Click folder headers to expand/collapse
+• Foundation → Intermediate → Advanced progression
+
+**Chat Area:**
+• Receive test prompts here
+• Type your answers in the input box
+• Click Submit to send for AI evaluation
+• Click Refine to get improvement suggestions
+• Use Skip to move to next question during typing`,
+
+  "speed-tips": `Tips for Writing Faster:
+
+1. **Plan Before Writing** - Spend 2-3 minutes outlining your main points
+2. **Use Templates** - Memorize paragraph structures for common question types
+3. **Don't Overthink** - Write your first thought, refine later
+4. **Practice Typing** - Your typing speed directly affects test performance
+5. **Time Yourself** - Always practice with a timer
+6. **Learn Transitions** - Keep a mental list of linking words ready
+7. **Skip Difficult Words** - Use simpler synonyms to maintain flow
+8. **Review Last** - Focus on completing first, editing second`,
+
+  "accuracy-tips": `Tips for Better Accuracy:
+
+1. **Read Questions Twice** - Understand exactly what's being asked
+2. **Answer All Parts** - Multi-part questions need complete responses
+3. **Check Subject-Verb Agreement** - Common error that costs marks
+4. **Vary Sentence Structure** - Mix simple, compound, and complex sentences
+5. **Use Specific Examples** - General statements need concrete support
+6. **Proofread Systematically** - Check spelling, grammar, then content
+7. **Stay On Topic** - Every sentence should relate to the question
+8. **Count Your Words** - Stay within the required range`,
+
+  "vocab-tips": `How to Learn New Words Effectively:
+
+1. **Learn in Context** - Study words within sentences, not isolation
+2. **Use Spaced Repetition** - Review words at increasing intervals
+3. **Create Word Families** - Learn related forms (decide, decision, decisive)
+4. **Practice Collocations** - Learn which words go together naturally
+5. **Read Widely** - Expose yourself to academic and news articles
+6. **Keep a Vocabulary Journal** - Write new words in your notebook
+7. **Use Words Actively** - Incorporate new vocabulary in your writing
+8. **Focus on High-Frequency Academic Words** - Prioritize the AWL list`,
+
+  "grammar-rules": `Essential Grammar Rules for IELTS/CELPIP:
+
+**Tenses:**
+• Use present simple for facts and habits
+• Use present perfect for experiences and recent events
+• Use past simple for completed actions with time markers
+
+**Articles:**
+• 'The' for specific/known items
+• 'A/An' for general/first mention
+• No article for general plurals and uncountables
+
+**Common Structures:**
+• Conditionals (If + present, will + verb)
+• Passive voice (is/are/was/were + past participle)
+• Relative clauses (who, which, that, where)
+
+**Punctuation:**
+• Commas after introductory phrases
+• No comma before 'that' in essential clauses
+• Semicolons between related independent clauses`,
+
+  "common-mistakes": `Common Mistakes to Avoid:
+
+1. **Run-on Sentences** - Use periods or conjunctions to separate ideas
+2. **Word Repetition** - Use synonyms to show vocabulary range
+3. **Off-Topic Content** - Every paragraph must address the question
+4. **Informal Language** - Avoid contractions, slang, and "etc."
+5. **Overuse of "I think"** - Vary opinion expressions
+6. **Missing Conclusions** - Always end with a summary or final thought
+7. **Copying Question Words** - Paraphrase the prompt in your answer
+8. **Ignoring Word Count** - Under 250 words in Task 2 loses marks
+9. **No Paragraphing** - Use clear paragraph breaks
+10. **Forgetting Examples** - Support all claims with specifics`,
+
+  "progress-overview": `Your Progress Overview:
+
+Check the 📊 Stats button for your full statistics including:
+
+• **Total tests completed** out of 66
+• **Writing vs Reading** breakdown
+• **Micro Drills** completed
+• **Average words per minute** (WPM)
+• **Accuracy Trend** - Are you improving over time?
+• **Current streak** - Consecutive practice days
+• **Practice Time** - Total minutes spent training
+
+**How Stats Work:**
+Your stats update automatically as you complete tests. Start with zeros, watch them grow!
+
+**Tips for Improvement:**
+• Aim to complete at least 1 test daily
+• Review your weakest areas in Micro Drills
+• Retake tests where you scored below 6.0
+• Track your accuracy trend over time
+• Build a streak for consistent practice
+
+Keep practicing consistently - improvement comes with repetition!`,
+
+  "ielts-writing-scoring": `IELTS Writing Scoring (Band Descriptors):
+
+**Task Achievement (25%)**
+• Band 7+: Fully addresses all parts, clear position
+• Band 6: Addresses task, but may lack focus
+• Band 5: Only partially addresses the task
+
+**Coherence & Cohesion (25%)**
+• Band 7+: Logical organization, clear progression
+• Band 6: Generally coherent, some issues
+• Band 5: Lacks overall progression
+
+**Lexical Resource (25%)**
+• Band 7+: Wide vocabulary range, few errors
+• Band 6: Adequate vocabulary, some errors
+• Band 5: Limited range, noticeable errors
+
+**Grammar Range & Accuracy (25%)**
+• Band 7+: Variety of structures, few errors
+• Band 6: Mix of structures, some errors
+• Band 5: Limited range, frequent errors
+
+**Target: Band 7 = CLB 9**`,
+
+  "celpip-writing-scoring": `CELPIP Writing Scoring:
+
+**Level 9-10 (Advanced)**
+• Sophisticated vocabulary and grammar
+• Fully developed ideas with examples
+• Excellent organization and flow
+• Minimal errors
+
+**Level 7-8 (Adequate to Good)**
+• Good vocabulary range
+• Clear organization
+• Well-developed content
+• Some minor errors
+
+**Level 5-6 (Developing)**
+• Basic vocabulary
+• Simple sentence structures
+• Ideas present but underdeveloped
+• Noticeable errors
+
+**Level 3-4 (Limited)**
+• Very basic communication
+• Frequent errors affecting meaning
+• Incomplete ideas
+
+**Target: Level 9 = CLB 9**`,
+
+  "score-conversion": `IELTS & CELPIP to CLB Conversion:
+
+**CLB 10:**
+• IELTS: 8.0-9.0
+• CELPIP: 10-12
+
+**CLB 9:**
+• IELTS: 7.0-7.5
+• CELPIP: 9
+
+**CLB 8:**
+• IELTS: 6.5
+• CELPIP: 8
+
+**CLB 7:**
+• IELTS: 6.0
+• CELPIP: 7
+
+**CLB 6:**
+• IELTS: 5.5
+• CELPIP: 6
+
+**CLB 5:**
+• IELTS: 5.0
+• CELPIP: 5
+
+**Express Entry Points:**
+• CLB 9+ all abilities: 124 points (first language)
+• CLB 7 all abilities: 64 points
+• Higher CLB = More CRS points!`,
+
+  "about": `About Migrate North Academy - Evolve:
+
+**What is Evolve?**
+Evolve is an AI-powered language training platform designed specifically for Canadian immigration applicants preparing for IELTS and CELPIP exams.
+
+**Created By:**
+Matin Immigration Services Inc.
+RCIC License #R712582
+
+**What's Included:**
+• 66 progressive writing and reading tests
+• Micro Drills for targeted skill practice
+• Vocabulary Builder with academic word lists
+• AI-powered instant feedback and scoring
+• Progress tracking (accuracy trend, practice time, streak)
+• Personal notebook
+• Quick links to official resources
+
+**Our Mission:**
+To help immigrants achieve their required language scores efficiently and affordably, supporting their journey to Canadian permanent residence.
+
+**Contact:** info@migratenorth.ca`,
+
+  "pricing": `Evolve Pricing and Access:
+
+**Full Access Includes:**
+✓ All 66 Writing & Reading Tests
+✓ All Micro Drills (12 skill categories)
+✓ Vocabulary Builder & Word Lists
+✓ AI-Powered Scoring & Feedback
+✓ Unlimited Practice Sessions
+✓ Progress Tracking Dashboard
+✓ Personal Notebook
+✓ Mobile-Friendly Access
+
+**Subscription Options:**
+• Monthly Access
+• Quarterly Access (Best Value)
+• Annual Access
+
+**Bundle Deals:**
+Combine Evolve with Execute (immigration file support) or Elevate (nursing pathway) for additional savings.
+
+Click the yellow "Unlock Full Evolve Access" button below to see current pricing and subscribe.
+
+**Satisfaction Guarantee:**
+We're confident in our platform. Contact us if you have any concerns.`,
+
+  "essay-structure": `How to Structure an Essay (IELTS Task 2 / CELPIP):
+
+**Introduction (2-3 sentences)**
+• Paraphrase the question
+• State your position clearly
+• Preview your main points (optional)
+
+**Body Paragraph 1 (5-7 sentences)**
+• Topic sentence stating main idea
+• Explanation of the point
+• Specific example or evidence
+• Link back to thesis
+
+**Body Paragraph 2 (5-7 sentences)**
+• Topic sentence (different angle)
+• Explanation
+• Example/evidence
+• Link to argument
+
+**Conclusion (2-3 sentences)**
+• Restate your position (different words)
+• Summarize key points
+• Final thought or recommendation
+
+**Word Count Target:** 250-280 words
+**Time Management:** Plan 5 min, Write 30 min, Review 5 min`,
+
+  "reading-analysis": `How to Analyze a Reading Passage:
+
+**First Read (2-3 minutes):**
+• Skim for main idea and structure
+• Note paragraph topics
+• Don't read every word
+
+**Question Strategy:**
+• Read questions BEFORE detailed reading
+• Identify question types (detail, inference, main idea)
+• Note keywords to search for
+
+**Finding Answers:**
+• Scan for keywords from the question
+• Read surrounding sentences carefully
+• Watch for paraphrased information
+
+**Common Question Types:**
+• True/False/Not Given - Match to exact text
+• Multiple Choice - Eliminate wrong answers
+• Matching - Use headings as guides
+• Fill in Blanks - Check grammar fit
+
+**Time Management:**
+• Spend 20 minutes per passage
+• Don't get stuck on one question
+• Mark difficult ones and return later`,
+
+  "ielts-reading-scoring": `IELTS Reading Scoring:
+
+**Band Score = Correct Answers out of 40**
+
+• Band 9: 39-40 correct
+• Band 8.5: 37-38 correct
+• Band 8: 35-36 correct
+• Band 7.5: 33-34 correct
+• Band 7: 30-32 correct
+• Band 6.5: 27-29 correct
+• Band 6: 23-26 correct
+• Band 5.5: 19-22 correct
+• Band 5: 15-18 correct
+
+**Key Strategies:**
+• No negative marking - always guess
+• Spelling must be exact
+• Follow word limits strictly
+• Transfer answers carefully
+
+**Time Management:**
+• 60 minutes for 40 questions
+• ~20 minutes per passage
+• Save 5 minutes for answer transfer`,
+
+  "celpip-reading-scoring": `CELPIP Reading Scoring:
+
+**Level 9-10 (Advanced)**
+• Understands complex texts fully
+• Identifies subtle nuances and implications
+• Handles academic/professional material easily
+
+**Level 7-8 (Adequate to Good)**
+• Understands most complex texts
+• Can identify main ideas and details
+• Handles most workplace reading
+
+**Level 5-6 (Developing)**
+• Understands simple to moderately complex texts
+• May miss subtle meanings
+• Can handle basic workplace reading
+
+**Test Format:**
+• 4 parts, 38-55 questions
+• 55-60 minutes total
+• Computer-based, multiple choice
+
+**Question Types:**
+• Reading correspondence
+• Reading to apply a diagram
+• Reading for information
+• Reading for viewpoints`,
+
+  "writing-review": `📝 Request Expert Writing Review
+
+Want personalized feedback from a human expert?
+
+Our team offers detailed writing reviews that go beyond AI scoring:
+
+**What You Get:**
+• Line-by-line feedback on your response
+• Specific suggestions for improvement
+• Band score estimate with explanation
+• Personalized study recommendations
+• Response within 48 hours
+
+**How to Request:**
+1. Complete a writing test in Evolve
+2. Copy your response
+3. Email to: **info@migratenorth.ca**
+4. Subject line: "Writing Review Request"
+5. Include: Your response + the original prompt
+
+**Pricing:**
+• Single review: Contact for quote
+• Package of 5 reviews: Discounted rate
+• Unlimited reviews: Available with premium plans
+
+This service pairs perfectly with your Evolve subscription for maximum improvement!`,
+
+  "random-writing": `🎲 Random Writing Test
+
+Ready to challenge yourself?
+
+A random writing test will be selected for you based on:
+• Your current progress level
+• Topics you haven't practiced recently
+• Skills that need reinforcement
+
+**Test Format:**
+• Task 2 style essay question
+• 40 minute time limit
+• 250+ word requirement
+• AI scoring on all criteria
+
+Click "Start New Test" to begin a randomly selected writing challenge!
+
+**Pro Tip:** Random tests help simulate real exam conditions where you don't know the topic in advance.`,
+
+  "random-reading": `🎲 Random Reading Test
+
+Ready for a reading challenge?
+
+A random reading passage will be selected featuring:
+• Varied topics (science, history, society, business)
+• Different question types
+• Appropriate difficulty for your level
+
+**Test Format:**
+• One full reading passage
+• 13-14 questions
+• 20 minute time limit
+• Various question types
+
+Click "Start New Test" to begin a randomly selected reading challenge!
+
+**Pro Tip:** Practice with unfamiliar topics to build adaptive reading skills.`,
+
+  "sample-answers": `📄 Sample High-Scoring Responses
+
+Learn from the best! Here's what Band 7+ / Level 9+ writing looks like:
+
+**Key Features of High-Scoring Responses:**
+
+1. **Clear Position** - Thesis stated in introduction
+2. **Logical Structure** - Easy to follow paragraph flow
+3. **Specific Examples** - Concrete evidence, not vague claims
+4. **Varied Vocabulary** - Synonyms, academic words, collocations
+5. **Complex Sentences** - Mix of structures without errors
+6. **Cohesive Devices** - Smooth transitions between ideas
+7. **Full Task Response** - All parts of question addressed
+
+**Access Sample Responses:**
+Subscribe to Evolve to unlock our library of:
+• 20+ Band 7-9 IELTS essays
+• 20+ Level 9-10 CELPIP responses
+• Annotated versions showing why they score high
+• Common topics with model answers`,
+
+  "vocab-drill": `📚 Vocabulary Drill
+
+Build your academic vocabulary with targeted practice!
+
+**How It Works:**
+1. See a word with definition
+2. Use it in a sentence
+3. AI checks your usage
+4. Word added to your review list
+
+**Word Categories:**
+• Academic Word List (AWL) - 570 essential words
+• IELTS High-Frequency - Top 200 words
+• Topic-Specific - Science, Business, Society
+• Collocations - Word partnerships
+
+**Daily Goal:** Learn 5-10 new words
+
+Start a drill to expand your vocabulary range!`,
+
+  "vocab-review": `📖 Review My Words
+
+Track and review your vocabulary progress:
+
+**Your Word Bank:**
+• Words learned: View in Stats
+• Words to review: Spaced repetition
+• Mastered words: Used correctly 3+ times
+
+**Review Modes:**
+• Flashcard mode - Quick recall practice
+• Sentence mode - Use in context
+• Quiz mode - Multiple choice
+
+**Tips for Retention:**
+• Review daily for best results
+• Use new words in your writing tests
+• Create personal example sentences
+• Group words by topic
+
+Your vocabulary directly impacts your Lexical Resource score!`,
+
+  "word-list": `📋 Academic Word List Overview
+
+The Academic Word List (AWL) contains 570 word families essential for academic success:
+
+**Sublist 1 (Most Common):**
+analyse, approach, area, assess, assume, authority, available, benefit, concept, consist, constitute, context, contract, create, data, define, derive, distribute, economy, environment, establish, estimate, evident, export, factor, finance, formula, function, identify, income, indicate, individual, interpret, involve, issue, labour, legal, legislate, major, method, occur, percent, period, policy, principle, proceed, process, require, research, respond, role, section, sector, significant, similar, source, specific, structure, theory, vary
+
+**Study Strategy:**
+• Learn 10 words per week
+• Focus on word families (vary, variable, variation, varied)
+• Practice in context, not isolation
+• Use in your writing tests
+
+Master the AWL to boost your vocabulary score!`
 };
 
 // =============================================================================
@@ -362,14 +934,26 @@ const ChatEngine = {
     let i = 0;
     const c = t.replace(/\r/g, "");
     this.showSkipButton();
-    const skipHandler = () => { clearInterval(this.interval); e.innerHTML = c.replace(/\n/g, "<br>"); this.cleanup(); Utils.scrollDown(); };
+    const skipHandler = () => { clearInterval(this.interval); e.innerHTML = c.replace(/\n/g, "<br>").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"); this.cleanup(); Utils.scrollDown(); };
     if (this.skipBtn) { this.skipBtn.removeEventListener('click', this.skipBtn._handler); this.skipBtn._handler = skipHandler; this.skipBtn.addEventListener('click', skipHandler); }
     this.interval = setInterval(() => {
-      if (i >= c.length) { clearInterval(this.interval); this.cleanup(); return; }
-      e.innerHTML += c.charAt(i) === "\n" ? "<br>" : Utils.escapeHtml(c.charAt(i));
+      if (i >= c.length) { 
+        clearInterval(this.interval); 
+        e.innerHTML = e.innerHTML.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+        this.cleanup(); 
+        return; 
+      }
+      if (c.charAt(i) === "\n") {
+        e.innerHTML += "<br>";
+      } else if (c.charAt(i) === "*" && c.charAt(i+1) === "*") {
+        // Skip markdown bold markers during typing
+        i++;
+      } else {
+        e.innerHTML += Utils.escapeHtml(c.charAt(i));
+      }
       i++;
       if (i % 50 === 0) Utils.scrollDown();
-    }, 15);
+    }, 12);
   },
   cleanup() { this.hideSkipButton(); if (this.interval) clearInterval(this.interval); this.interval = null; this.isTyping = false; },
   init() { this.skipBtn = document.getElementById('chat-skip'); }
@@ -399,6 +983,7 @@ function applyAccess(isActive, email) {
   userIsSubscribed = isActive;
   const input = document.getElementById("chat-input");
   const send = document.getElementById("chat-send");
+  const refine = document.getElementById("chat-refine");
   const loginBtn = document.getElementById("btn-login");
   const loginBtnMobile = document.getElementById("btn-login-mobile");
   const loggedInBar = document.getElementById("logged-in-bar");
@@ -407,6 +992,7 @@ function applyAccess(isActive, email) {
   if (isActive) {
     input.disabled = false;
     send.disabled = false;
+    if (refine) refine.disabled = false;
     input.placeholder = "Type your answer here...";
     if (loginBtn) loginBtn.textContent = "Logout";
     if (loginBtnMobile) loginBtnMobile.textContent = "Logout";
@@ -415,6 +1001,7 @@ function applyAccess(isActive, email) {
   } else {
     input.disabled = true;
     send.disabled = true;
+    if (refine) refine.disabled = true;
     input.placeholder = "Login required to use Evolve";
     if (loginBtn) loginBtn.textContent = "Login";
     if (loginBtnMobile) loginBtnMobile.textContent = "Login";
@@ -455,14 +1042,29 @@ function showLoginModal() {
 // =============================================================================
 function welcome() {
   ChatEngine.addBotMessage(userIsSubscribed 
-    ? "Welcome back to Evolve!\n\nYour full access is active. You have access to all 66 tests and training features.\n\nSelect a test from the dashboard to begin!"
-    : "Welcome to the Evolve preview.\n\nThis is where your IELTS and CELPIP training happens. You can see all 66 tests, micro drills, and progress tracking.\n\nTo unlock full access, please log in or subscribe.\n\nExplore the dashboard to see everything included.");
+    ? "Welcome back to Evolve!\n\nYour full access is active. You have access to:\n• All 66 tests\n• Micro drills\n• Vocabulary builder\n\nSelect a test from the dashboard or click any button to learn more!"
+    : "Welcome to the Evolve preview.\n\nThis is your IELTS and CELPIP training center with:\n• 66 progressive tests\n• Micro drills for targeted practice\n• Vocabulary builder\n• AI-powered scoring\n\nTo unlock full access, please log in or subscribe.\n\nClick any button in the dashboard to explore what's included!");
+}
+
+// =============================================================================
+// FAQ HANDLER
+// =============================================================================
+function handleFAQ(faqKey) {
+  const content = FAQ_CONTENT[faqKey];
+  if (content) {
+    ChatEngine.addBotMessage(content);
+  } else {
+    ChatEngine.addBotMessage(userIsSubscribed 
+      ? "Content for this topic is coming soon!" 
+      : "This feature is available in the full Evolve program. Subscribe to unlock!");
+  }
 }
 
 // =============================================================================
 // TEST BUTTONS
 // =============================================================================
 function initTestButtons() {
+  // Main tests
   const configs = {
     "writing-foundation-tests": { start: 1, count: 11 },
     "writing-intermediate-tests": { start: 12, count: 11 },
@@ -481,14 +1083,52 @@ function initTestButtons() {
       b.textContent = type + " Test " + (cfg.start + i);
       b.addEventListener("click", () => {
         if (userIsSubscribed) {
-          ChatEngine.addBotMessage("Starting " + type + " Test " + (cfg.start + i) + "...\n\nTest engine coming soon!");
+          ChatEngine.addBotMessage("Starting " + type + " Test " + (cfg.start + i) + "...\n\n**Test engine coming in Phase 2!**\n\nThis will include:\n• Timed prompts\n• AI-powered scoring\n• Detailed feedback on all criteria\n• Score tracking");
         } else {
-          ChatEngine.addBotMessage("This test is available in the full Evolve program. Login or subscribe to start.");
+          ChatEngine.addBotMessage("🔒 " + type + " Test " + (cfg.start + i) + " is locked.\n\nSubscribe to Evolve to unlock all 66 tests with AI-powered feedback and scoring.\n\nClick the yellow 'Unlock Full Evolve Access' button to get started!");
         }
       });
       c.appendChild(b);
     }
   });
+
+  // Writing Micro Drills
+  const writingMicro = document.getElementById("writing-micro-tests");
+  if (writingMicro) {
+    const drills = ["Paraphrase Practice", "Cohesion & Coherence", "Grammar Control", "Summarize & Condense", "Expand & Develop", "Tone & Formality"];
+    drills.forEach((name) => {
+      const b = document.createElement("button");
+      b.className = "test-btn";
+      b.textContent = "✏️ " + name;
+      b.addEventListener("click", () => {
+        if (userIsSubscribed) {
+          ChatEngine.addBotMessage("Starting " + name + " Drill...\n\n**Micro Drill engine coming in Phase 2!**\n\nThis drill will help you:\n• Practice " + name.toLowerCase() + " skills\n• Get instant feedback\n• Track improvement over time");
+        } else {
+          ChatEngine.addBotMessage("🔒 " + name + " Drill is locked.\n\nSubscribe to unlock all micro drills for targeted skill practice!");
+        }
+      });
+      writingMicro.appendChild(b);
+    });
+  }
+
+  // Reading Micro Drills
+  const readingMicro = document.getElementById("reading-micro-tests");
+  if (readingMicro) {
+    const drills = ["Scanning Practice", "Skimming Practice", "Vocabulary in Context", "Inference Skills", "Comprehension Check", "Critical Reading"];
+    drills.forEach((name) => {
+      const b = document.createElement("button");
+      b.className = "test-btn";
+      b.textContent = "📖 " + name;
+      b.addEventListener("click", () => {
+        if (userIsSubscribed) {
+          ChatEngine.addBotMessage("Starting " + name + "...\n\n**Micro Drill engine coming in Phase 2!**\n\nThis drill will help you:\n• Practice " + name.toLowerCase() + "\n• Build reading speed\n• Improve comprehension accuracy");
+        } else {
+          ChatEngine.addBotMessage("🔒 " + name + " is locked.\n\nSubscribe to unlock all micro drills for targeted skill practice!");
+        }
+      });
+      readingMicro.appendChild(b);
+    });
+  }
 }
 
 // =============================================================================
@@ -500,8 +1140,34 @@ document.addEventListener("DOMContentLoaded", async () => {
   loadNotebook();
   initTestButtons();
 
-  // Check if user was previously logged in
-  if (currentUserEmail) {
+  // AUTO-LOGIN AFTER PAYMENT: Check URL params for paid=true
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("paid") === "true" && params.get("email")) {
+    const email = decodeURIComponent(params.get("email")).toLowerCase();
+    console.log("Payment detected, auto-logging in:", email);
+    
+    // Store email and apply access immediately
+    localStorage.setItem("evolve_user_email", email);
+    currentUserEmail = email;
+    applyAccess(true, email);
+    
+    // Clean URL (remove query params)
+    window.history.replaceState({}, document.title, window.location.pathname);
+    
+    // Welcome message
+    setTimeout(() => {
+      ChatEngine.addBotMessage("🎉 Payment successful! Your Evolve subscription is now active.\n\nYou have full access to:\n• All 66 tests\n• Micro drills\n• Vocabulary builder\n• AI-powered scoring\n\nSelect a test from the dashboard to begin!");
+    }, 500);
+    
+  } else if (params.get("cancelled") === "true") {
+    // Payment was cancelled
+    window.history.replaceState({}, document.title, window.location.pathname);
+    setTimeout(() => {
+      ChatEngine.addBotMessage("Payment was cancelled. No worries - click 'Unlock Full Evolve Access' when you're ready to subscribe.");
+    }, 500);
+    
+  } else if (currentUserEmail) {
+    // Check if user was previously logged in
     console.log("Found stored email:", currentUserEmail);
     const result = await checkEntitlement(currentUserEmail);
     if (result.active) {
@@ -543,11 +1209,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Download
   document.getElementById('btn-download')?.addEventListener('click', () => {
-    ChatEngine.addBotMessage(userIsSubscribed ? "Download feature coming soon!" : "Download is available in the full Evolve program.");
+    ChatEngine.addBotMessage(userIsSubscribed 
+      ? "**Download Feature**\n\nThis feature is coming in Phase 3!\n\nYou'll be able to:\n• Export your test history as PDF\n• Download score reports\n• Save your notebook content" 
+      : "🔒 Download is available in the full Evolve program.\n\nSubscribe to unlock PDF exports of your progress and scores!");
   });
   document.getElementById('btn-download-mobile')?.addEventListener('click', () => { 
     closeAllDropdowns(); 
-    ChatEngine.addBotMessage(userIsSubscribed ? "Download feature coming soon!" : "Download is available in the full Evolve program.");
+    ChatEngine.addBotMessage(userIsSubscribed 
+      ? "**Download Feature**\n\nThis feature is coming in Phase 3!" 
+      : "🔒 Download is available in the full Evolve program.");
   });
 
   // Reset
@@ -594,7 +1264,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       localStorage.setItem('evolve_user_email', email);
       applyAccess(true, email);
       document.getElementById('login-overlay')?.classList.add('hidden');
-      ChatEngine.addBotMessage("Welcome back! Your Evolve subscription is active.\n\nYou now have full access to all 66 tests.\n\nSelect a test from the dashboard to begin!");
+      ChatEngine.addBotMessage("Welcome back! Your Evolve subscription is active.\n\nYou now have full access to all 66 tests.\n\nSelect a test from the dashboard to begin, or click any FAQ button to learn tips and strategies!");
     } else {
       status.innerHTML = 'No active subscription found.<br><a href="' + PAYMENT_LINKS.evolve + '" style="color:#A367B1;font-weight:bold;">Subscribe to Evolve →</a>';
     }
@@ -607,7 +1277,53 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // Unlock button
-  document.getElementById('unlock-evolve')?.addEventListener('click', () => { window.location.href = PAYMENT_LINKS.evolve; });
+  // Unlock button - creates checkout session
+  document.getElementById('unlock-evolve')?.addEventListener('click', async () => {
+    const email = prompt("Enter your email to continue to checkout:");
+    if (!email || !email.includes('@')) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+    
+    try {
+      ChatEngine.addBotMessage("Redirecting to secure checkout...");
+      
+      const res = await fetch(API_BASE + "/.netlify/functions/create-evolve-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.toLowerCase(), product: "evolve" })
+      });
+      
+      const data = await res.json();
+      
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        ChatEngine.addBotMessage("Error creating checkout. Please try again or contact info@migratenorth.ca");
+      }
+    } catch (err) {
+      console.error("Checkout error:", err);
+      ChatEngine.addBotMessage("Connection error. Please try again.");
+    }
+  });
+
+  // New Test button
+  document.getElementById('btn-new-test')?.addEventListener('click', () => {
+    if (userIsSubscribed) {
+      ChatEngine.addBotMessage("**Start a New Test**\n\nChoose from the Writing or Reading folders in the dashboard.\n\n**Recommendations:**\n• New users: Start with Foundation tests\n• Intermediate: Try Intermediate tests\n• Advanced: Challenge yourself with Advanced tests\n\nClick on 'Open Writing' or 'Open Reading' to see all available tests!");
+    } else {
+      ChatEngine.addBotMessage("🔒 Tests are available in the full Evolve program.\n\nSubscribe to unlock all 66 tests with AI-powered scoring and feedback!");
+    }
+  });
+
+  // Refine button
+  document.getElementById('chat-refine')?.addEventListener('click', () => {
+    if (userIsSubscribed) {
+      ChatEngine.addBotMessage("**Refine Feature**\n\nUse the Refine button after receiving feedback to:\n\n• Get suggestions for improving your answer\n• See alternative phrasings\n• Learn better vocabulary choices\n• Strengthen your argument structure\n\n**Coming in Phase 2!**\n\nFor now, review your feedback and try rewriting your answer in the input box.");
+    } else {
+      ChatEngine.addBotMessage("🔒 The Refine feature is available in the full Evolve program.");
+    }
+  });
 
   // Folders
   document.querySelectorAll('.folder-header').forEach(h => h.addEventListener('click', () => {
@@ -622,10 +1338,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     l?.classList.toggle('open');
   }));
 
-  // FAQ buttons
-  document.querySelectorAll('[data-faq]').forEach(b => b.addEventListener('click', () => {
-    ChatEngine.addBotMessage(userIsSubscribed ? "Content coming soon!" : "This feature is available in the full Evolve program.");
-  }));
+  // FAQ buttons - Now with real content!
+  document.querySelectorAll('[data-faq]').forEach(b => {
+    b.addEventListener('click', () => {
+      const faqKey = b.getAttribute('data-faq');
+      handleFAQ(faqKey);
+    });  });
 
   // Close dropdowns on outside click
   document.addEventListener('click', (e) => {
