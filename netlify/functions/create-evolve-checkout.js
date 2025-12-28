@@ -4,7 +4,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Price IDs - these should match your Stripe dashboard
 const PRICE_IDS = {
-  evolve: "price_1ShOeC00H6DyReNFFQZXIBz4",
+  evolve: "price_1ShOeC00H6DyReNFFQZXlBz4",
   elevate: "price_1Sh0ht00H6DyReNfJtde3Qxx",
   execute: "price_1Sh0kq00H6DyReNfF28tuIsc"
 };
