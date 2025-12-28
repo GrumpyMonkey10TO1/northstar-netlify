@@ -669,18 +669,11 @@ const EvolveApp = (function() {
   }
 
   async function submitTestAnswer(answer) {
-    const wordCount = answer.split(/\s+/).filter(w => w.length > 0).length;
-    
-    // Validate minimum word count
-    if (wordCount < currentTest.minWords) {
-      ChatEngine.addBotMessage(`⚠️ **Below Minimum Word Count**\n\nYour response: ${wordCount} words\nMinimum required: ${currentTest.minWords} words\n\nAdd more development, examples, or analysis, then submit again.`);
-      return;
-    }
-    
     stopTimer();
     currentTest.answer = answer;
     currentTest.state = TestState.SCORING;
 
+    const wordCount = answer.split(/\s+/).filter(w => w.length > 0).length;
     const timeSpent = Math.round((Date.now() - currentTest.startTime) / 1000);
 
     ChatEngine.addUserMessage(answer.length > 300 ? answer.substring(0, 300) + "... [truncated]" : answer);
@@ -698,8 +691,7 @@ const EvolveApp = (function() {
           testId: currentTest.id,
           prompt: currentTest.prompt,
           answer: answer,
-          timeSpent: timeSpent,
-          meta: { type: currentTest.type, level: currentTest.level }
+          timeSpent: timeSpent
         })
       });
 
