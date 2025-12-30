@@ -229,11 +229,19 @@
             <button class="action-btn-inner" id="btn-login-mobile">Login</button>
           </div>
           <div class="logged-in-bar" id="logged-in-bar">✓ Logged in as <span id="logged-in-email"></span></div>
+          <!-- Daily Plan Runner Box -->
+<div id="daily-plan-box" style="display:none;background:rgba(163,103,177,0.18);border:1px solid rgba(163,103,177,0.4);border-radius:10px;padding:10px;margin-top:8px;font-size:11px;color:#fff">
+  <strong>📋 Today's Plan</strong>
+  <div id="daily-plan-steps"></div>
+</div>
           <div id="stats-dropdown">
             <div class="stats-item"><span>Total Tests:</span><span class="stats-value" id="stat-tests">0/66</span></div>
             <div class="stats-item"><span>Writing:</span><span class="stats-value" id="stat-writing">0</span></div>
             <div class="stats-item"><span>Reading:</span><span class="stats-value" id="stat-reading">0</span></div>
             <div class="stats-item"><span>Micro Drills:</span><span class="stats-value" id="stat-micro">0</span></div>
+            <div class="stats-item"><span>Words Learned:</span><span class="stats-value" id="stat-vocab-total">0</span></div>
+<div class="stats-item"><span>Words Due:</span><span class="stats-value" id="stat-vocab-due">0</span></div>
+<div class="stats-item"><span>Mastered:</span><span class="stats-value" id="stat-vocab-mastered">0</span></div>
             <div class="stats-item"><span>Avg Score:</span><span class="stats-value" id="stat-avg">-- </span></div>
             <div class="stats-item"><span>Best Score:</span><span class="stats-value" id="stat-best">--</span></div>
             <div class="stats-item"><span>Streak:</span><span class="stats-value" id="stat-streak">0 days</span></div>
@@ -1271,6 +1279,6 @@ const EvolveApp = (function() {
   return { ChatEngine, startTest };
 })();
 </script>
-
+<script src="./evolve-phase2-complete-integration.js"></script>
 </body>
 </html>
