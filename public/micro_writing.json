@@ -1,0 +1,98 @@
+[
+  {
+    "id": "MW1",
+    "skill": "paraphrase",
+    "level": 1,
+    "mode": "ai",
+    "prompt": "Paraphrase this sentence without changing the meaning:\n\n'Governments should invest more in public transport to reduce traffic congestion.'",
+    "rubric": "Keep the meaning. Use different wording. Maintain grammatical accuracy."
+  },
+  {
+    "id": "MW2",
+    "skill": "grammar_fix",
+    "level": 1,
+    "mode": "key",
+    "prompt": "Fix the grammar error in this sentence:\n\n'People is becoming more aware about climate change.'",
+    "answer": "People are becoming more aware of climate change."
+  },
+  {
+    "id": "MW3",
+    "skill": "cohesion",
+    "level": 1,
+    "mode": "ai",
+    "prompt": "Connect these two sentences using an appropriate linking word:\n\nSentence 1: 'Many students prefer online learning.'\nSentence 2: 'Traditional classrooms remain important for social development.'",
+    "rubric": "Use a contrast linking word (however, nevertheless, although, etc.). The connection must be logical and grammatically correct."
+  },
+  {
+    "id": "MW4",
+    "skill": "grammar_fix",
+    "level": 1,
+    "mode": "key",
+    "prompt": "Correct this sentence:\n\n'She have went to the store yesterday.'",
+    "answer": "She went to the store yesterday."
+  },
+  {
+    "id": "MW5",
+    "skill": "tone",
+    "level": 2,
+    "mode": "ai",
+    "prompt": "Rewrite this informal sentence in formal academic style:\n\n'Kids these days spend way too much time on their phones and it's kinda bad for them.'",
+    "rubric": "Use formal vocabulary. Remove contractions and informal expressions. Maintain the core message about excessive phone use among young people."
+  },
+  {
+    "id": "MW6",
+    "skill": "summarize",
+    "level": 2,
+    "mode": "ai",
+    "prompt": "Summarize this paragraph in ONE clear sentence:\n\n'Climate change is a global issue affecting all countries. Rising temperatures lead to extreme weather events such as hurricanes, droughts, and floods. Scientists warn that immediate action is required to prevent further environmental damage.'",
+    "rubric": "Capture the main idea. Keep it to one sentence. Include key points: climate change, global effects, and need for action."
+  },
+  {
+    "id": "MW7",
+    "skill": "develop",
+    "level": 2,
+    "mode": "ai",
+    "prompt": "Expand this basic sentence into a detailed supporting sentence (20-30 words):\n\n'Technology has improved healthcare.'",
+    "rubric": "Add specific details or examples. Use appropriate vocabulary. Maintain clear grammar and structure."
+  },
+  {
+    "id": "MW8",
+    "skill": "paraphrase",
+    "level": 2,
+    "mode": "ai",
+    "prompt": "Paraphrase this sentence:\n\n'The majority of experts agree that early childhood education plays a crucial role in cognitive development.'",
+    "rubric": "Change vocabulary and sentence structure while preserving the exact meaning."
+  },
+  {
+    "id": "MW9",
+    "skill": "grammar_fix",
+    "level": 2,
+    "mode": "key",
+    "prompt": "Fix this sentence:\n\n'Despite of the challenges, they succeeded in completing the project.'",
+    "answer": "Despite the challenges, they succeeded in completing the project."
+  },
+  {
+    "id": "MW10",
+    "skill": "cohesion",
+    "level": 3,
+    "mode": "ai",
+    "prompt": "Combine these three ideas into ONE complex sentence:\n\n1. Economic growth is important\n2. Environmental protection cannot be ignored\n3. Governments must balance both priorities",
+    "rubric": "Create one grammatically correct complex sentence. Use appropriate connectors. All three ideas must be clearly expressed."
+  },
+  {
+    "id": "MW11",
+    "skill": "tone",
+    "level": 3,
+    "mode": "ai",
+    "prompt": "Rewrite this sentence to make it more formal and academic:\n\n'A lot of people think that working from home is better because you don't have to commute.'",
+    "rubric": "Use formal academic vocabulary. Avoid vague expressions like 'a lot of' and contractions. Express the idea objectively."
+  },
+  {
+    "id": "MW12",
+    "skill": "develop",
+    "level": 3,
+    "mode": "ai",
+    "prompt": "Write a topic sentence that introduces an argument about this issue:\n\n'Should universities be free for all students?'",
+    "rubric": "Present a clear position. Use appropriate academic language. The sentence should introduce a complete argument that could be developed in a paragraph."
+  }
+]
