@@ -1,0 +1,182 @@
+[
+  {
+    "id": "MR1",
+    "skill": "inference",
+    "level": 1,
+    "mode": "mcq",
+    "prompt": "Sentence: 'Although the proposal seemed practical, the committee delayed the vote.'\n\nWhat can we infer?",
+    "choices": [
+      "The committee disliked the proposal",
+      "The committee was not ready to decide",
+      "The proposal was impossible to implement",
+      "The committee already approved it"
+    ],
+    "correctIndex": 1,
+    "explain": "Delaying the vote suggests they needed more time or information before deciding."
+  },
+  {
+    "id": "MR2",
+    "skill": "vocab_context",
+    "level": 1,
+    "mode": "mcq",
+    "prompt": "Sentence: 'The company's new policy aims to mitigate the environmental impact of its operations.'\n\nWhat does 'mitigate' mean in this context?",
+    "choices": [
+      "To increase or worsen",
+      "To reduce or lessen",
+      "To measure or calculate",
+      "To ignore or dismiss"
+    ],
+    "correctIndex": 1,
+    "explain": "'Mitigate' means to make less severe or serious, especially in relation to problems or negative effects."
+  },
+  {
+    "id": "MR3",
+    "skill": "scanning",
+    "level": 1,
+    "mode": "mcq",
+    "prompt": "Read this sentence and identify the specific year mentioned:\n\n'The study, conducted between 2018 and 2022, revealed significant changes in consumer behavior, particularly after 2020 when online shopping increased by 45%.'\n\nWhen did online shopping increase by 45%?",
+    "choices": [
+      "2018",
+      "2020",
+      "2022",
+      "Between 2018 and 2022"
+    ],
+    "correctIndex": 1,
+    "explain": "The text specifically states 'after 2020 when online shopping increased by 45%'."
+  },
+  {
+    "id": "MR4",
+    "skill": "comprehension",
+    "level": 1,
+    "mode": "mcq",
+    "prompt": "Read: 'Unlike traditional education methods, online learning allows students to study at their own pace. However, it requires strong self-discipline and time management skills.'\n\nWhat is the main advantage mentioned?",
+    "choices": [
+      "It requires self-discipline",
+      "Students can study at their own pace",
+      "It is better than traditional methods",
+      "It teaches time management"
+    ],
+    "correctIndex": 1,
+    "explain": "The passage explicitly states online learning 'allows students to study at their own pace' as an advantage."
+  },
+  {
+    "id": "MR5",
+    "skill": "inference",
+    "level": 2,
+    "mode": "mcq",
+    "prompt": "Passage: 'Despite investing millions in research, the pharmaceutical company announced it would discontinue development of the new drug. Industry analysts noted this was the third such decision in two years.'\n\nWhat can we infer?",
+    "choices": [
+      "The company is financially successful",
+      "The drug development has been challenging",
+      "The drug will be released soon",
+      "The company never invests in research"
+    ],
+    "correctIndex": 1,
+    "explain": "Multiple discontinued projects despite heavy investment suggests significant challenges in drug development."
+  },
+  {
+    "id": "MR6",
+    "skill": "critical",
+    "level": 2,
+    "mode": "mcq",
+    "prompt": "Read: 'A recent survey found that 78% of respondents support the new policy. The survey was conducted online with 200 participants from a single city.'\n\nWhat is the limitation of this survey?",
+    "choices": [
+      "The percentage is too high",
+      "The sample size is small and not diverse",
+      "Online surveys are always inaccurate",
+      "There is no limitation"
+    ],
+    "correctIndex": 1,
+    "explain": "A small sample (200) from only one city may not represent broader public opinion accurately."
+  },
+  {
+    "id": "MR7",
+    "skill": "vocab_context",
+    "level": 2,
+    "mode": "mcq",
+    "prompt": "Sentence: 'The politician's ambiguous statement left voters uncertain about his actual position on the issue.'\n\nWhat does 'ambiguous' mean?",
+    "choices": [
+      "Clear and direct",
+      "Unclear and open to multiple interpretations",
+      "Honest and straightforward",
+      "Detailed and specific"
+    ],
+    "correctIndex": 1,
+    "explain": "'Ambiguous' means unclear or having more than one possible meaning, as shown by the voters' uncertainty."
+  },
+  {
+    "id": "MR8",
+    "skill": "skimming",
+    "level": 2,
+    "mode": "mcq",
+    "prompt": "Quickly read this paragraph and identify its main topic:\n\n'Renewable energy sources like solar and wind power are becoming increasingly affordable. Many countries are investing heavily in these technologies to reduce carbon emissions. However, storage capacity and weather dependency remain significant challenges.'\n\nWhat is the main topic?",
+    "choices": [
+      "The cost of energy",
+      "Renewable energy development and challenges",
+      "Carbon emissions",
+      "Weather patterns"
+    ],
+    "correctIndex": 1,
+    "explain": "The paragraph discusses both the growth of renewable energy and its ongoing challenges."
+  },
+  {
+    "id": "MR9",
+    "skill": "inference",
+    "level": 3,
+    "mode": "mcq",
+    "prompt": "Read: 'The museum curator carefully examined the artifact, noting the distinctive markings and unusual material composition. She contacted three independent experts before making any public announcement.'\n\nWhat can we infer about the curator's approach?",
+    "choices": [
+      "She is uncertain and needs help",
+      "She is thorough and cautious",
+      "She doesn't trust her own judgment",
+      "She wants to delay the announcement"
+    ],
+    "correctIndex": 1,
+    "explain": "Seeking expert verification before public announcement demonstrates professional thoroughness and caution."
+  },
+  {
+    "id": "MR10",
+    "skill": "critical",
+    "level": 3,
+    "mode": "mcq",
+    "prompt": "Read: 'Our product has been rated 5 stars by thousands of satisfied customers. Independent laboratory tests confirm its superiority over competing brands. Join the millions who have already made the switch!'\n\nWhat critical thinking concern does this raise?",
+    "choices": [
+      "The product is too popular",
+      "The claims lack specific evidence and may be marketing language",
+      "Laboratory tests are unnecessary",
+      "There are no concerns"
+    ],
+    "correctIndex": 1,
+    "explain": "Vague claims like 'thousands' and 'superiority' without specific data or source citations are typical of marketing rather than objective information."
+  },
+  {
+    "id": "MR11",
+    "skill": "comprehension",
+    "level": 3,
+    "mode": "mcq",
+    "prompt": "Complex passage: 'While technological advances have undeniably improved healthcare outcomes, they have also created new ethical dilemmas. The ability to extend life through artificial means raises questions about quality of life versus quantity. Furthermore, the high cost of advanced treatments creates accessibility issues, potentially widening health disparities.'\n\nWhat is the author's main argument?",
+    "choices": [
+      "Technology has only positive effects on healthcare",
+      "Technology improves healthcare but creates ethical and access challenges",
+      "Advanced treatments are too expensive",
+      "Life extension is unethical"
+    ],
+    "correctIndex": 1,
+    "explain": "The passage acknowledges improvements while highlighting the ethical dilemmas and access problems technology has introduced."
+  },
+  {
+    "id": "MR12",
+    "skill": "scanning",
+    "level": 3,
+    "mode": "mcq",
+    "prompt": "Scan this text for the specific statistic mentioned:\n\n'The research team analyzed data from 15 countries over a 20-year period. They found that urban populations grew by an average of 3.2% annually, while rural populations declined. Notably, cities with populations exceeding 5 million saw growth rates of 4.7%, nearly 50% higher than smaller cities.'\n\nWhat was the annual growth rate for cities over 5 million?",
+    "choices": [
+      "3.2%",
+      "4.7%",
+      "50%",
+      "5%"
+    ],
+    "correctIndex": 1,
+    "explain": "The text explicitly states 'cities with populations exceeding 5 million saw growth rates of 4.7%'."
+  }
+]
