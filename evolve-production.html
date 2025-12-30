@@ -897,8 +897,7 @@ const EvolveApp = (function() {
 
     ChatEngine.addBotMessage("Checking your access...");
     const hasAccess = await checkEntitlement(email.toLowerCase());
-
-  if (hasAccess) {
+if (hasAccess) {
   localStorage.setItem("evolve_user_email", email.toLowerCase());
   applyAccess(true, email.toLowerCase());
   loadProgress();
@@ -910,7 +909,10 @@ const EvolveApp = (function() {
   }
   
   ChatEngine.addBotMessage(`✅ Welcome back! You have full access to Evolve.\n\nSelect a test from the right panel to begin practicing.`);
+} else {
+  ChatEngine.addBotMessage(`❌ No active subscription found for ${email}.\n\nClick the yellow "Unlock Full Evolve Access" button to subscribe and get started!`);
 }
+  }
 
   function handleLogout() {
     localStorage.removeItem("evolve_user_email");
