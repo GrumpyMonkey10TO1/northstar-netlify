@@ -1,0 +1,122 @@
+[
+  {
+    "word": "assess",
+    "pos": "verb",
+    "meaning": "to evaluate or judge the quality, importance, or value of something",
+    "example": "The team needs to assess the risks before proceeding with the project."
+  },
+  {
+    "word": "derive",
+    "pos": "verb",
+    "meaning": "to obtain or receive something from a source",
+    "example": "Many modern medicines are derived from plants found in rainforests."
+  },
+  {
+    "word": "significant",
+    "pos": "adjective",
+    "meaning": "important, notable, or meaningful",
+    "example": "There has been a significant increase in online education enrollment."
+  },
+  {
+    "word": "interpret",
+    "pos": "verb",
+    "meaning": "to explain the meaning of something",
+    "example": "Researchers must carefully interpret the data before drawing conclusions."
+  },
+  {
+    "word": "establish",
+    "pos": "verb",
+    "meaning": "to set up, create, or prove something",
+    "example": "The company established new safety protocols after the incident."
+  },
+  {
+    "word": "require",
+    "pos": "verb",
+    "meaning": "to need or demand as necessary",
+    "example": "This position requires at least five years of experience."
+  },
+  {
+    "word": "evident",
+    "pos": "adjective",
+    "meaning": "clear, obvious, or apparent",
+    "example": "It is evident that climate change is affecting weather patterns globally."
+  },
+  {
+    "word": "function",
+    "pos": "noun/verb",
+    "meaning": "the purpose or role of something; to work or operate",
+    "example": "The main function of the committee is to review applications."
+  },
+  {
+    "word": "consist",
+    "pos": "verb",
+    "meaning": "to be made up or composed of",
+    "example": "The course consists of ten modules covering different topics."
+  },
+  {
+    "word": "indicate",
+    "pos": "verb",
+    "meaning": "to show, point out, or suggest",
+    "example": "The survey results indicate growing public support for the policy."
+  },
+  {
+    "word": "approach",
+    "pos": "noun/verb",
+    "meaning": "a way of dealing with something; to come near",
+    "example": "The government is taking a new approach to immigration reform."
+  },
+  {
+    "word": "constitute",
+    "pos": "verb",
+    "meaning": "to form or make up something",
+    "example": "Women constitute 52% of the university's student body."
+  },
+  {
+    "word": "benefit",
+    "pos": "noun/verb",
+    "meaning": "an advantage or profit; to gain advantage",
+    "example": "Regular exercise provides numerous health benefits."
+  },
+  {
+    "word": "similar",
+    "pos": "adjective",
+    "meaning": "alike but not identical",
+    "example": "The two proposals have similar objectives but different methods."
+  },
+  {
+    "word": "process",
+    "pos": "noun/verb",
+    "meaning": "a series of actions; to handle or deal with",
+    "example": "The application process takes approximately six weeks."
+  },
+  {
+    "word": "factor",
+    "pos": "noun",
+    "meaning": "an element that contributes to a result",
+    "example": "Cost is an important factor in the decision-making process."
+  },
+  {
+    "word": "occur",
+    "pos": "verb",
+    "meaning": "to happen or take place",
+    "example": "The accident occurred during rush hour traffic."
+  },
+  {
+    "word": "principle",
+    "pos": "noun",
+    "meaning": "a fundamental truth or rule",
+    "example": "The legal system is based on the principle of innocent until proven guilty."
+  },
+  {
+    "word": "vary",
+    "pos": "verb",
+    "meaning": "to differ or change",
+    "example": "Prices vary depending on the season and location."
+  },
+  {
+    "word": "affect",
+    "pos": "verb",
+    "meaning": "to influence or have an impact on",
+    "example": "Poor nutrition can seriously affect children's development."
+  }
+]
