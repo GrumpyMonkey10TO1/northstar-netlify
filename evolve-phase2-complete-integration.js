@@ -32,19 +32,27 @@ var currentPlan = null;
 // Practice Time Tracking
 var sessionStart = Date.now();
 
-// Test State Extension - DON'T REDECLARE, EXTEND IF EXISTS
-if (typeof TestState !== 'undefined') {
-  TestState.MICRO = "micro_drill";
-  TestState.VOCAB = "vocab_drill";
-} else {
-  var TestState = {
-    IDLE: "idle",
-    ACTIVE: "active",
-    SCORING: "scoring",
-    MICRO: "micro_drill",
-    VOCAB: "vocab_drill"
-  };
-}
+window.TestState = window.TestState || {
+  IDLE: "idle",
+  ACTIVE: "active",
+  SCORING: "scoring"
+};
+
+window.TestState.MICRO = "micro_drill";
+window.TestState.VOCAB = "vocab_drill";
+
+var TestState = window.TestState;
+```
+
+6. **Commit and push**
+
+---
+
+## **STEP 2: VERIFY NETLIFY HAS IT**
+
+Wait 2 minutes, then open this URL:
+```
+https://startling-faun-f9dddb.netlify.app/evolve-phase2-complete-integration.js
 
 var currentTestState = TestState.IDLE;
 
