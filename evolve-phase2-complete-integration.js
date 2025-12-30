@@ -32,14 +32,19 @@ var currentPlan = null;
 // Practice Time Tracking
 var sessionStart = Date.now();
 
-// Test State Extension
-var TestState = {
-  IDLE: "idle",
-  ACTIVE: "active",
-  SCORING: "scoring",
-  MICRO: "micro_drill",
-  VOCAB: "vocab_drill"
-};
+// Test State Extension - DON'T REDECLARE, EXTEND IF EXISTS
+if (typeof TestState !== 'undefined') {
+  TestState.MICRO = "micro_drill";
+  TestState.VOCAB = "vocab_drill";
+} else {
+  var TestState = {
+    IDLE: "idle",
+    ACTIVE: "active",
+    SCORING: "scoring",
+    MICRO: "micro_drill",
+    VOCAB: "vocab_drill"
+  };
+}
 
 var currentTestState = TestState.IDLE;
 
