@@ -288,7 +288,9 @@
           <button class="ns-btn" data-faq="grammar-rules">Rules of Grammar</button>
           <button class="ns-btn" data-faq="common-mistakes">Common Mistakes to Avoid</button>
           <button class="ns-btn" data-faq="essay-structure">How to Structure an Essay</button>
-          
+          <h3>Vocabulary Builder</h3>
+<button class="ns-btn" data-action="vocab-drill">📚 Vocabulary Drill</button>
+<button class="ns-btn" data-action="vocab-review">🔄 Review My Words</button>
           <h3>Writing Practice</h3>
           <div class="folder-header" data-folder="writing"><span>Open Writing</span><span class="arrow">►</span></div>
           <div class="test-list" id="writing-tests">
@@ -896,15 +898,19 @@ const EvolveApp = (function() {
     ChatEngine.addBotMessage("Checking your access...");
     const hasAccess = await checkEntitlement(email.toLowerCase());
 
-    if (hasAccess) {
-      localStorage.setItem("evolve_user_email", email.toLowerCase());
-      applyAccess(true, email.toLowerCase());
-      loadProgress();
-      ChatEngine.addBotMessage(`✅ Welcome back! You have full access to Evolve.\n\nSelect a test from the right panel to begin practicing.`);
-    } else {
-      ChatEngine.addBotMessage(`❌ No active subscription found for ${email}.\n\nClick the yellow "Unlock Full Evolve Access" button to subscribe and get started!`);
-    }
+  if (hasAccess) {
+  localStorage.setItem("evolve_user_email", email.toLowerCase());
+  applyAccess(true, email.toLowerCase());
+  loadProgress();
+  
+  // Load Phase 2 features
+  if (window.EvolvePhase2) {
+    await window.EvolvePhase2.loadDailyCoach(20);
+    await window.EvolvePhase2.refreshStats();
   }
+  
+  ChatEngine.addBotMessage(`✅ Welcome back! You have full access to Evolve.\n\nSelect a test from the right panel to begin practicing.`);
+}
 
   function handleLogout() {
     localStorage.removeItem("evolve_user_email");
@@ -1047,35 +1053,57 @@ const EvolveApp = (function() {
       }
     });
 
-    // Micro drills
-    const writingMicro = document.getElementById("writing-micro-tests");
-    if (writingMicro) {
-      const drills = ["Paraphrase Practice", "Cohesion & Coherence", "Grammar Control", "Summarize & Condense"];
-      drills.forEach(name => {
-        const btn = document.createElement("button");
-        btn.className = "test-btn";
-        btn.textContent = `✏️ ${name}`;
-        btn.addEventListener("click", () => {
-          ChatEngine.addBotMessage(`**${name}**\n\nMicro drills are coming in the next update! These will provide targeted practice for specific skills.`);
-        });
-        writingMicro.appendChild(btn);
-      });
-    }
+   // Micro drills - Writing
+const writingMicro = document.getElementById("writing-micro-tests");
+if (writingMicro) {
+  const drills = [
+    { label: "Paraphrase", skill: "paraphrase" },
+    { label: "Grammar Fix", skill: "grammar_fix" },
+    { label: "Cohesion", skill: "cohesion" },
+    { label: "Tone", skill: "tone" },
+    { label: "Summarize", skill: "summarize" },
+    { label: "Develop", skill: "develop" }
+  ];
+  
+  drills.forEach(d => {
+    const btn = document.createElement("button");
+    btn.className = "test-btn";
+    btn.textContent = `✏️ ${d.label}`;
+    btn.addEventListener("click", () => {
+      if (!userIsSubscribed) {
+        ChatEngine.addBotMessage(`🔒 Micro drills require an active subscription.`);
+        return;
+      }
+      window.EvolvePhase2.startMicroSession("writing", d.skill);
+    });
+    writingMicro.appendChild(btn);
+  });
+}
 
-    const readingMicro = document.getElementById("reading-micro-tests");
-    if (readingMicro) {
-      const drills = ["Scanning Practice", "Skimming Practice", "Vocabulary in Context"];
-      drills.forEach(name => {
-        const btn = document.createElement("button");
-        btn.className = "test-btn";
-        btn.textContent = `📖 ${name}`;
-        btn.addEventListener("click", () => {
-          ChatEngine.addBotMessage(`**${name}**\n\nReading drills are coming soon!`);
-        });
-        readingMicro.appendChild(btn);
-      });
-    }
-  }
+  // Micro drills - Reading
+const readingMicro = document.getElementById("reading-micro-tests");
+if (readingMicro) {
+  const drills = [
+    { label: "Scanning", skill: "scanning" },
+    { label: "Inference", skill: "inference" },
+    { label: "Vocab Context", skill: "vocab_context" },
+    { label: "Comprehension", skill: "comprehension" }
+  ];
+  
+  drills.forEach(d => {
+    const btn = document.createElement("button");
+    btn.className = "test-btn";
+    btn.textContent = `📖 ${d.label}`;
+    btn.addEventListener("click", () => {
+      if (!userIsSubscribed) {
+        ChatEngine.addBotMessage(`🔒 Micro drills require an active subscription.`);
+        return;
+      }
+      window.EvolvePhase2.startMicroSession("reading", d.skill);
+    });
+    readingMicro.appendChild(btn);
+  });
+}
 
   // ---------------------------------------------------------------------------
   // UI INITIALIZATION
@@ -1102,7 +1130,23 @@ const EvolveApp = (function() {
     document.querySelectorAll("[data-faq]").forEach(btn => {
       btn.addEventListener("click", () => handleFAQ(btn.dataset.faq));
     });
-
+// Vocabulary buttons
+document.querySelectorAll("[data-action]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const action = btn.dataset.action;
+    
+    if (!userIsSubscribed) {
+      ChatEngine.addBotMessage("🔒 Vocabulary Builder requires an active subscription.");
+      return;
+    }
+    
+    if (action === "vocab-drill") {
+      window.EvolvePhase2.startVocabLearnSession();
+    } else if (action === "vocab-review") {
+      window.EvolvePhase2.startVocabReviewSession();
+    }
+  });
+});
     // Stats dropdown
     document.getElementById("btn-stats")?.addEventListener("click", () => {
       document.getElementById("stats-dropdown").classList.toggle("active");
@@ -1259,13 +1303,20 @@ const EvolveApp = (function() {
     if (savedEmail) {
       console.log("Found saved email, checking entitlement...");
       const hasAccess = await checkEntitlement(savedEmail);
-      if (hasAccess) {
-        applyAccess(true, savedEmail);
-        loadProgress();
-        showWelcome();
-        ChatEngine.addBotMessage(`Welcome back! Select a test to continue practicing.`);
-        return;
-      }
+     if (hasAccess) {
+  applyAccess(true, savedEmail);
+  loadProgress();
+  
+  // Load Phase 2 features
+  if (window.EvolvePhase2) {
+    await window.EvolvePhase2.loadDailyCoach(20);
+    await window.EvolvePhase2.refreshStats();
+  }
+  
+  showWelcome();
+  ChatEngine.addBotMessage(`Welcome back! Select a test to continue practicing.`);
+  return;
+}
     }
 
     applyAccess(false, null);
