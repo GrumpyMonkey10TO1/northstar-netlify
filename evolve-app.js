@@ -1,1088 +1,1166 @@
 // =============================================================================
-// EVOLVE v2.1 - MIGRATE NORTH ACADEMY
-// IELTS & CELPIP Training Platform
+// EVOLVE APP - Complete Chat Engine with Video/Image Support
 // =============================================================================
 
-const EvolveApp = (function() {
-  "use strict";
+(() => {
+  'use strict';
 
-  // ---------------------------------------------------------------------------
+  // =============================================================================
   // CONFIGURATION
-  // ---------------------------------------------------------------------------
-  const API_BASE = "https://startling-faun-f9dddb.netlify.app";
-  const AVATAR = "https://migratenorth.ca/wp-content/uploads/2025/11/Gemini_Generated_Image_xe229lxe229lxe22-2.png";
-
-  // ---------------------------------------------------------------------------
-  // TEST BANK - ALL 33 WRITING TESTS
-  // ---------------------------------------------------------------------------
-  const TEST_BANK = {
-    writing: {
-      foundation: [
-        { id: "W1", prompt: "Some people believe that students should be required to wear uniforms in school, while others think students should be free to choose their own clothing.\n\nDiscuss both views and give your own opinion.", type: "opinion", time: 40, minWords: 250 },
-        { id: "W2", prompt: "Many people believe that social media has a negative impact on young people today.\n\nTo what extent do you agree or disagree with this statement?", type: "opinion", time: 40, minWords: 250 },
-        { id: "W3", prompt: "Some people think that the best way to reduce crime is to give longer prison sentences. Others believe there are better ways to reduce crime.\n\nDiscuss both views and give your opinion.", type: "discussion", time: 40, minWords: 250 },
-        { id: "W4", prompt: "In many cities, traffic congestion is becoming a serious problem.\n\nWhat are the causes of this problem? What solutions can you suggest?", type: "problem-solution", time: 40, minWords: 250 },
-        { id: "W5", prompt: "Some people believe that children should start learning a foreign language in primary school. Others think children should begin foreign language study in secondary school.\n\nDiscuss both views and give your opinion.", type: "discussion", time: 40, minWords: 250 },
-        { id: "W6", prompt: "Many people now work from home instead of traveling to an office every day.\n\nWhat are the advantages and disadvantages of working from home?", type: "advantages-disadvantages", time: 40, minWords: 250 },
-        { id: "W7", prompt: "Some people believe that governments should spend money on public transportation rather than building new roads for cars.\n\nTo what extent do you agree or disagree?", type: "opinion", time: 40, minWords: 250 },
-        { id: "W8", prompt: "Some people think that parents should teach children to be good members of society. Others believe that school is the best place to learn this.\n\nDiscuss both views and give your opinion.", type: "discussion", time: 40, minWords: 250 },
-        { id: "W9", prompt: "In many countries, the amount of household waste is increasing every year.\n\nWhat are the main causes of this? What can governments and individuals do to solve this problem?", type: "problem-solution", time: 40, minWords: 250 },
-        { id: "W10", prompt: "Some people believe that unpaid community service should be a compulsory part of high school education.\n\nTo what extent do you agree or disagree?", type: "opinion", time: 40, minWords: 250 },
-        { id: "W11", prompt: "Online shopping is becoming more popular than shopping in stores.\n\nWhat are the advantages and disadvantages of this trend?", type: "advantages-disadvantages", time: 40, minWords: 250 }
-      ],
-      intermediate: [
-        { id: "W12", prompt: "Some people argue that technological developments have led to the loss of traditional skills and ways of life, and these should be preserved.\n\nTo what extent do you agree or disagree?", type: "opinion", time: 40, minWords: 250 },
-        { id: "W13", prompt: "Some people think that the government should invest more money in teaching science subjects at school, while others believe that art and music education is equally important.\n\nDiscuss both views and give your opinion.", type: "discussion", time: 40, minWords: 250 },
-        { id: "W14", prompt: "Many young people today are leaving rural areas to live and work in cities.\n\nWhy is this happening? Do you think the advantages of this trend outweigh the disadvantages?", type: "two-part", time: 40, minWords: 250 },
-        { id: "W15", prompt: "Some people believe that university education should be free for all students. Others think students should pay for their own university education.\n\nDiscuss both views and give your opinion.", type: "discussion", time: 40, minWords: 250 },
-        { id: "W16", prompt: "In many countries, there is a growing gap between the rich and the poor.\n\nWhat problems does this cause? What measures can governments take to reduce this gap?", type: "problem-solution", time: 40, minWords: 250 },
-        { id: "W17", prompt: "Some people think that competitive sports have a positive effect on children's education, while others believe they are harmful.\n\nDiscuss both views and give your opinion.", type: "discussion", time: 40, minWords: 250 },
-        { id: "W18", prompt: "Some people believe that news media has too much influence on people's lives today, while others think the media plays an important role in society.\n\nDiscuss both views and give your opinion.", type: "discussion", time: 40, minWords: 250 },
-        { id: "W19", prompt: "Many countries are now experiencing a significant increase in tourism.\n\nWhat are the advantages and disadvantages of tourism for the countries and local communities involved?", type: "advantages-disadvantages", time: 40, minWords: 250 },
-        { id: "W20", prompt: "Some people believe that the best way to improve public health is by increasing the number of sports facilities. Others think this would have little effect and other measures are needed.\n\nDiscuss both views and give your opinion.", type: "discussion", time: 40, minWords: 250 },
-        { id: "W21", prompt: "In many countries, traditional foods are being replaced by international fast food.\n\nWhy is this happening? Is this a positive or negative development?", type: "two-part", time: 40, minWords: 250 },
-        { id: "W22", prompt: "Many people feel that the pace of modern life is too stressful, leading to physical and mental health problems.\n\nWhat are the causes of this stress? What solutions would you recommend?", type: "problem-solution", time: 40, minWords: 250 }
-      ],
-      advanced: [
-        { id: "W23", prompt: "Some people argue that the purpose of prison should be to rehabilitate criminals, while others believe its main purpose should be to punish them.\n\nDiscuss both views and give your opinion.", type: "discussion", time: 40, minWords: 250 },
-        { id: "W24", prompt: "Scientific research should be carried out and controlled by governments rather than private companies.\n\nTo what extent do you agree or disagree?", type: "opinion", time: 40, minWords: 250 },
-        { id: "W25", prompt: "Some people believe that economic progress is the most important goal for developing countries, while others argue that environmental protection should be the priority.\n\nDiscuss both views and give your opinion.", type: "discussion", time: 40, minWords: 250 },
-        { id: "W26", prompt: "Genetic engineering is becoming increasingly common in agriculture and medicine.\n\nWhat are the potential benefits and risks of this technology? Should there be limits on genetic research?", type: "two-part", time: 40, minWords: 250 },
-        { id: "W27", prompt: "Some people argue that artificial intelligence will eventually replace many human jobs, causing widespread unemployment. Others believe AI will create new opportunities.\n\nDiscuss both perspectives and give your opinion.", type: "discussion", time: 40, minWords: 250 },
-        { id: "W28", prompt: "Climate change is considered to be one of the biggest threats facing humanity today.\n\nWhat are the main causes of climate change? What steps can governments and individuals take to address this issue?", type: "problem-solution", time: 40, minWords: 250 },
-        { id: "W29", prompt: "Some people believe that globalization has had a predominantly positive effect on the world, while others argue it has increased inequality between nations.\n\nDiscuss both views and give your opinion.", type: "discussion", time: 40, minWords: 250 },
-        { id: "W30", prompt: "Some people argue that individuals have a responsibility to maintain their health and should pay for their own medical care if they lead unhealthy lifestyles.\n\nTo what extent do you agree or disagree?", type: "opinion", time: 40, minWords: 250 },
-        { id: "W31", prompt: "Many democratic countries now have declining voter turnout, especially among young people.\n\nWhat factors contribute to this trend? What measures could increase political participation?", type: "two-part", time: 40, minWords: 250 },
-        { id: "W32", prompt: "Some people believe that space exploration is a waste of resources and that money should be spent on solving problems on Earth. Others argue that space exploration has important benefits for humanity.\n\nDiscuss both views and give your opinion.", type: "discussion", time: 40, minWords: 250 },
-        { id: "W33", prompt: "The world's population is aging rapidly, with a growing proportion of elderly people and fewer young people.\n\nWhat challenges does this demographic shift create? What solutions can you propose?", type: "problem-solution", time: 40, minWords: 250 }
-      ]
-    }
+  // =============================================================================
+  const CONFIG = {
+    FUNCTION_URL: 'https://startling-faun-f9dddb.netlify.app/.netlify/functions/chat-evolve',
+    ENTITLEMENT_URL: 'https://startling-faun-f9dddb.netlify.app/.netlify/functions/check-entitlement',
+    BOT_AVATAR: 'https://migratenorth.ca/wp-content/uploads/2025/11/Gemini_Generated_Image_xe229lxe229lxe22-2.png',
+    USER_AVATAR: 'https://migratenorth.ca/wp-content/uploads/2025/11/user-avatar.png',
+    TYPING_SPEED: 15,
+    STORAGE_KEY: 'evolveMemory',
+    NOTEBOOK_KEY: 'evolve_notebook',
+    // Optional intro video - set to null to disable, or use YouTube embed URL
+    INTRO_VIDEO: null // Example: 'https://www.youtube.com/embed/YOUR_VIDEO_ID'
   };
 
-  // ---------------------------------------------------------------------------
+  // =============================================================================
+  // DOM ELEMENTS
+  // =============================================================================
+  const DOM = {
+    chatBody: document.getElementById('chat-body'),
+    chatInput: document.getElementById('chat-input'),
+    chatSend: document.getElementById('chat-send'),
+    chatRefine: document.getElementById('chat-refine'),
+    chatSkip: document.getElementById('chat-skip'),
+    testInfo: document.getElementById('test-info'),
+    timer: document.getElementById('timer'),
+    wordCount: document.getElementById('word-count'),
+    wordTarget: document.getElementById('word-target'),
+    testLevelBadge: document.getElementById('test-level-badge'),
+    // Stats
+    statsDropdown: document.getElementById('stats-dropdown'),
+    statTests: document.getElementById('stat-tests'),
+    statWriting: document.getElementById('stat-writing'),
+    statReading: document.getElementById('stat-reading'),
+    statMicro: document.getElementById('stat-micro'),
+    statAvg: document.getElementById('stat-avg'),
+    statBest: document.getElementById('stat-best'),
+    statStreak: document.getElementById('stat-streak'),
+    statTime: document.getElementById('stat-time'),
+    statVocabTotal: document.getElementById('stat-vocab-total'),
+    statVocabDue: document.getElementById('stat-vocab-due'),
+    statVocabMastered: document.getElementById('stat-vocab-mastered'),
+    // Buttons
+    btnStats: document.getElementById('btn-stats'),
+    btnDownload: document.getElementById('btn-download'),
+    btnNotebook: document.getElementById('btn-notebook'),
+    btnResources: document.getElementById('btn-resources'),
+    btnReset: document.getElementById('btn-reset'),
+    btnLogin: document.getElementById('btn-login'),
+    // Mobile
+    mobileMenuBtn: document.getElementById('mobile-menu-btn'),
+    mobileMenuDropdown: document.getElementById('mobile-menu-dropdown'),
+    btnStatsMobile: document.getElementById('btn-stats-mobile'),
+    btnDownloadMobile: document.getElementById('btn-download-mobile'),
+    btnNotebookMobile: document.getElementById('btn-notebook-mobile'),
+    btnResourcesMobile: document.getElementById('btn-resources-mobile'),
+    btnResetMobile: document.getElementById('btn-reset-mobile'),
+    btnLoginMobile: document.getElementById('btn-login-mobile'),
+    // Panels
+    notebookPanel: document.getElementById('notebookPanel'),
+    notebookArea: document.getElementById('notebookArea'),
+    notebookClose: document.getElementById('notebookClose'),
+    resourcesDropdown: document.getElementById('resourcesDropdown'),
+    // Login
+    loginOverlay: document.getElementById('login-overlay'),
+    loginEmail: document.getElementById('login-email'),
+    loginSubmit: document.getElementById('login-submit'),
+    loginStatus: document.getElementById('login-status'),
+    loginClose: document.getElementById('login-close'),
+    loggedInBar: document.getElementById('logged-in-bar'),
+    loggedInEmail: document.getElementById('logged-in-email'),
+    // FAQ
+    faqList: document.getElementById('faqList'),
+    unlockEvolve: document.getElementById('unlock-evolve')
+  };
+
+  // =============================================================================
   // STATE
-  // ---------------------------------------------------------------------------
-  let currentUserEmail = null;
-  let userIsSubscribed = false;
-  let completedTests = [];
-  let testScores = [];
-
-  // Test Engine State
-  const TestState = {
-    IDLE: "idle",
-    ACTIVE: "active",
-    SUBMITTED: "submitted",
-    SCORING: "scoring",
-    COMPLETE: "complete"
-  };
-
-  let currentTest = {
-    state: TestState.IDLE,
-    id: null,
-    type: null,
-    prompt: null,
-    level: null,
-    startTime: null,
-    timeLimit: 40,
-    minWords: 250,
-    timerInterval: null,
-    remainingSeconds: 0,
-    answer: ""
-  };
-
-  // ---------------------------------------------------------------------------
-  // CHAT ENGINE
-  // ---------------------------------------------------------------------------
-  const ChatEngine = {
-    body: null,
-    input: null,
-    sendBtn: null,
-    refineBtn: null,
-    skipBtn: null,
+  // =============================================================================
+  let state = {
+    history: [],
     isTyping: false,
-
-    init() {
-      this.body = document.getElementById("chat-body");
-      this.input = document.getElementById("chat-input");
-      this.sendBtn = document.getElementById("chat-send");
-      this.refineBtn = document.getElementById("chat-refine");
-      this.skipBtn = document.getElementById("chat-skip");
-
-      if (this.sendBtn) {
-        this.sendBtn.addEventListener("click", () => this.handleSubmit());
-      }
-      if (this.refineBtn) {
-        this.refineBtn.addEventListener("click", () => this.handleRefine());
-      }
-      if (this.skipBtn) {
-        this.skipBtn.addEventListener("click", () => this.handleSkip());
-      }
-
-      if (this.input) {
-        this.input.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            this.handleSubmit();
-          }
-        });
-
-        // Word count tracking
-        this.input.addEventListener("input", () => {
-          if (currentTest.state === TestState.ACTIVE) {
-            updateWordCount();
-          }
-        });
-      }
-    },
-
-    addBotMessage(text, isHTML = false) {
-      if (!this.body) return null;
-      const row = document.createElement("div");
-      row.className = "bot-row";
-      const img = document.createElement("img");
-      img.src = AVATAR;
-      const bubble = document.createElement("div");
-      bubble.className = "bubble bot";
-      if (isHTML) {
-        bubble.innerHTML = text;
-      } else {
-        bubble.innerHTML = this.formatText(text);
-      }
-      row.appendChild(img);
-      row.appendChild(bubble);
-      this.body.appendChild(row);
-      this.scrollDown();
-      return bubble;
-    },
-
-    addUserMessage(text) {
-      if (!this.body) return;
-      const bubble = document.createElement("div");
-      bubble.className = "bubble user";
-      bubble.textContent = text.length > 500 ? text.substring(0, 500) + "..." : text;
-      this.body.appendChild(bubble);
-      this.scrollDown();
-    },
-
-    showTyping() {
-      this.isTyping = true;
-      if (this.skipBtn) this.skipBtn.classList.add("visible");
-      if (!this.body) return;
-      const row = document.createElement("div");
-      row.className = "bot-row";
-      row.id = "typing-indicator";
-      const img = document.createElement("img");
-      img.src = AVATAR;
-      const bubble = document.createElement("div");
-      bubble.className = "bubble bot typing-indicator";
-      bubble.innerHTML = "<span></span><span></span><span></span>";
-      row.appendChild(img);
-      row.appendChild(bubble);
-      this.body.appendChild(row);
-      this.scrollDown();
-    },
-
-    hideTyping() {
-      this.isTyping = false;
-      if (this.skipBtn) this.skipBtn.classList.remove("visible");
-      const indicator = document.getElementById("typing-indicator");
-      if (indicator) indicator.remove();
-    },
-
-    formatText(text) {
-      return text
-        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-        .replace(/\n/g, "<br>")
-        .replace(/• /g, "• ");
-    },
-
-    scrollDown() {
-      if (this.body) this.body.scrollTop = this.body.scrollHeight;
-    },
-
-    clear() {
-      if (this.body) this.body.innerHTML = "";
-    },
-
-    handleSubmit() {
-      if (!this.input) return;
-      const text = this.input.value.trim();
-      if (!text) return;
-
-      if (currentTest.state === TestState.ACTIVE) {
-        submitTestAnswer(text);
-      } else {
-        this.addUserMessage(text);
-        this.input.value = "";
-        this.addBotMessage("Use the buttons on the right panel to navigate. Select a test to begin practicing!");
-      }
-    },
-
-    handleRefine() {
-      if (currentTest.state === TestState.COMPLETE && currentTest.answer) {
-        this.showTyping();
-        requestRefine(currentTest.answer, currentTest.prompt);
-      }
-    },
-
-    handleSkip() {
-      if (this.isTyping) {
-        this.hideTyping();
-        this.addBotMessage("Skipped. What would you like to do next?");
-      }
-    }
+    typingBubble: null,
+    currentTypeInterval: null,
+    isLoggedIn: false,
+    userEmail: null,
+    hasAccess: false,
+    testInProgress: false,
+    timerInterval: null,
+    timeRemaining: 0
   };
 
-  // ---------------------------------------------------------------------------
-  // TIMER FUNCTIONS
-  // ---------------------------------------------------------------------------
-  function startTimer(minutes) {
-    currentTest.remainingSeconds = minutes * 60;
-    updateTimerDisplay();
-
-    currentTest.timerInterval = setInterval(() => {
-      currentTest.remainingSeconds--;
-      updateTimerDisplay();
-
-      if (currentTest.remainingSeconds <= 0) {
-        clearInterval(currentTest.timerInterval);
-        timeUp();
-      }
-    }, 1000);
+  // =============================================================================
+  // UTILITY FUNCTIONS
+  // =============================================================================
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
-  function updateTimerDisplay() {
-    const timerEl = document.getElementById("timer");
-    if (!timerEl) return;
-    const mins = Math.floor(currentTest.remainingSeconds / 60);
-    const secs = currentTest.remainingSeconds % 60;
-    timerEl.textContent = `${mins}:${secs.toString().padStart(2, "0")}`;
-
-    timerEl.classList.remove("warning", "danger");
-    if (currentTest.remainingSeconds <= 300 && currentTest.remainingSeconds > 60) {
-      timerEl.classList.add("warning");
-    } else if (currentTest.remainingSeconds <= 60) {
-      timerEl.classList.add("danger");
+  function scrollToBottom() {
+    if (DOM.chatBody) {
+      DOM.chatBody.scrollTop = DOM.chatBody.scrollHeight;
     }
   }
 
-  function stopTimer() {
-    if (currentTest.timerInterval) {
-      clearInterval(currentTest.timerInterval);
-      currentTest.timerInterval = null;
-    }
+  function showToast(message, duration = 2500) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText = `
+      position: fixed; top: 20px; right: 20px; background: #A367B1; color: white;
+      padding: 12px 20px; border-radius: 8px; z-index: 30000; font-family: Aptos, sans-serif;
+      font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.2); animation: fadeIn 0.3s ease;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), duration);
   }
 
-  function timeUp() {
-    ChatEngine.addBotMessage("⏰ **Time's up!** Your answer has been auto-submitted for scoring.");
-    const answer = ChatEngine.input ? ChatEngine.input.value.trim() : "";
-    if (answer) {
-      submitTestAnswer(answer);
+  // =============================================================================
+  // CHAT MESSAGE FUNCTIONS
+  // =============================================================================
+  function addMessage(role, content, options = {}) {
+    const { typewriter = true, saveToHistory = true, isMedia = false, mediaType = null, mediaUrl = null } = options;
+    
+    if (role === 'user') {
+      // User messages - just a bubble, no avatar
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble user';
+      bubble.textContent = content.length > 500 ? content.substring(0, 500) + '...' : content;
+      DOM.chatBody.appendChild(bubble);
     } else {
-      ChatEngine.addBotMessage("No answer was provided. Try another test when you're ready.");
-      endTest();
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // WORD COUNT
-  // ---------------------------------------------------------------------------
-  function updateWordCount() {
-    if (!ChatEngine.input) return;
-    const text = ChatEngine.input.value.trim();
-    const words = text ? text.split(/\s+/).filter(w => w.length > 0).length : 0;
-    const wordCountEl = document.getElementById("word-count");
-    if (!wordCountEl) return;
-    wordCountEl.textContent = words;
-
-    wordCountEl.classList.remove("low", "good");
-    if (words < currentTest.minWords) {
-      wordCountEl.classList.add("low");
-    } else {
-      wordCountEl.classList.add("good");
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // TEST ENGINE
-  // ---------------------------------------------------------------------------
-  function startTest(testId, level) {
-    const levelTests = TEST_BANK.writing[level];
-    const test = levelTests ? levelTests.find(t => t.id === testId) : null;
-    
-    if (!test) {
-      ChatEngine.addBotMessage("Test not found. Please try another.");
-      return;
-    }
-
-    currentTest = {
-      state: TestState.ACTIVE,
-      id: testId,
-      type: "writing",
-      prompt: test.prompt,
-      level: level,
-      startTime: Date.now(),
-      timeLimit: test.time,
-      minWords: test.minWords,
-      timerInterval: null,
-      remainingSeconds: 0,
-      answer: ""
-    };
-
-    const testInfo = document.getElementById("test-info");
-    const wordTarget = document.getElementById("word-target");
-    const testLevelBadge = document.getElementById("test-level-badge");
-    const wordCount = document.getElementById("word-count");
-
-    if (testInfo) testInfo.classList.add("active");
-    if (wordTarget) wordTarget.textContent = `/${test.minWords}`;
-    if (testLevelBadge) testLevelBadge.textContent = `📚 ${level.charAt(0).toUpperCase() + level.slice(1)}`;
-    if (wordCount) wordCount.textContent = "0";
-    
-    if (ChatEngine.input) {
-      ChatEngine.input.value = "";
-      ChatEngine.input.placeholder = "Write your response here...";
-      ChatEngine.input.focus();
-    }
-
-    ChatEngine.addBotMessage(`**${testId} - ${test.type.charAt(0).toUpperCase() + test.type.slice(1)} Essay**\n\n📝 **Task:**\n${test.prompt}\n\n⏱️ Time: ${test.time} minutes\n📊 Minimum: ${test.minWords} words\n\n**Tips:**\n• Plan for 2-3 minutes before writing\n• Address all parts of the question\n• Leave time to review\n\nYour time starts now. Good luck!`);
-
-    startTimer(test.time);
-  }
-
-  async function submitTestAnswer(answer) {
-    stopTimer();
-    currentTest.answer = answer;
-    currentTest.state = TestState.SCORING;
-
-    const wordCount = answer.split(/\s+/).filter(w => w.length > 0).length;
-    const timeSpent = Math.round((Date.now() - currentTest.startTime) / 1000);
-
-    ChatEngine.addUserMessage(answer.length > 300 ? answer.substring(0, 300) + "... [truncated]" : answer);
-    if (ChatEngine.input) ChatEngine.input.value = "";
-    
-    ChatEngine.addBotMessage(`✅ **Answer received!**\n\n📝 Words: ${wordCount}\n⏱️ Time: ${Math.floor(timeSpent / 60)}m ${timeSpent % 60}s\n\nScoring your response with AI...`);
-    ChatEngine.showTyping();
-
-    try {
-      const response = await fetch(`${API_BASE}/.netlify/functions/score-writing`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: currentUserEmail,
-          testId: currentTest.id,
-          prompt: currentTest.prompt,
-          answer: answer,
-          timeSpent: timeSpent
-        })
-      });
-
-      ChatEngine.hideTyping();
-
-      if (!response.ok) {
-        throw new Error("Scoring failed");
-      }
-
-      const result = await response.json();
-      displayScore(result);
+      // Bot messages - avatar + bubble in a row
+      const row = document.createElement('div');
+      row.className = 'bot-row';
       
-      if (!completedTests.includes(currentTest.id)) {
-        completedTests.push(currentTest.id);
-        testScores.push({ id: currentTest.id, score: result.scores?.overall || 0, date: new Date().toISOString() });
-        saveProgress();
-        updateStats();
-        markTestCompleted(currentTest.id);
+      const img = document.createElement('img');
+      img.src = CONFIG.BOT_AVATAR;
+      img.alt = 'Evolve';
+      
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble bot';
+      
+      row.appendChild(img);
+      row.appendChild(bubble);
+      DOM.chatBody.appendChild(row);
+      
+      if (isMedia && mediaType === 'video') {
+        // Video message
+        bubble.innerHTML = `
+          <div class="media-message">
+            <div class="video-container" style="position:relative;width:100%;padding-bottom:56.25%;margin-bottom:10px;border-radius:8px;overflow:hidden;">
+              <iframe src="${mediaUrl}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen></iframe>
+            </div>
+            <p style="margin:0;font-size:13px;">${escapeHtml(content)}</p>
+          </div>
+        `;
+      } else if (isMedia && mediaType === 'image') {
+        // Image message
+        bubble.innerHTML = `
+          <div class="media-message">
+            <img src="${mediaUrl}" alt="Image" style="max-width:100%;border-radius:8px;margin-bottom:10px;">
+            <p style="margin:0;font-size:13px;">${escapeHtml(content)}</p>
+          </div>
+        `;
+      } else if (typewriter && !state.isTyping) {
+        // Typewriter effect for text
+        typeWriterEffect(content, bubble);
+      } else {
+        // Instant text (format bold and newlines)
+        bubble.innerHTML = formatText(content);
       }
-
-      currentTest.state = TestState.COMPLETE;
-
-    } catch (error) {
-      ChatEngine.hideTyping();
-      console.error("Scoring error:", error);
-      ChatEngine.addBotMessage("⚠️ **Scoring Error**\n\nUnable to score your response right now. Your answer has been saved.\n\nPlease try again or contact support if this continues.");
-      currentTest.state = TestState.COMPLETE;
     }
+    
+    if (saveToHistory) {
+      state.history.push({ role, content });
+      saveToStorage();
+    }
+    
+    scrollToBottom();
+  }
+  
+  function formatText(text) {
+    return text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
   }
 
-  function displayScore(result) {
-    const scores = result.scores || {};
+  function typeWriterEffect(text, element) {
+    let index = 0;
+    const cleanText = text.replace(/\r/g, '');
     
-    const scoreHTML = `
-      <div class="score-card">
-        <div class="score-header">
-          <div>
-            <div class="overall-score">${scores.overall || "--"}</div>
-            <div class="score-label">Overall Band Score</div>
-          </div>
-          <div style="text-align: right;">
-            <div style="color: #4CAF50; font-weight: 700;">${result.wordCount || 0} words</div>
-            <div class="score-label">${currentTest.id} Complete</div>
-          </div>
-        </div>
-        
-        <div class="score-grid">
-          <div class="score-item">
-            <div class="score-item-label">Task Achievement</div>
-            <div class="score-item-value">${scores.task || "--"}</div>
-          </div>
-          <div class="score-item">
-            <div class="score-item-label">Coherence</div>
-            <div class="score-item-value">${scores.coherence || "--"}</div>
-          </div>
-          <div class="score-item">
-            <div class="score-item-label">Vocabulary</div>
-            <div class="score-item-value">${scores.lexical || "--"}</div>
-          </div>
-          <div class="score-item">
-            <div class="score-item-label">Grammar</div>
-            <div class="score-item-value">${scores.grammar || "--"}</div>
-          </div>
-        </div>
+    if (state.currentTypeInterval) {
+      clearInterval(state.currentTypeInterval);
+    }
+    
+    state.isTyping = true;
+    showSkipButton();
+    
+    const skipHandler = () => {
+      clearInterval(state.currentTypeInterval);
+      element.innerHTML = formatText(cleanText);
+      state.isTyping = false;
+      hideSkipButton();
+      scrollToBottom();
+    };
+    
+    // Remove old handler and add new one
+    if (DOM.chatSkip) {
+      DOM.chatSkip.removeEventListener('click', DOM.chatSkip._handler);
+      DOM.chatSkip._handler = skipHandler;
+      DOM.chatSkip.addEventListener('click', skipHandler);
+    }
+    
+    state.currentTypeInterval = setInterval(() => {
+      if (index >= cleanText.length) {
+        clearInterval(state.currentTypeInterval);
+        // Apply full formatting when done
+        element.innerHTML = formatText(cleanText);
+        state.isTyping = false;
+        hideSkipButton();
+        return;
+      }
+      
+      const char = cleanText.charAt(index);
+      element.innerHTML += char === '\n' ? '<br>' : escapeHtml(char);
+      index++;
+      scrollToBottom();
+    }, CONFIG.TYPING_SPEED);
+  }
 
-        <div class="feedback-section">
-          <div class="feedback-title">💪 Strengths</div>
-          <ul class="strength-list">
-            ${(result.strengths || ["Good attempt"]).map(s => `<li>${s}</li>`).join("")}
-          </ul>
-        </div>
+  function showSkipButton() {
+    if (DOM.chatSkip) DOM.chatSkip.classList.add('active');
+  }
 
-        <div class="feedback-section">
-          <div class="feedback-title">🎯 Areas to Improve</div>
-          <ul class="improve-list">
-            ${(result.improvements || ["Keep practicing"]).map(i => `<li>${i}</li>`).join("")}
-          </ul>
-        </div>
+  function hideSkipButton() {
+    if (DOM.chatSkip) DOM.chatSkip.classList.remove('active');
+  }
 
-        <div class="feedback-section">
-          <div class="feedback-title">📌 Next Focus</div>
-          <div class="feedback-text">${result.next_focus || "Continue practicing to improve your score."}</div>
-        </div>
+  function showTypingIndicator() {
+    if (state.typingBubble) return;
+    
+    state.typingBubble = document.createElement('div');
+    state.typingBubble.className = 'bot-row';
+    state.typingBubble.id = 'typing-indicator';
+    state.typingBubble.innerHTML = `
+      <img src="${CONFIG.BOT_AVATAR}" alt="Evolve">
+      <div class="bubble bot typing-indicator">
+        <span></span>
+        <span></span>
+        <span></span>
       </div>
     `;
+    DOM.chatBody.appendChild(state.typingBubble);
+    scrollToBottom();
+  }
 
-    ChatEngine.addBotMessage(`**📊 Your Score Report**`, false);
-    ChatEngine.addBotMessage(scoreHTML, true);
-    ChatEngine.addBotMessage(`**Summary:** ${result.band_summary || "Keep up the practice!"}\n\nClick **Refine** to get suggestions for improving this specific response, or select another test to continue practicing.`);
+  function hideTypingIndicator() {
+    if (state.typingBubble) {
+      state.typingBubble.remove();
+      state.typingBubble = null;
+    }
+  }
+
+  // =============================================================================
+  // WELCOME MESSAGE
+  // =============================================================================
+  function getWelcomeMessage() {
+    const hour = new Date().getHours();
+    let greeting = "Welcome";
+    if (hour >= 5 && hour < 12) greeting = "Good morning";
+    else if (hour >= 12 && hour < 18) greeting = "Good afternoon";
+    else if (hour >= 18 || hour < 5) greeting = "Good evening";
     
-    endTest();
+    return `${greeting}! I'm your Evolve training coach.
+
+I'm here to help you improve your English proficiency for IELTS and CELPIP.
+
+🎯 To get started:
+• Login to access your training
+• Browse the FAQ panel for tips
+• Select a test from Writing or Reading Practice
+
+What would you like to work on today?`;
   }
 
-  function endTest() {
-    currentTest.state = TestState.IDLE;
-    const testInfo = document.getElementById("test-info");
-    if (testInfo) testInfo.classList.remove("active");
-    if (ChatEngine.input) ChatEngine.input.placeholder = "Select a test from the right panel...";
+  function showWelcome() {
+    if (!DOM.chatBody) return;
+    DOM.chatBody.innerHTML = '';
+    
+    // If intro video is configured, show it first
+    if (CONFIG.INTRO_VIDEO) {
+      addMessage('bot', "Welcome to Evolve! Here's a quick introduction:", {
+        typewriter: false,
+        saveToHistory: false,
+        isMedia: true,
+        mediaType: 'video',
+        mediaUrl: CONFIG.INTRO_VIDEO
+      });
+      
+      // Then show text welcome after a delay
+      setTimeout(() => {
+        addMessage('bot', getWelcomeMessage(), { typewriter: true, saveToHistory: true });
+      }, 500);
+    } else {
+      // Just show text welcome
+      setTimeout(() => {
+        addMessage('bot', getWelcomeMessage(), { typewriter: true, saveToHistory: true });
+      }, 300);
+    }
   }
 
-  function markTestCompleted(testId) {
-    const buttons = document.querySelectorAll(".test-btn");
-    buttons.forEach(btn => {
-      if (btn.textContent.includes(testId.replace("W", "Writing Test "))) {
-        btn.classList.add("completed");
+  // =============================================================================
+  // SEND MESSAGE
+  // =============================================================================
+  async function handleSendMessage(text) {
+    const message = text || (DOM.chatInput?.value.trim() || '');
+    if (!message) return;
+    
+    // Add user message
+    addMessage('user', message);
+    if (DOM.chatInput) DOM.chatInput.value = '';
+    
+    // Check for FAQ preset responses
+    const presetResponse = FAQ_RESPONSES[message];
+    if (presetResponse) {
+      setTimeout(() => addMessage('bot', presetResponse), 300);
+      return;
+    }
+    
+    // Send to API
+    showTypingIndicator();
+    
+    try {
+      const response = await fetch(CONFIG.FUNCTION_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: message,
+          history: state.history.slice(-20),
+          userEmail: state.userEmail
+        })
+      });
+      
+      const data = await response.json();
+      hideTypingIndicator();
+      
+      if (response.ok && data.reply) {
+        setTimeout(() => addMessage('bot', data.reply), 200);
+      } else {
+        addMessage('bot', 'Sorry, I encountered an error. Please try again.');
       }
+    } catch (error) {
+      console.error('Chat error:', error);
+      hideTypingIndicator();
+      addMessage('bot', 'Connection error. Please check your internet and try again.');
+    }
+  }
+
+  // =============================================================================
+  // FAQ RESPONSES
+  // =============================================================================
+  const FAQ_RESPONSES = {
+    "how-bootcamp-works": `The Evolve Academy is a structured English proficiency training system designed for IELTS and CELPIP preparation.
+
+Here's how it works:
+
+📚 STRUCTURED TESTS
+• 66 tests across Writing and Reading
+• Three difficulty levels: Foundation, Intermediate, Advanced
+• Micro drills for targeted skill practice
+
+⏱️ TIMED PRACTICE
+• Real exam conditions with countdown timers
+• Word count tracking for writing tasks
+• Immediate feedback on submissions
+
+📊 PROGRESS TRACKING
+• Track your scores over time
+• See your strengths and areas to improve
+• Build consistency with daily practice streaks
+
+🔄 REFINEMENT LOOP
+• Submit your response
+• Get detailed feedback
+• Refine and resubmit to improve
+
+Start with Foundation level and work your way up!`,
+
+    "how-dashboard": `This dashboard is your training command center.
+
+LEFT SIDE - Chat Interface:
+• Chat with me for guidance and feedback
+• Submit your test responses here
+• See your scores and improvement tips
+
+RIGHT SIDE - Training Menu:
+• Browse FAQ topics for tips
+• Open Writing or Reading practice folders
+• Track vocabulary and progress
+
+TOP BAR - Quick Actions:
+• 📊 Stats - View your progress statistics
+• 📥 Download - Save your conversation
+• 📓 Notebook - Take personal notes
+• 🔗 Resources - Official IELTS/CELPIP links
+• ♻️ Reset - Start fresh
+• 🔐 Login - Access your subscription
+
+Get started by clicking a test from the Writing or Reading section!`,
+
+    "speed-tips": `Tips for Writing Faster:
+
+1. PLAN BEFORE YOU WRITE (2-3 minutes)
+   • Identify the question type
+   • Brainstorm 2-3 main ideas
+   • Outline your structure
+
+2. USE TEMPLATES
+   • Memorize introduction patterns
+   • Have transition phrases ready
+   • Know your conclusion format
+
+3. DON'T OVER-EDIT
+   • Write continuously
+   • Fix errors at the end
+   • Trust your first instinct
+
+4. PRACTICE TYPING
+   • Aim for 40+ WPM
+   • Use all fingers
+   • Practice daily
+
+5. TIME YOURSELF
+   • Set strict deadlines
+   • Track your pace
+   • Build speed gradually`,
+
+    "accuracy-tips": `Tips for Better Accuracy:
+
+1. READ THE QUESTION TWICE
+   • Underline key words
+   • Identify what's being asked
+   • Note any specific requirements
+
+2. CHECK SUBJECT-VERB AGREEMENT
+   • Singular subjects = singular verbs
+   • Watch for tricky plurals
+   • Be careful with collective nouns
+
+3. USE PUNCTUATION CORRECTLY
+   • Commas separate clauses
+   • Periods end complete thoughts
+   • Avoid comma splices
+
+4. PROOFREAD SYSTEMATICALLY
+   • Read aloud in your head
+   • Check one error type at a time
+   • Leave 2-3 minutes for review
+
+5. LEARN FROM MISTAKES
+   • Keep an error log
+   • Review common patterns
+   • Practice weak areas`,
+
+    "vocab-tips": `How to Learn New Words Effectively:
+
+1. CONTEXT IS KEY
+   • Learn words in sentences, not isolation
+   • Note how words are used in reading passages
+   • Practice using new words immediately
+
+2. USE SPACED REPETITION
+   • Review new words after 1 day
+   • Then after 3 days, 1 week, 2 weeks
+   • Focus on words you struggle with
+
+3. MAKE CONNECTIONS
+   • Link new words to words you know
+   • Create word families (noun, verb, adjective forms)
+   • Use mnemonics for difficult words
+
+4. ACTIVE PRACTICE
+   • Write sentences with new words
+   • Use them in speaking practice
+   • Quiz yourself regularly
+
+5. FOCUS ON HIGH-VALUE WORDS
+   • Academic Word List (AWL)
+   • Topic-specific vocabulary
+   • Transition words and phrases`,
+
+    "grammar-rules": `Essential Grammar Rules:
+
+1. SUBJECT-VERB AGREEMENT
+   • The dog runs (singular)
+   • The dogs run (plural)
+   • Everyone has (indefinite = singular)
+
+2. TENSE CONSISTENCY
+   • Stay in one tense unless time changes
+   • Past for completed actions
+   • Present for general truths
+
+3. ARTICLE USAGE
+   • "A" before consonant sounds
+   • "An" before vowel sounds
+   • "The" for specific/known items
+
+4. COMMA RULES
+   • After introductory phrases
+   • Before coordinating conjunctions (FANBOYS)
+   • In lists of 3+ items
+
+5. PRONOUN REFERENCE
+   • Pronouns must clearly refer to a noun
+   • Avoid vague "it" or "this"
+   • Match singular/plural`,
+
+    "common-mistakes": `Common Mistakes to Avoid:
+
+1. RUN-ON SENTENCES
+   ❌ I went to the store I bought milk
+   ✓ I went to the store, and I bought milk.
+
+2. COMMA SPLICES
+   ❌ She was tired, she went to bed.
+   ✓ She was tired, so she went to bed.
+
+3. WRONG WORD FORMS
+   ❌ The increase of pollution...
+   ✓ The increasing pollution...
+
+4. MISUSED WORDS
+   ❌ effect vs affect
+   ❌ their vs there vs they're
+   ❌ its vs it's
+
+5. REDUNDANCY
+   ❌ In my personal opinion...
+   ✓ In my opinion...
+
+6. VAGUE LANGUAGE
+   ❌ This is very important
+   ✓ This significantly impacts...`,
+
+    "essay-structure": `How to Structure an Essay:
+
+INTRODUCTION (2-3 sentences)
+• Hook or background statement
+• Paraphrase the question
+• State your thesis/position
+
+BODY PARAGRAPH 1
+• Topic sentence (main idea)
+• Explanation
+• Example or evidence
+• Link back to thesis
+
+BODY PARAGRAPH 2
+• Topic sentence (different main idea)
+• Explanation
+• Example or evidence
+• Link back to thesis
+
+CONCLUSION (2-3 sentences)
+• Restate thesis differently
+• Summarize main points
+• Final thought or recommendation
+
+TIPS:
+• Each paragraph = one main idea
+• Use transition words between paragraphs
+• Aim for 250-280 words for IELTS Task 2`,
+
+    "reading-analysis": `How to Analyze a Reading Passage:
+
+BEFORE READING
+• Skim headings and first sentences
+• Note the topic and structure
+• Check how many questions
+
+DURING READING
+• Read questions first
+• Scan for keywords
+• Don't read every word - skim efficiently
+
+QUESTION TYPES:
+
+Multiple Choice:
+• Eliminate wrong answers
+• Look for paraphrased language
+• Beware of "almost right" options
+
+True/False/Not Given:
+• TRUE = matches the passage
+• FALSE = contradicts the passage
+• NOT GIVEN = no information
+
+Matching:
+• Scan for names, dates, terms
+• Mark as you find them
+• Check all options
+
+Fill in the Blank:
+• Word limit matters
+• Grammar must fit
+• Copy spelling exactly`,
+
+    "about": `About Evolve - Language Proficiency Training
+
+Evolve is part of the North Star GPS platform by Matin Immigration Services.
+
+WHAT IS EVOLVE?
+A structured English training system designed specifically for:
+• IELTS Academic and General Training
+• CELPIP General preparation
+• Canadian immigration language requirements
+
+WHAT'S INCLUDED?
+• 66 structured tests (Writing & Reading)
+• Three difficulty levels
+• Micro drills for targeted practice
+• Vocabulary builder with spaced repetition
+• Progress tracking and analytics
+• AI-powered feedback and scoring
+
+WHO IS IT FOR?
+• Express Entry applicants needing CLB 7+
+• Provincial nominee candidates
+• Anyone preparing for IELTS or CELPIP
+
+PRICING
+$150 CAD per year - unlimited access
+
+Created by Matin Immigration Services Inc.
+RCIC License #R712582`,
+
+    "pricing": `Evolve Pricing & Access
+
+YEARLY SUBSCRIPTION: $150 CAD/year
+
+What's included:
+✓ 66 structured tests (Writing & Reading)
+✓ Foundation, Intermediate, and Advanced levels
+✓ Micro drills for grammar, vocabulary, and more
+✓ AI-powered feedback on every submission
+✓ Vocabulary builder with spaced repetition
+✓ Progress tracking and statistics
+✓ Unlimited practice sessions
+
+ADDITIONAL SERVICES:
+• Writing Review by Human Expert: $50 CAD
+• One-on-One Coaching Session: $75 CAD/hour
+
+To subscribe, click "Unlock Full Evolve Access" below or visit:
+https://migratenorth.ca/checkout/evolve
+
+All prices in Canadian dollars.
+Subscription renews annually.`,
+
+    "ielts-writing-scoring": `IELTS Writing Scoring Explained:
+
+Your writing is scored on 4 criteria (each worth 25%):
+
+1. TASK ACHIEVEMENT (Task 2) / TASK RESPONSE (Task 1)
+   Band 7+: Fully addresses all parts of the task
+   • Clear position throughout
+   • Relevant, extended ideas
+   • Well-developed arguments
+
+2. COHERENCE AND COHESION
+   Band 7+: Logically organized
+   • Clear progression throughout
+   • Effective use of cohesive devices
+   • Each paragraph has a clear central topic
+
+3. LEXICAL RESOURCE (Vocabulary)
+   Band 7+: Wide range of vocabulary
+   • Less common lexical items
+   • Awareness of style and collocation
+   • Occasional errors in word choice
+
+4. GRAMMATICAL RANGE AND ACCURACY
+   Band 7+: Variety of complex structures
+   • Frequent error-free sentences
+   • Good control of grammar
+   • Errors don't impede communication
+
+BAND SCORE GUIDE:
+• Band 9: Expert user
+• Band 8: Very good user
+• Band 7: Good user (CLB 9)
+• Band 6: Competent user (CLB 7)
+• Band 5: Modest user`,
+
+    "score-conversion": `IELTS/CELPIP to CLB Conversion:
+
+LISTENING:
+CLB 10+ = IELTS 8.5+ / CELPIP 12
+CLB 9 = IELTS 8.0 / CELPIP 10-11
+CLB 8 = IELTS 7.5 / CELPIP 9
+CLB 7 = IELTS 6.0-7.0 / CELPIP 7-8
+CLB 6 = IELTS 5.5 / CELPIP 6
+CLB 5 = IELTS 5.0 / CELPIP 5
+
+READING:
+CLB 10+ = IELTS 8.0+ / CELPIP 12
+CLB 9 = IELTS 7.0-7.5 / CELPIP 10-11
+CLB 8 = IELTS 6.5 / CELPIP 9
+CLB 7 = IELTS 6.0 / CELPIP 7-8
+CLB 6 = IELTS 5.0-5.5 / CELPIP 6
+
+WRITING:
+CLB 10+ = IELTS 7.5+ / CELPIP 12
+CLB 9 = IELTS 7.0 / CELPIP 10-11
+CLB 8 = IELTS 6.5 / CELPIP 9
+CLB 7 = IELTS 6.0 / CELPIP 7-8
+CLB 6 = IELTS 5.5 / CELPIP 6
+
+SPEAKING:
+CLB 10+ = IELTS 7.5+ / CELPIP 12
+CLB 9 = IELTS 7.0 / CELPIP 10-11
+CLB 8 = IELTS 6.5 / CELPIP 9
+CLB 7 = IELTS 6.0 / CELPIP 7-8
+
+For Express Entry:
+• Minimum CLB 7 for Federal Skilled Worker
+• CLB 9 across all 4 skills = maximum CRS points`
+  };
+
+  // =============================================================================
+  // FAQ BUTTON HANDLERS
+  // =============================================================================
+  function setupFAQButtons() {
+    const faqButtons = document.querySelectorAll('.ns-btn[data-faq]');
+    faqButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const faqKey = btn.getAttribute('data-faq');
+        const response = FAQ_RESPONSES[faqKey];
+        if (response) {
+          addMessage('bot', response);
+        } else {
+          addMessage('bot', 'This feature is coming soon. Stay tuned!');
+        }
+      });
+    });
+    
+    // Action buttons
+    const actionButtons = document.querySelectorAll('.ns-btn[data-action]');
+    actionButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const action = btn.getAttribute('data-action');
+        handleAction(action);
+      });
     });
   }
 
-  // ---------------------------------------------------------------------------
-  // REFINE FUNCTION
-  // ---------------------------------------------------------------------------
-  async function requestRefine(answer, prompt) {
-    try {
-      const response = await fetch(`${API_BASE}/.netlify/functions/chat-evolve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: `Please analyze this IELTS essay and provide specific suggestions to improve it:\n\nPROMPT: ${prompt}\n\nSTUDENT'S ANSWER:\n${answer}\n\nProvide:\n1. Two specific sentences that could be improved (with rewrites)\n2. One vocabulary upgrade suggestion\n3. One structural improvement tip`,
-          email: currentUserEmail
-        })
+  function handleAction(action) {
+    switch(action) {
+      case 'vocab-drill':
+        addMessage('bot', 'Vocabulary drills are coming soon! This feature will help you learn academic vocabulary with spaced repetition.');
+        break;
+      case 'vocab-review':
+        addMessage('bot', 'Vocabulary review is coming soon! You\'ll be able to review words you\'ve learned and track mastery.');
+        break;
+      default:
+        addMessage('bot', 'This feature is coming soon!');
+    }
+  }
+
+  // =============================================================================
+  // FOLDER EXPANSION
+  // =============================================================================
+  function setupFolders() {
+    // Main folders
+    const folderHeaders = document.querySelectorAll('.folder-header');
+    folderHeaders.forEach(header => {
+      header.addEventListener('click', () => {
+        const folder = header.getAttribute('data-folder');
+        const testList = document.getElementById(`${folder}-tests`);
+        
+        header.classList.toggle('open');
+        testList?.classList.toggle('open');
       });
+    });
+    
+    // Sub-folders
+    const subFolderHeaders = document.querySelectorAll('.sub-folder-header');
+    subFolderHeaders.forEach(header => {
+      header.addEventListener('click', () => {
+        const subfolder = header.getAttribute('data-subfolder');
+        const subTestList = document.getElementById(`${subfolder}-tests`);
+        
+        header.classList.toggle('open');
+        subTestList?.classList.toggle('open');
+      });
+    });
+    
+    // Generate test buttons
+    generateTestButtons();
+  }
 
-      ChatEngine.hideTyping();
+  function generateTestButtons() {
+    // Writing tests
+    generateTestsForLevel('writing-foundation', 'Writing', 1, 11, 'Foundation');
+    generateTestsForLevel('writing-intermediate', 'Writing', 12, 22, 'Intermediate');
+    generateTestsForLevel('writing-advanced', 'Writing', 23, 33, 'Advanced');
+    
+    // Reading tests
+    generateTestsForLevel('reading-foundation', 'Reading', 1, 11, 'Foundation');
+    generateTestsForLevel('reading-intermediate', 'Reading', 12, 22, 'Intermediate');
+    generateTestsForLevel('reading-advanced', 'Reading', 23, 33, 'Advanced');
+    
+    // Micro drills
+    generateMicroDrills('writing-micro');
+    generateMicroDrills('reading-micro');
+  }
 
-      if (!response.ok) throw new Error("Refine failed");
-
-      const data = await response.json();
-      ChatEngine.addBotMessage(data.response || data.message || "Here are some suggestions for improvement...");
-
-    } catch (error) {
-      ChatEngine.hideTyping();
-      ChatEngine.addBotMessage("Unable to generate refinements. Please try again.");
+  function generateTestsForLevel(containerId, type, start, end, level) {
+    const container = document.getElementById(`${containerId}-tests`);
+    if (!container) return;
+    
+    for (let i = start; i <= end; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'test-btn';
+      btn.textContent = `${type} Test ${i}`;
+      btn.addEventListener('click', () => startTest(type, i, level));
+      container.appendChild(btn);
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // AUTH & ACCESS
-  // ---------------------------------------------------------------------------
-  async function checkEntitlement(email) {
-    try {
-      const response = await fetch(`${API_BASE}/.netlify/functions/check-entitlement?email=${encodeURIComponent(email)}`);
-      const data = await response.json();
-      return data.hasAccess === true;
-    } catch (error) {
-      console.error("Entitlement check failed:", error);
-      return false;
-    }
+  function generateMicroDrills(containerId) {
+    const container = document.getElementById(`${containerId}-tests`);
+    if (!container) return;
+    
+    const drills = ['Grammar', 'Vocabulary', 'Cohesion', 'Summarization', 'Tone'];
+    drills.forEach(drill => {
+      const btn = document.createElement('button');
+      btn.className = 'test-btn';
+      btn.textContent = `${drill} Drill`;
+      btn.addEventListener('click', () => startMicroDrill(drill));
+      container.appendChild(btn);
+    });
   }
 
-  function applyAccess(hasAccess, email) {
-    userIsSubscribed = hasAccess;
-    currentUserEmail = email;
-
-    const input = ChatEngine.input;
-    const sendBtn = ChatEngine.sendBtn;
-    const refineBtn = ChatEngine.refineBtn;
-    const loginBtn = document.getElementById("btn-login");
-    const loginBtnMobile = document.getElementById("btn-login-mobile");
-    const loggedInBar = document.getElementById("logged-in-bar");
-    const loggedInEmail = document.getElementById("logged-in-email");
-    const unlockBtn = document.getElementById("unlock-evolve");
-
-    if (hasAccess && email) {
-      if (input) { input.disabled = false; input.placeholder = "Select a test from the right panel to begin..."; }
-      if (sendBtn) sendBtn.disabled = false;
-      if (refineBtn) refineBtn.disabled = false;
-      if (loginBtn) loginBtn.textContent = "Logout";
-      if (loginBtnMobile) loginBtnMobile.textContent = "Logout";
-      if (loggedInBar) loggedInBar.classList.add("visible");
-      if (loggedInEmail) loggedInEmail.textContent = email;
-      if (unlockBtn) unlockBtn.style.display = "none";
-    } else {
-      if (input) { input.disabled = true; input.placeholder = "Login required to use Evolve"; }
-      if (sendBtn) sendBtn.disabled = true;
-      if (refineBtn) refineBtn.disabled = true;
-      if (loginBtn) loginBtn.textContent = "Login";
-      if (loginBtnMobile) loginBtnMobile.textContent = "Login";
-      if (loggedInBar) loggedInBar.classList.remove("visible");
-      if (unlockBtn) unlockBtn.style.display = "block";
+  function startTest(type, number, level) {
+    if (!state.hasAccess) {
+      addMessage('bot', `To access ${type} Test ${number}, please login with your subscription email or unlock Evolve access.`);
+      return;
     }
+    
+    addMessage('bot', `Starting ${type} Test ${number} (${level} Level)...\n\nThis test will be timed. You'll have 20 minutes for Foundation, 30 minutes for Intermediate, and 40 minutes for Advanced.\n\nThe test prompt is loading...`);
+    
+    // Show test info bar
+    if (DOM.testInfo) DOM.testInfo.classList.add('active');
+    if (DOM.testLevelBadge) DOM.testLevelBadge.textContent = level;
+  }
+
+  function startMicroDrill(drillType) {
+    if (!state.hasAccess) {
+      addMessage('bot', `To access ${drillType} Drills, please login with your subscription email or unlock Evolve access.`);
+      return;
+    }
+    
+    addMessage('bot', `Starting ${drillType} Micro Drill...\n\nMicro drills are short, focused exercises to improve specific skills. You'll get immediate feedback after each response.`);
+  }
+
+  // =============================================================================
+  // UI CONTROLS
+  // =============================================================================
+  function setupUIControls() {
+    // Stats dropdown
+    DOM.btnStats?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      DOM.statsDropdown?.classList.toggle('active');
+      DOM.resourcesDropdown?.classList.remove('active');
+    });
+    
+    // Resources dropdown
+    DOM.btnResources?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      DOM.resourcesDropdown?.classList.toggle('active');
+      DOM.statsDropdown?.classList.remove('active');
+    });
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.resources-wrapper') && !e.target.closest('#btn-stats')) {
+        DOM.resourcesDropdown?.classList.remove('active');
+        DOM.statsDropdown?.classList.remove('active');
+      }
+    });
+    
+    // Notebook
+    DOM.btnNotebook?.addEventListener('click', toggleNotebook);
+    DOM.notebookClose?.addEventListener('click', toggleNotebook);
+    
+    // Load saved notebook content
+    if (DOM.notebookArea) {
+      DOM.notebookArea.value = localStorage.getItem(CONFIG.NOTEBOOK_KEY) || '';
+      DOM.notebookArea.addEventListener('input', () => {
+        localStorage.setItem(CONFIG.NOTEBOOK_KEY, DOM.notebookArea.value);
+      });
+    }
+    
+    // Download
+    DOM.btnDownload?.addEventListener('click', downloadConversation);
+    
+    // Reset
+    DOM.btnReset?.addEventListener('click', () => {
+      if (confirm('Clear chat and start fresh?')) {
+        resetChat();
+      }
+    });
+    
+    // Login
+    DOM.btnLogin?.addEventListener('click', openLoginModal);
+    DOM.loginClose?.addEventListener('click', closeLoginModal);
+    DOM.loginSubmit?.addEventListener('click', handleLogin);
+    DOM.loginOverlay?.addEventListener('click', (e) => {
+      if (e.target === DOM.loginOverlay) closeLoginModal();
+    });
+    DOM.loginEmail?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleLogin();
+    });
+    
+    // Unlock button
+    DOM.unlockEvolve?.addEventListener('click', () => {
+      window.open('https://migratenorth.ca/checkout/evolve', '_blank');
+    });
+    
+    // Mobile menu
+    DOM.mobileMenuBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      DOM.mobileMenuDropdown?.classList.toggle('active');
+    });
+    
+    // Mobile button handlers
+    DOM.btnStatsMobile?.addEventListener('click', () => {
+      closeMobileMenu();
+      DOM.statsDropdown?.classList.toggle('active');
+    });
+    DOM.btnDownloadMobile?.addEventListener('click', () => {
+      closeMobileMenu();
+      downloadConversation();
+    });
+    DOM.btnNotebookMobile?.addEventListener('click', () => {
+      closeMobileMenu();
+      toggleNotebook();
+    });
+    DOM.btnResourcesMobile?.addEventListener('click', () => {
+      closeMobileMenu();
+      DOM.resourcesDropdown?.classList.toggle('active');
+    });
+    DOM.btnResetMobile?.addEventListener('click', () => {
+      closeMobileMenu();
+      if (confirm('Clear chat and start fresh?')) resetChat();
+    });
+    DOM.btnLoginMobile?.addEventListener('click', () => {
+      closeMobileMenu();
+      openLoginModal();
+    });
+    
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#session-controls-container')) {
+        DOM.mobileMenuDropdown?.classList.remove('active');
+      }
+    });
+    
+    // Send button
+    DOM.chatSend?.addEventListener('click', () => handleSendMessage());
+    
+    // Enter key to send
+    DOM.chatInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage();
+      }
+    });
+    
+    // Word count for input
+    DOM.chatInput?.addEventListener('input', updateWordCount);
+  }
+
+  function closeMobileMenu() {
+    DOM.mobileMenuDropdown?.classList.remove('active');
+  }
+
+  function toggleNotebook() {
+    DOM.notebookPanel?.classList.toggle('open');
+  }
+
+  function downloadConversation() {
+    if (state.history.length === 0) {
+      showToast('No conversation to download');
+      return;
+    }
+    
+    let transcript = '='.repeat(60) + '\n';
+    transcript += 'EVOLVE - Training Session Transcript\n';
+    transcript += `Downloaded: ${new Date().toLocaleString()}\n`;
+    transcript += '='.repeat(60) + '\n\n';
+    
+    state.history.forEach(msg => {
+      const role = msg.role === 'user' ? 'You' : 'Evolve Coach';
+      transcript += `${role}:\n${msg.content}\n\n`;
+    });
+    
+    const blob = new Blob([transcript], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `evolve-session-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    showToast('Session downloaded!');
+  }
+
+  function resetChat() {
+    state.history = [];
+    localStorage.removeItem(CONFIG.STORAGE_KEY);
+    hideSkipButton();
+    if (state.currentTypeInterval) clearInterval(state.currentTypeInterval);
+    state.isTyping = false;
+    showWelcome();
+    showToast('Chat reset!');
+  }
+
+  function updateWordCount() {
+    const text = DOM.chatInput?.value || '';
+    const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+    if (DOM.wordCount) DOM.wordCount.textContent = words;
+  }
+
+  // =============================================================================
+  // LOGIN & ENTITLEMENT
+  // =============================================================================
+  function openLoginModal() {
+    DOM.loginOverlay?.classList.remove('hidden');
+    if (DOM.loginStatus) DOM.loginStatus.textContent = '';
+    DOM.loginEmail?.focus();
+  }
+
+  function closeLoginModal() {
+    DOM.loginOverlay?.classList.add('hidden');
   }
 
   async function handleLogin() {
-    const email = prompt("Enter your email to login:");
-    if (!email || !email.includes("@")) {
-      alert("Please enter a valid email.");
+    const email = DOM.loginEmail?.value.trim();
+    if (!email || !email.includes('@')) {
+      if (DOM.loginStatus) DOM.loginStatus.textContent = 'Please enter a valid email address.';
       return;
     }
-
-    ChatEngine.addBotMessage("Checking your access...");
-    const hasAccess = await checkEntitlement(email.toLowerCase());
     
-    if (hasAccess) {
-      localStorage.setItem("evolve_user_email", email.toLowerCase());
-      applyAccess(true, email.toLowerCase());
-      loadProgress();
-      
-      // Load Phase 2 features if available
-      if (window.EvolvePhase2) {
-        await window.EvolvePhase2.loadDailyCoach(20);
-        await window.EvolvePhase2.refreshStats();
-      }
-      
-      ChatEngine.addBotMessage(`✅ Welcome back! You have full access to Evolve.\n\nSelect a test from the right panel to begin practicing.`);
-    } else {
-      ChatEngine.addBotMessage(`❌ No active subscription found for ${email}.\n\nClick the yellow "Unlock Full Evolve Access" button to subscribe and get started!`);
-    }
-  }
-
-  function handleLogout() {
-    localStorage.removeItem("evolve_user_email");
-    localStorage.removeItem("evolve_completed_tests");
-    localStorage.removeItem("evolve_test_scores");
-    applyAccess(false, null);
-    completedTests = [];
-    testScores = [];
-    updateStats();
-    ChatEngine.clear();
-    showWelcome();
-    ChatEngine.addBotMessage("You have been logged out. Login again or subscribe to continue.");
-  }
-
-  // ---------------------------------------------------------------------------
-  // PROGRESS & STATS
-  // ---------------------------------------------------------------------------
-  function saveProgress() {
-    localStorage.setItem("evolve_completed_tests", JSON.stringify(completedTests));
-    localStorage.setItem("evolve_test_scores", JSON.stringify(testScores));
-  }
-
-  function loadProgress() {
+    if (DOM.loginStatus) DOM.loginStatus.textContent = 'Checking access...';
+    if (DOM.loginSubmit) DOM.loginSubmit.disabled = true;
+    
     try {
-      const saved = localStorage.getItem("evolve_completed_tests");
-      const scores = localStorage.getItem("evolve_test_scores");
-      if (saved) completedTests = JSON.parse(saved);
-      if (scores) testScores = JSON.parse(scores);
+      const response = await fetch(CONFIG.ENTITLEMENT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, product: 'evolve' })
+      });
       
-      completedTests.forEach(id => markTestCompleted(id));
-      updateStats();
+      const data = await response.json();
+      
+      if (data.hasAccess) {
+        state.isLoggedIn = true;
+        state.userEmail = email;
+        state.hasAccess = true;
+        
+        if (DOM.loginStatus) DOM.loginStatus.textContent = '✓ Access confirmed!';
+        DOM.loggedInBar?.classList.add('visible');
+        if (DOM.loggedInEmail) DOM.loggedInEmail.textContent = email;
+        
+        // Enable input
+        if (DOM.chatInput) {
+          DOM.chatInput.disabled = false;
+          DOM.chatInput.placeholder = 'Type your message or response...';
+        }
+        if (DOM.chatSend) DOM.chatSend.disabled = false;
+        if (DOM.chatRefine) DOM.chatRefine.disabled = false;
+        
+        // Update login button
+        if (DOM.btnLogin) DOM.btnLogin.textContent = '✓ Logged In';
+        
+        setTimeout(closeLoginModal, 1000);
+        
+        addMessage('bot', `Welcome back! You're logged in as ${email}.\n\nYou now have full access to all Evolve training features. Select a test from the menu to begin!`);
+      } else {
+        if (DOM.loginStatus) DOM.loginStatus.textContent = 'No active subscription found. Click "Unlock Full Evolve Access" to subscribe.';
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      if (DOM.loginStatus) DOM.loginStatus.textContent = 'Connection error. Please try again.';
+    } finally {
+      if (DOM.loginSubmit) DOM.loginSubmit.disabled = false;
+    }
+  }
+
+  // =============================================================================
+  // STORAGE
+  // =============================================================================
+  function saveToStorage() {
+    try {
+      const data = {
+        history: state.history.slice(-50),
+        userEmail: state.userEmail,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
-      console.error("Error loading progress:", e);
+      console.error('Storage error:', e);
     }
   }
 
-  function updateStats() {
-    const statTests = document.getElementById("stat-tests");
-    const statWriting = document.getElementById("stat-writing");
-    const statReading = document.getElementById("stat-reading");
-    const statAvg = document.getElementById("stat-avg");
-    const statBest = document.getElementById("stat-best");
-
-    if (statTests) statTests.textContent = `${completedTests.length}/66`;
-    if (statWriting) statWriting.textContent = completedTests.filter(id => id.startsWith("W")).length;
-    if (statReading) statReading.textContent = completedTests.filter(id => id.startsWith("R")).length;
-    
-    if (testScores.length > 0) {
-      const avg = testScores.reduce((sum, s) => sum + s.score, 0) / testScores.length;
-      const best = Math.max(...testScores.map(s => s.score));
-      if (statAvg) statAvg.textContent = avg.toFixed(1);
-      if (statBest) statBest.textContent = best.toFixed(1);
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // FAQ CONTENT
-  // ---------------------------------------------------------------------------
-  const FAQ_CONTENT = {
-    "how-bootcamp-works": `Welcome to Evolve - Your IELTS & CELPIP Training Center!\n\n**What You Get:**\n• 33 Writing Tests (Foundation → Advanced)\n• 33 Reading Tests (coming soon)\n• AI-powered scoring on 4 criteria\n• Detailed feedback and improvement tips\n• Progress tracking\n\n**How It Works:**\n1. Select a test from the right panel\n2. Read the prompt and write your response\n3. Submit for instant AI scoring\n4. Review feedback and track progress\n\nStart with Foundation tests and work your way up!`,
-
-    "how-dashboard": `**Dashboard Guide:**\n\n**Top Bar:**\n• 📊 Stats - Your progress and scores\n• 📥 Download - Export results\n• 📓 Notebook - Take notes\n• 🔗 Resources - Official sites\n• ♻️ Reset - Clear chat\n\n**Right Panel:**\n• Writing & Reading test folders\n• Click to expand/collapse\n• Green checkmarks = completed\n\n**Chat Area:**\n• Test prompts appear here\n• Type answers in the input box\n• Timer and word count track your progress`,
-
-    "speed-tips": `**Tips for Writing Faster:**\n\n1. **Plan First** - 2-3 minutes outlining saves time\n2. **Use Templates** - Memorize paragraph structures\n3. **Don't Overthink** - Write first, edit later\n4. **Learn Transitions** - Keep linking words ready\n5. **Practice Typing** - Speed matters on test day\n6. **Skip Hard Words** - Use simpler synonyms`,
-
-    "accuracy-tips": `**Tips for Better Accuracy:**\n\n1. **Read Questions Twice** - Understand what's asked\n2. **Answer All Parts** - Don't miss sub-questions\n3. **Check Agreement** - Subject-verb matching\n4. **Vary Sentences** - Mix simple and complex\n5. **Use Examples** - Support your points\n6. **Proofread** - Save 3-5 minutes at end`,
-
-    "vocab-tips": `**Building Your Vocabulary:**\n\n1. **Learn in Context** - Words in sentences, not lists\n2. **Word Families** - decide → decision → decisive\n3. **Collocations** - Learn natural word pairs\n4. **Read Daily** - News, academic articles\n5. **Use New Words** - Apply them in practice\n6. **Focus on AWL** - Academic Word List first`,
-
-    "grammar-rules": `**Essential Grammar for IELTS:**\n\n**Tenses:**\n• Present simple for facts\n• Present perfect for experiences\n• Past simple with time markers\n\n**Articles:**\n• 'The' for specific items\n• 'A/An' for first mention\n• No article for general plurals\n\n**Key Structures:**\n• Conditionals (If + present, will + verb)\n• Passive voice for formal tone\n• Relative clauses (who, which, that)`,
-
-    "common-mistakes": `**Common Mistakes to Avoid:**\n\n1. **Run-on sentences** - Use periods!\n2. **Word repetition** - Use synonyms\n3. **Off-topic content** - Stay focused\n4. **Informal language** - No contractions\n5. **Missing conclusions** - Always summarize\n6. **Under word count** - Aim for 270-300\n7. **No paragraphs** - Structure matters`,
-
-    "essay-structure": `**Essay Structure Template:**\n\n**Introduction (40-50 words)**\n• Paraphrase the question\n• State your position/thesis\n\n**Body 1 (80-100 words)**\n• Topic sentence\n• Explanation\n• Example\n\n**Body 2 (80-100 words)**\n• Topic sentence\n• Explanation\n• Example\n\n**Conclusion (30-40 words)**\n• Summarize main points\n• Restate position`,
-
-    "ielts-clb": `**IELTS to CLB Conversion:**\n\n| IELTS | CLB Level |\n|-------|----------|\n| 8.0-9.0 | CLB 10 |\n| 7.5 | CLB 9 |\n| 7.0 | CLB 8 |\n| 6.5 | CLB 7 |\n| 6.0 | CLB 7 |\n| 5.5 | CLB 6 |\n| 5.0 | CLB 5 |\n| 4.0-4.5 | CLB 4 |\n\nExpress Entry requires CLB 7+ (IELTS 6.0) for most NOC categories.`,
-
-    "celpip-clb": `**CELPIP to CLB Conversion:**\n\nCELPIP scores directly equal CLB levels:\n• CELPIP 10 = CLB 10\n• CELPIP 9 = CLB 9\n• CELPIP 8 = CLB 8\n• And so on...\n\nExpress Entry requires CLB 7+ for most categories.`,
-
-    "about-program": `**About Evolve:**\n\nEvolve is designed for immigrants preparing for:\n• IELTS General/Academic\n• CELPIP General\n• CLB assessments\n\n**Features:**\n• 66 progressive tests\n• Real IELTS-style prompts\n• AI scoring on 4 criteria\n• Detailed feedback\n• Progress tracking\n\nCreated by Migrate North Academy to help you achieve your target scores.`,
-
-    "pricing": `**Evolve Pricing:**\n\n**Annual Subscription: $150 CAD/year**\n\nIncludes:\n• All 66 tests (Writing + Reading)\n• Unlimited AI scoring\n• Progress tracking\n• Email support\n• New tests added regularly\n\nClick "Unlock Full Evolve Access" to subscribe!`,
-
-    "writing-review": `**Request Expert Review:**\n\nWant human feedback on your writing?\n\n**How to Request:**\n1. Complete a test in Evolve\n2. Copy your response\n3. Email to: info@migratenorth.ca\n4. Subject: "Writing Review Request"\n5. Include: Your answer + the prompt\n\nOur team will provide detailed feedback within 48 hours.`
-  };
-
-  function handleFAQ(faqKey) {
-    const content = FAQ_CONTENT[faqKey];
-    if (content) {
-      ChatEngine.addBotMessage(content);
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // TEST BUTTONS INITIALIZATION
-  // ---------------------------------------------------------------------------
-  function initTestButtons() {
-    const levels = ["foundation", "intermediate", "advanced"];
-    
-    levels.forEach((level, levelIndex) => {
-      const container = document.getElementById(`writing-${level}-tests`);
-      if (!container) return;
-
-      const tests = TEST_BANK.writing[level];
-      tests.forEach((test, index) => {
-        const btn = document.createElement("button");
-        btn.className = "test-btn";
-        const testNum = levelIndex * 11 + index + 1;
-        btn.textContent = `Writing Test ${testNum}`;
-        btn.dataset.testId = test.id;
-        btn.dataset.level = level;
-
-        btn.addEventListener("click", () => {
-          if (!userIsSubscribed) {
-            ChatEngine.addBotMessage(`🔒 **Writing Test ${testNum} is locked.**\n\nSubscribe to Evolve to unlock all 66 tests with AI-powered feedback and scoring.\n\nClick the yellow "Unlock Full Evolve Access" button to get started!`);
-            return;
-          }
-
-          if (currentTest.state === TestState.ACTIVE) {
-            ChatEngine.addBotMessage("⚠️ You have a test in progress. Please submit or wait for the timer to complete.");
-            return;
-          }
-
-          startTest(test.id, level);
-        });
-
-        container.appendChild(btn);
-      });
-    });
-
-    // Reading tests placeholder
-    levels.forEach((level, levelIndex) => {
-      const container = document.getElementById(`reading-${level}-tests`);
-      if (!container) return;
-
-      for (let i = 0; i < 11; i++) {
-        const btn = document.createElement("button");
-        btn.className = "test-btn";
-        const testNum = levelIndex * 11 + i + 1;
-        btn.textContent = `Reading Test ${testNum}`;
-        btn.addEventListener("click", () => {
-          ChatEngine.addBotMessage(`📖 **Reading Test ${testNum}**\n\nReading tests are coming soon! Focus on writing practice for now.`);
-        });
-        container.appendChild(btn);
+  function loadFromStorage() {
+    try {
+      const data = localStorage.getItem(CONFIG.STORAGE_KEY);
+      if (data) {
+        const parsed = JSON.parse(data);
+        // Only load if less than 7 days old
+        if (Date.now() - parsed.timestamp < 7 * 24 * 60 * 60 * 1000) {
+          state.history = parsed.history || [];
+          state.userEmail = parsed.userEmail;
+        }
       }
-    });
-
-    // Micro drills - Writing
-    const writingMicro = document.getElementById("writing-micro-tests");
-    if (writingMicro) {
-      const drills = [
-        { label: "Paraphrase", skill: "paraphrase" },
-        { label: "Grammar Fix", skill: "grammar_fix" },
-        { label: "Cohesion", skill: "cohesion" },
-        { label: "Tone", skill: "tone" },
-        { label: "Summarize", skill: "summarize" },
-        { label: "Develop", skill: "develop" }
-      ];
-      
-      drills.forEach(d => {
-        const btn = document.createElement("button");
-        btn.className = "test-btn";
-        btn.textContent = `✏️ ${d.label}`;
-        btn.addEventListener("click", () => {
-          if (!userIsSubscribed) {
-            ChatEngine.addBotMessage(`🔒 Micro drills require an active subscription.`);
-            return;
-          }
-          if (window.EvolvePhase2) {
-            window.EvolvePhase2.startMicroSession("writing", d.skill);
-          } else {
-            ChatEngine.addBotMessage("Micro drills loading... please try again.");
-          }
-        });
-        writingMicro.appendChild(btn);
-      });
-    }
-
-    // Micro drills - Reading
-    const readingMicro = document.getElementById("reading-micro-tests");
-    if (readingMicro) {
-      const drills = [
-        { label: "Scanning", skill: "scanning" },
-        { label: "Inference", skill: "inference" },
-        { label: "Vocab Context", skill: "vocab_context" },
-        { label: "Comprehension", skill: "comprehension" }
-      ];
-      
-      drills.forEach(d => {
-        const btn = document.createElement("button");
-        btn.className = "test-btn";
-        btn.textContent = `📖 ${d.label}`;
-        btn.addEventListener("click", () => {
-          if (!userIsSubscribed) {
-            ChatEngine.addBotMessage(`🔒 Micro drills require an active subscription.`);
-            return;
-          }
-          if (window.EvolvePhase2) {
-            window.EvolvePhase2.startMicroSession("reading", d.skill);
-          } else {
-            ChatEngine.addBotMessage("Micro drills loading... please try again.");
-          }
-        });
-        readingMicro.appendChild(btn);
-      });
+    } catch (e) {
+      console.error('Load storage error:', e);
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // UI INITIALIZATION
-  // ---------------------------------------------------------------------------
-  function initUI() {
-    // Folder toggles
-    document.querySelectorAll(".folder-header").forEach(header => {
-      header.addEventListener("click", () => {
-        header.classList.toggle("open");
-        const folder = header.dataset.folder;
-        const list = document.getElementById(`${folder}-tests`);
-        if (list) list.classList.toggle("open");
-      });
-    });
-
-    document.querySelectorAll(".sub-folder-header").forEach(header => {
-      header.addEventListener("click", () => {
-        header.classList.toggle("open");
-        const subfolder = header.dataset.subfolder;
-        const list = document.getElementById(`${subfolder}-tests`);
-        if (list) list.classList.toggle("open");
-      });
-    });
-
-    // FAQ buttons
-    document.querySelectorAll("[data-faq]").forEach(btn => {
-      btn.addEventListener("click", () => handleFAQ(btn.dataset.faq));
-    });
-
-    // Vocabulary buttons
-    document.querySelectorAll("[data-action]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const action = btn.dataset.action;
-        
-        if (!userIsSubscribed) {
-          ChatEngine.addBotMessage("🔒 Vocabulary Builder requires an active subscription.");
-          return;
-        }
-        
-        if (window.EvolvePhase2) {
-          if (action === "vocab-drill") {
-            window.EvolvePhase2.startVocabLearnSession();
-          } else if (action === "vocab-review") {
-            window.EvolvePhase2.startVocabReviewSession();
-          }
-        }
-      });
-    });
-
-    // Stats dropdown
-    const btnStats = document.getElementById("btn-stats");
-    const btnStatsMobile = document.getElementById("btn-stats-mobile");
-    const statsDropdown = document.getElementById("stats-dropdown");
-    const quicklinksDropdown = document.getElementById("quicklinks-dropdown");
-
-    if (btnStats) {
-      btnStats.addEventListener("click", () => {
-        if (statsDropdown) statsDropdown.classList.toggle("active");
-        if (quicklinksDropdown) quicklinksDropdown.classList.remove("active");
-      });
-    }
-    if (btnStatsMobile) {
-      btnStatsMobile.addEventListener("click", () => {
-        if (statsDropdown) statsDropdown.classList.toggle("active");
-      });
-    }
-
-    // Quicklinks dropdown
-    const btnQuicklinks = document.getElementById("btn-quicklinks");
-    const btnQuicklinksMobile = document.getElementById("btn-quicklinks-mobile");
-
-    if (btnQuicklinks) {
-      btnQuicklinks.addEventListener("click", () => {
-        if (quicklinksDropdown) quicklinksDropdown.classList.toggle("active");
-        if (statsDropdown) statsDropdown.classList.remove("active");
-      });
-    }
-    if (btnQuicklinksMobile) {
-      btnQuicklinksMobile.addEventListener("click", () => {
-        if (quicklinksDropdown) quicklinksDropdown.classList.toggle("active");
-      });
-    }
-
-    // Reset
-    const btnReset = document.getElementById("btn-reset");
-    const btnResetMobile = document.getElementById("btn-reset-mobile");
-
-    if (btnReset) {
-      btnReset.addEventListener("click", () => {
-        if (currentTest.state === TestState.ACTIVE) {
-          if (!confirm("You have a test in progress. Reset anyway?")) return;
-          stopTimer();
-          endTest();
-        }
-        ChatEngine.clear();
-        showWelcome();
-      });
-    }
-    if (btnResetMobile) {
-      btnResetMobile.addEventListener("click", () => {
-        ChatEngine.clear();
-        showWelcome();
-      });
-    }
-
-    // Login/Logout
-    const btnLogin = document.getElementById("btn-login");
-    const btnLoginMobile = document.getElementById("btn-login-mobile");
-
-    if (btnLogin) {
-      btnLogin.addEventListener("click", () => {
-        if (userIsSubscribed) handleLogout();
-        else handleLogin();
-      });
-    }
-    if (btnLoginMobile) {
-      btnLoginMobile.addEventListener("click", () => {
-        if (userIsSubscribed) handleLogout();
-        else handleLogin();
-      });
-    }
-
-    // Notebook
-    const btnNotebook = document.getElementById("btn-notebook");
-    const btnNotebookMobile = document.getElementById("btn-notebook-mobile");
-    const notebookPanel = document.getElementById("notebookPanel");
-    const notebookClose = document.getElementById("notebook-close");
-    const notebookArea = document.getElementById("notebookArea");
-
-    if (btnNotebook) {
-      btnNotebook.addEventListener("click", () => {
-        if (notebookPanel) notebookPanel.classList.add("open");
-      });
-    }
-    if (btnNotebookMobile) {
-      btnNotebookMobile.addEventListener("click", () => {
-        if (notebookPanel) notebookPanel.classList.add("open");
-      });
-    }
-    if (notebookClose) {
-      notebookClose.addEventListener("click", () => {
-        if (notebookPanel) notebookPanel.classList.remove("open");
-      });
-    }
-    if (notebookArea) {
-      notebookArea.addEventListener("input", (e) => {
-        localStorage.setItem("evolve_notebook", e.target.value);
-      });
-      const savedNotebook = localStorage.getItem("evolve_notebook");
-      if (savedNotebook) notebookArea.value = savedNotebook;
-    }
-
-    // Mobile menu
-    const btnMobileMenu = document.getElementById("btn-mobile-menu");
-    const mobileMenuDropdown = document.getElementById("mobile-menu-dropdown");
-
-    if (btnMobileMenu) {
-      btnMobileMenu.addEventListener("click", () => {
-        if (mobileMenuDropdown) mobileMenuDropdown.classList.toggle("active");
-      });
-    }
-
-    // Unlock button
-    const unlockBtn = document.getElementById("unlock-evolve");
-    if (unlockBtn) {
-      unlockBtn.addEventListener("click", async () => {
-        const email = prompt("Enter your email to continue to checkout:");
-        if (!email || !email.includes("@")) {
-          alert("Please enter a valid email address.");
-          return;
-        }
-
-        ChatEngine.addBotMessage("Redirecting to secure checkout...");
-
-        try {
-          const res = await fetch(`${API_BASE}/.netlify/functions/create-evolve-checkout`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: email.toLowerCase(), product: "evolve" })
-          });
-
-          const data = await res.json();
-
-          if (data.url) {
-            window.location.href = data.url;
-          } else {
-            ChatEngine.addBotMessage("Error creating checkout. Please try again or contact info@migratenorth.ca");
-          }
-        } catch (error) {
-          ChatEngine.addBotMessage("Connection error. Please try again.");
-        }
-      });
-    }
-
-    // Close dropdowns when clicking outside
-    document.addEventListener("click", (e) => {
-      if (!e.target.closest("#btn-stats") && !e.target.closest("#stats-dropdown") && !e.target.closest("#btn-stats-mobile")) {
-        if (statsDropdown) statsDropdown.classList.remove("active");
-      }
-      if (!e.target.closest("#btn-quicklinks") && !e.target.closest("#quicklinks-dropdown") && !e.target.closest("#btn-quicklinks-mobile")) {
-        if (quicklinksDropdown) quicklinksDropdown.classList.remove("active");
-      }
-    });
-  }
-
-  // ---------------------------------------------------------------------------
-  // WELCOME MESSAGE
-  // ---------------------------------------------------------------------------
-  function showWelcome() {
-    ChatEngine.addBotMessage(`Welcome to the Evolve preview.\n\nThis is your IELTS and CELPIP training center with:\n• 66 progressive tests\n• Micro drills for targeted practice\n• Vocabulary builder\n• AI-powered scoring\n\nTo unlock full access, please log in or subscribe.\n\nClick any button in the dashboard to explore what's included!`);
-  }
-
-  // ---------------------------------------------------------------------------
+  // =============================================================================
   // INITIALIZATION
-  // ---------------------------------------------------------------------------
-  async function init() {
-    console.log("Evolve initializing...");
-    ChatEngine.init();
-    initUI();
-    initTestButtons();
-
-    // Check for payment redirect
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("paid") === "true" && params.get("email")) {
-      const email = decodeURIComponent(params.get("email")).toLowerCase();
-      console.log("Payment detected, auto-logging in:", email);
-      
-      localStorage.setItem("evolve_user_email", email);
-      currentUserEmail = email;
-      applyAccess(true, email);
-      loadProgress();
-      
-      window.history.replaceState({}, document.title, window.location.pathname);
-      
-      showWelcome();
-      setTimeout(() => {
-        ChatEngine.addBotMessage("🎉 **Payment successful!** Your Evolve subscription is now active.\n\nYou have full access to:\n• All 33 writing tests\n• AI-powered scoring\n• Detailed feedback\n• Progress tracking\n\nSelect a test from the right panel to begin!");
-      }, 500);
-      return;
-    }
-
-    if (params.get("cancelled") === "true") {
-      window.history.replaceState({}, document.title, window.location.pathname);
-      showWelcome();
-      setTimeout(() => {
-        ChatEngine.addBotMessage("Payment was cancelled. No worries - click 'Unlock Full Evolve Access' when you're ready to subscribe.");
-      }, 500);
-      return;
-    }
-
-    // Check for existing login
-    const savedEmail = localStorage.getItem("evolve_user_email");
-    if (savedEmail) {
-      console.log("Found saved email, checking entitlement...");
-      const hasAccess = await checkEntitlement(savedEmail);
-      if (hasAccess) {
-        applyAccess(true, savedEmail);
-        loadProgress();
-        
-        // Load Phase 2 features if available
-        if (window.EvolvePhase2) {
-          await window.EvolvePhase2.loadDailyCoach(20);
-          await window.EvolvePhase2.refreshStats();
-        }
-        
-        showWelcome();
-        ChatEngine.addBotMessage(`Welcome back! Select a test to continue practicing.`);
-        return;
-      }
-    }
-
-    applyAccess(false, null);
+  // =============================================================================
+  function init() {
+    console.log('Evolve App initializing...');
+    
+    loadFromStorage();
+    setupUIControls();
+    setupFAQButtons();
+    setupFolders();
     showWelcome();
-    console.log("Evolve ready!");
+    
+    console.log('Evolve App ready!');
   }
 
-  // Start the app when DOM is ready
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
+  // Start when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
   } else {
     init();
   }
-
-  // Export for external access
-  return { 
-    ChatEngine, 
-    startTest,
-    handleLogin,
-    handleLogout,
-    isSubscribed: () => userIsSubscribed,
-    getEmail: () => currentUserEmail
-  };
 })();
-
-// Make globally available
-window.EvolveApp = EvolveApp;
