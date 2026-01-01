@@ -126,6 +126,9 @@
   <!-- If you already have a theme header/footer, you can remove this demo tag -->
   <footer class="custom-footer">© 2025 North Star GPS</footer>
 
+  <!-- Reading Tests Data (must load before main script) -->
+  <script src="/public/reading_bank.js"></script>
+
   <script>
     // Chat logic
     const chat = document.getElementById("chat");
@@ -240,6 +243,9 @@
 
       if (mq.matches) attach(); else detach();
     })();
+
+    // Quick test - log reading tests availability
+    console.log('Reading tests loaded:', typeof READING_TESTS_FULL !== 'undefined' ? READING_TESTS_FULL.length + ' tests' : 'NOT LOADED');
   </script>
 </body>
 </html>
