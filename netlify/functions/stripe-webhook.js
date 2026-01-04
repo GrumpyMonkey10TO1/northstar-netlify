@@ -11,7 +11,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-// Product mapping - maps Stripe product names to entitlements
+// Product mapping - maps Stripe product names to tier values
 const PRODUCT_MAPPING = {
   // Individual products
   "Language Training Unlocked": ["evolve"],
@@ -109,6 +109,7 @@ async function handleCheckoutComplete(session) {
   console.log('Processing checkout.session.completed');
   
   const customerEmail = session.customer_email || session.customer_details?.email;
+  const stripeCustomerId = session.customer;
   
   if (!customerEmail) {
     console.error('No customer email found in session');
@@ -120,7 +121,7 @@ async function handleCheckoutComplete(session) {
     expand: ['data.price.product'],
   });
 
-  const products = [];
+  const tiers = [];
   
   for (const item of lineItems.data) {
     const product = item.price?.product;
@@ -128,34 +129,34 @@ async function handleCheckoutComplete(session) {
     
     console.log(`Product purchased: ${productName}`);
     
-    // Find matching entitlements
-    for (const [key, entitlements] of Object.entries(PRODUCT_MAPPING)) {
+    // Find matching tiers
+    for (const [key, tierList] of Object.entries(PRODUCT_MAPPING)) {
       if (productName.toLowerCase().includes(key.toLowerCase()) || 
           key.toLowerCase().includes(productName.toLowerCase())) {
-        products.push(...entitlements);
+        tiers.push(...tierList);
       }
     }
   }
 
   // Remove duplicates
-  const uniqueProducts = [...new Set(products)];
+  const uniqueTiers = [...new Set(tiers)];
   
-  if (uniqueProducts.length === 0) {
+  if (uniqueTiers.length === 0) {
     console.log('No matching products found in mapping, checking metadata...');
     if (session.metadata?.products) {
-      uniqueProducts.push(...session.metadata.products.split(','));
+      uniqueTiers.push(...session.metadata.products.split(','));
     }
   }
 
-  console.log(`Granting access to: ${uniqueProducts.join(', ')} for ${customerEmail}`);
+  console.log(`Granting access to tiers: ${uniqueTiers.join(', ')} for ${customerEmail}`);
 
   // Calculate expiry (1 year from now)
   const expiresAt = new Date();
   expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
-  // Create or update entitlements in Supabase
-  for (const product of uniqueProducts) {
-    await upsertEntitlement(customerEmail, product, session.id, expiresAt);
+  // Create or update memberships in Supabase
+  for (const tier of uniqueTiers) {
+    await upsertMembership(customerEmail, tier, session.id, expiresAt, stripeCustomerId);
   }
 }
 
@@ -171,30 +172,31 @@ async function handleSubscriptionUpdate(subscription) {
   }
 
   const customerEmail = customer.email;
+  const stripeCustomerId = subscription.customer;
   
   // Get products from subscription items
-  const products = [];
+  const tiers = [];
   
   for (const item of subscription.items.data) {
     const product = await stripe.products.retrieve(item.price.product);
     const productName = product.name;
     
-    for (const [key, entitlements] of Object.entries(PRODUCT_MAPPING)) {
+    for (const [key, tierList] of Object.entries(PRODUCT_MAPPING)) {
       if (productName.toLowerCase().includes(key.toLowerCase()) ||
           key.toLowerCase().includes(productName.toLowerCase())) {
-        products.push(...entitlements);
+        tiers.push(...tierList);
       }
     }
   }
 
-  const uniqueProducts = [...new Set(products)];
+  const uniqueTiers = [...new Set(tiers)];
   
-  // Update entitlements based on subscription status
+  // Update memberships based on subscription status
   if (subscription.status === 'active' || subscription.status === 'trialing') {
     const expiresAt = new Date(subscription.current_period_end * 1000);
     
-    for (const product of uniqueProducts) {
-      await upsertEntitlement(customerEmail, product, subscription.id, expiresAt);
+    for (const tier of uniqueTiers) {
+      await upsertMembership(customerEmail, tier, subscription.id, expiresAt, stripeCustomerId);
     }
   }
 }
@@ -211,20 +213,20 @@ async function handleSubscriptionCanceled(subscription) {
 
   const customerEmail = customer.email;
   
-  // Mark entitlements as expired
+  // Mark memberships as inactive
   const { error } = await supabase
-    .from('entitlements')
+    .from('user_memberships')
     .update({ 
-      status: 'canceled',
+      active: false,
       expires_at: new Date().toISOString()
     })
     .eq('email', customerEmail.toLowerCase())
     .eq('stripe_subscription_id', subscription.id);
 
   if (error) {
-    console.error('Error updating entitlements:', error);
+    console.error('Error updating memberships:', error);
   } else {
-    console.log(`Canceled entitlements for ${customerEmail}`);
+    console.log(`Canceled memberships for ${customerEmail}`);
   }
 }
 
@@ -238,52 +240,52 @@ async function handleInvoicePaid(invoice) {
   }
 }
 
-async function upsertEntitlement(email, product, subscriptionId, expiresAt) {
+async function upsertMembership(email, tier, subscriptionId, expiresAt, stripeCustomerId) {
   const normalizedEmail = email.toLowerCase();
   
-  // Check if entitlement exists
+  // Check if membership exists
   const { data: existing } = await supabase
-    .from('entitlements')
+    .from('user_memberships')
     .select('id')
     .eq('email', normalizedEmail)
-    .eq('product', product)
+    .eq('tier', tier)
     .single();
 
   if (existing) {
-    // Update existing entitlement
+    // Update existing membership
     const { error } = await supabase
-      .from('entitlements')
+      .from('user_memberships')
       .update({
-        status: 'active',
+        active: true,
         expires_at: expiresAt.toISOString(),
         stripe_subscription_id: subscriptionId,
-        updated_at: new Date().toISOString(),
+        stripe_customer_id: stripeCustomerId,
       })
       .eq('id', existing.id);
 
     if (error) {
-      console.error(`Error updating entitlement for ${email}/${product}:`, error);
+      console.error(`Error updating membership for ${email}/${tier}:`, error);
     } else {
-      console.log(`Updated entitlement: ${email} -> ${product}`);
+      console.log(`Updated membership: ${email} -> ${tier}`);
     }
   } else {
-    // Create new entitlement
+    // Create new membership
     const { error } = await supabase
-      .from('entitlements')
+      .from('user_memberships')
       .insert({
         email: normalizedEmail,
-        product: product,
-        status: 'active',
+        tier: tier,
+        active: true,
         expires_at: expiresAt.toISOString(),
         stripe_subscription_id: subscriptionId,
+        stripe_customer_id: stripeCustomerId,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
       });
 
     if (error) {
-      console.error(`Error creating entitlement for ${email}/${product}:`, error);
+      console.error(`Error creating membership for ${email}/${tier}:`, error);
     } else {
-      console.log(`Created entitlement: ${email} -> ${product}`);
+      console.log(`Created membership: ${email} -> ${tier}`);
     }
   }
 }
