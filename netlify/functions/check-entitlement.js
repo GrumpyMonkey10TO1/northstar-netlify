@@ -8,6 +8,14 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
+// Admin emails that always have access
+const ADMIN_EMAILS = [
+  'info@migratenorth.ca',
+  'ovi@migratenorth.ca',
+  'ovimatin@gmail.com',
+  'ovi_matin@hotmail.com',
+];
+
 exports.handler = async (event) => {
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
@@ -16,9 +24,9 @@ exports.handler = async (event) => {
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       },
-      body: ''
+      body: '',
     };
   }
 
@@ -26,7 +34,7 @@ exports.handler = async (event) => {
     // Get email from query string or body
     let email = event.queryStringParameters?.email;
     let product = event.queryStringParameters?.product || 'evolve';
-    
+
     // Also check POST body
     if (!email && event.body) {
       try {
@@ -41,30 +49,46 @@ exports.handler = async (event) => {
         statusCode: 400,
         headers: {
           'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          hasAccess: false, 
-          error: 'Email is required' 
-        })
+        body: JSON.stringify({ error: 'Valid email required', hasAccess: false }),
       };
     }
 
-    // Normalize email
-    email = email.toLowerCase().trim();
+    const normalizedEmail = email.toLowerCase().trim();
 
-    // Query user_memberships table
-    // Check for:
-    // 1. Exact tier match (e.g., 'evolve')
-    // 2. 'full' tier (has access to everything)
-    // 3. active = true
-    // 4. expires_at is null OR expires_at > now
-    const { data, error } = await supabase
+    // Check if admin email
+    if (ADMIN_EMAILS.includes(normalizedEmail)) {
+      console.log(`Admin access granted for ${normalizedEmail}`);
+      return {
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          hasAccess: true,
+          isAdmin: true,
+          tiers: ['evolve', 'elevate', 'execute'],
+          message: 'Admin access granted',
+        }),
+      };
+    }
+
+    // Query Supabase for active memberships
+    let query = supabase
       .from('user_memberships')
-      .select('id, tier, active, expires_at, email')
-      .eq('email', email)
+      .select('*')
+      .eq('email', normalizedEmail)
       .eq('active', true)
-      .or(`tier.eq.${product},tier.eq.full`);
+      .gt('expires_at', new Date().toISOString());
+
+    // If specific product/tier requested, filter by it
+    if (product) {
+      query = query.eq('tier', product.toLowerCase());
+    }
+
+    const { data: memberships, error } = await query;
 
     if (error) {
       console.error('Supabase error:', error);
@@ -72,62 +96,41 @@ exports.handler = async (event) => {
         statusCode: 500,
         headers: {
           'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          hasAccess: false, 
-          error: 'Database error' 
-        })
+        body: JSON.stringify({ error: 'Database error', hasAccess: false }),
       };
     }
 
-    // Check if any valid membership found
-    let hasAccess = false;
-    let membership = null;
+    const hasAccess = memberships && memberships.length > 0;
+    const tiers = memberships?.map((m) => m.tier) || [];
 
-    if (data && data.length > 0) {
-      // Check expiration for each membership
-      const now = new Date();
-      
-      for (const row of data) {
-        // If no expiration set, or expiration is in the future
-        if (!row.expires_at || new Date(row.expires_at) > now) {
-          hasAccess = true;
-          membership = {
-            tier: row.tier,
-            expires_at: row.expires_at
-          };
-          break;
-        }
-      }
-    }
+    console.log(
+      `Access check for ${normalizedEmail} (${product}): ${hasAccess ? 'GRANTED' : 'DENIED'} - Tiers: ${tiers.join(', ') || 'none'}`
+    );
 
     return {
       statusCode: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         hasAccess,
-        email,
-        product,
-        membership
-      })
+        tiers,
+        memberships: hasAccess ? memberships : [],
+        message: hasAccess ? 'Access granted' : 'No active subscription found',
+      }),
     };
-
   } catch (err) {
-    console.error('Handler error:', err);
+    console.error('Error processing request:', err);
     return {
       statusCode: 500,
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
-        hasAccess: false, 
-        error: 'Server error' 
-      })
+      body: JSON.stringify({ error: err.message, hasAccess: false }),
     };
   }
 };
