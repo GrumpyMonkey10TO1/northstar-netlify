@@ -28,6 +28,23 @@ const PRODUCT_MAPPING = {
   "All Access Pack": ["evolve", "elevate", "execute"],
 };
 
+// Helper function to safely create expiry date
+function getExpiryDate(subscription) {
+  // Try to use current_period_end from subscription
+  if (subscription?.current_period_end) {
+    const date = new Date(subscription.current_period_end * 1000);
+    if (!isNaN(date.getTime())) {
+      return date;
+    }
+  }
+  
+  // Fallback: 1 year from now
+  console.log('Using fallback expiry date (1 year from now)');
+  const fallback = new Date();
+  fallback.setFullYear(fallback.getFullYear() + 1);
+  return fallback;
+}
+
 exports.handler = async (event) => {
   // Only accept POST requests
   if (event.httpMethod !== 'POST') {
@@ -96,6 +113,7 @@ exports.handler = async (event) => {
     }
   } catch (err) {
     console.error(`Error processing event: ${err.message}`);
+    console.error(err.stack);
     return { statusCode: 500, body: `Processing error: ${err.message}` };
   }
 
@@ -162,6 +180,7 @@ async function handleCheckoutComplete(session) {
 
 async function handleSubscriptionUpdate(subscription) {
   console.log('Processing subscription update');
+  console.log(`Subscription ID: ${subscription.id}, Status: ${subscription.status}`);
   
   // Get customer email
   const customer = await stripe.customers.retrieve(subscription.customer);
@@ -174,12 +193,16 @@ async function handleSubscriptionUpdate(subscription) {
   const customerEmail = customer.email;
   const stripeCustomerId = subscription.customer;
   
+  console.log(`Customer: ${customerEmail}`);
+  
   // Get products from subscription items
   const tiers = [];
   
   for (const item of subscription.items.data) {
     const product = await stripe.products.retrieve(item.price.product);
     const productName = product.name;
+    
+    console.log(`Processing product: ${productName}`);
     
     for (const [key, tierList] of Object.entries(PRODUCT_MAPPING)) {
       if (productName.toLowerCase().includes(key.toLowerCase()) ||
@@ -190,14 +213,19 @@ async function handleSubscriptionUpdate(subscription) {
   }
 
   const uniqueTiers = [...new Set(tiers)];
+  console.log(`Matched tiers: ${uniqueTiers.join(', ') || 'none'}`);
   
   // Update memberships based on subscription status
   if (subscription.status === 'active' || subscription.status === 'trialing') {
-    const expiresAt = new Date(subscription.current_period_end * 1000);
+    // Safely get expiry date with fallback
+    const expiresAt = getExpiryDate(subscription);
+    console.log(`Expiry date: ${expiresAt.toISOString()}`);
     
     for (const tier of uniqueTiers) {
       await upsertMembership(customerEmail, tier, subscription.id, expiresAt, stripeCustomerId);
     }
+  } else {
+    console.log(`Subscription status is ${subscription.status}, not granting access`);
   }
 }
 
@@ -242,6 +270,13 @@ async function handleInvoicePaid(invoice) {
 
 async function upsertMembership(email, tier, subscriptionId, expiresAt, stripeCustomerId) {
   const normalizedEmail = email.toLowerCase();
+  
+  // Validate expiresAt before using
+  if (!expiresAt || isNaN(expiresAt.getTime())) {
+    console.error('Invalid expiresAt date, using fallback');
+    expiresAt = new Date();
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+  }
   
   // Check if membership exists
   const { data: existing } = await supabase
