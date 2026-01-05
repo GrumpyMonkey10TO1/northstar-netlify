@@ -1,592 +1,1385 @@
-// MIGRATE NORTH ACADEMY EVOLVE FUNCTION - FIXED
-// North Star GPS Reading and Writing Coach
-// Now properly displays test prompts to users
-// FIXED: Refine feature now works correctly without old conversation context
-// UPDATED: Supabase logging added
+// /netlify/functions/chat-explore.js
+// North Star Explore server function v7 - Identity Layer + Permanent Memory + Pillar Logic
+// Phase 1C Complete: Persistent case files, readiness pillars, limiting factor tracking
 
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
-import tests from "../evolve_test.json" with { type: "json" };
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// OpenAI client
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-// Initialize Supabase (secure, uses Netlify environment variables)
+// Supabase client
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
 );
 
-// CORS
-function corsHeaders() {
+// ==============================================================================
+// IDENTITY LAYER - Phase 1B
+// ==============================================================================
+
+async function getUserFromRequest(event) {
+  const authHeader = event.headers.authorization || event.headers.Authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
+
+  const token = authHeader.replace("Bearer ", "");
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data?.user) return null;
+
+  return data.user;
+}
+
+async function ensureProfile(user) {
+  const { data: existing } = await supabase
+    .from("profiles")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!existing) {
+    await supabase.from("profiles").insert({ user_id: user.id });
+  }
+}
+
+async function loadProfile(user) {
+  if (!user) return null;
+  const { data } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("user_id", user.id)
+    .single();
+  return data || {};
+}
+
+async function saveProfile(user, profile) {
+  if (!user || !profile) return;
+  
+  // Add updated_at timestamp
+  profile.updated_at = new Date().toISOString();
+  
+  await supabase
+    .from("profiles")
+    .update(profile)
+    .eq("user_id", user.id);
+}
+
+async function logActivity(user, eventType, eventValue) {
+  if (!user) return;
+  await supabase.from("activity_log").insert({
+    user_id: user.id,
+    event_type: eventType,
+    event_value: eventValue,
+  });
+}
+
+// ==============================================================================
+// END IDENTITY LAYER
+// ==============================================================================
+
+// ==============================================================================
+// PILLAR LOGIC - Phase 1C
+// ==============================================================================
+
+function updatePillars(profile) {
+  // Language pillar - based on IELTS scores
+  const hasLanguage = profile.ielts_listening || profile.ielts_reading || 
+                      profile.ielts_writing || profile.ielts_speaking ||
+                      profile.ieltsSummary;
+  profile.pillar_language_status = hasLanguage ? "stable" : "blocking";
+
+  // Education pillar - based on education level
+  const hasEducation = profile.education_level || profile.education;
+  profile.pillar_education_status = hasEducation ? "stable" : "blocking";
+
+  // Work pillar - based on years experience
+  const workYears = profile.years_experience || profile.workYears || 0;
+  profile.pillar_work_status = workYears >= 1 ? "stable" : "blocking";
+
+  // Path pillar - based on overall profile completeness
+  const isComplete = isProfileComplete(profile);
+  profile.pillar_path_status = isComplete ? "weak" : "blocking";
+
+  return profile;
+}
+
+function computeLimiter(profile) {
+  if (profile.pillar_language_status === "blocking") return "language";
+  if (profile.pillar_education_status === "blocking") return "education";
+  if (profile.pillar_work_status === "blocking") return "work";
+  if (profile.pillar_path_status === "blocking") return "path";
+  return null;
+}
+
+function isProfileComplete(profile) {
+  return !!(
+    profile.age &&
+    (profile.education_level || profile.education) &&
+    (profile.years_experience || profile.workYears) &&
+    (profile.ielts_listening || profile.ieltsSummary)
+  );
+}
+
+// ==============================================================================
+// END PILLAR LOGIC
+// ==============================================================================
+
+// ==============================================================================
+// RATE LIMITING
+// ==============================================================================
+const rateLimitMap = new Map();
+const RATE_LIMIT = 20;
+const RATE_WINDOW = 5 * 60 * 1000;
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const record = rateLimitMap.get(ip) || { count: 0, start: now };
+  if (now - record.start > RATE_WINDOW) {
+    record.count = 1;
+    record.start = now;
+  } else {
+    record.count++;
+  }
+  rateLimitMap.set(ip, record);
+  return record.count <= RATE_LIMIT;
+}
+
+// ==============================================================================
+// RESPONSE HELPERS
+// ==============================================================================
+
+function ok(body) {
   return {
-    "Access-Control-Allow-Origin": "https://migratenorth.ca",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Max-Age": "86400",
-    "Content-Type": "application/json"
+    statusCode: 200,
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    },
+    body: JSON.stringify(body),
   };
 }
 
-// Level ranges - FIXED TO MATCH FRONTEND
-const LEVEL_RANGES = {
-  "level 1": [0, 11],
-  "level 2": [11, 22],
-  "level 3": [22, 33]
+function errorResponse(code, message) {
+  return {
+    statusCode: code,
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    },
+    body: JSON.stringify({ error: message }),
+  };
+}
+
+// ==============================================================================
+// FAQ RESPONSES
+// ==============================================================================
+
+function getFAQResponse(message) {
+  const lowerMessage = message.toLowerCase();
+  
+  const faqs = {
+    "express entry": {
+      keywords: ["what is express entry", "explain express entry", "how express entry works", "express entry system"],
+      response: `Express Entry is Canada's flagship immigration system for skilled workers. It's an online application management system that ranks candidates based on their Comprehensive Ranking System (CRS) score.
+
+HOW IT WORKS
+
+1. You create an online profile with your qualifications
+2. The system calculates your CRS score (out of 1200 points)
+3. You enter a pool with other candidates
+4. IRCC conducts regular draws and invites top-scoring candidates
+5. If invited, you have 60 days to submit a complete application
+
+THREE PROGRAMS UNDER EXPRESS ENTRY
+
+• Federal Skilled Worker (FSW) - for skilled workers with foreign work experience
+• Canadian Experience Class (CEC) - for those with Canadian work experience
+• Federal Skilled Trades (FST) - for qualified tradespeople
+
+The minimum CRS score for invitations varies by draw, typically ranging from 450-550 points for general draws.`
+    },
+    "crs scoring": {
+      keywords: ["crs score", "crs scoring", "how crs works", "comprehensive ranking", "crs points"],
+      response: `The Comprehensive Ranking System (CRS) scores candidates out of 1200 points.
+
+CORE FACTORS (up to 600 points for singles, 500 with spouse)
+
+Age: Maximum points at 20-29 years
+Education: Up to 150 points for PhD
+Language: Up to 160 points for CLB 10+ in all skills
+Work Experience: Up to 80 points for 5+ years
+
+ADDITIONAL FACTORS (up to 600 points)
+
+• Canadian education: 15-30 points
+• Canadian work experience: up to 80 points
+• Sibling in Canada: 15 points
+• French language: 25-50 points
+• Provincial nomination: 600 points
+• Valid job offer: 50-200 points
+
+WHAT SCORES ARE COMPETITIVE?
+
+• Below 450: Challenging without additional points
+• 450-480: Possible in targeted draws
+• 480-500: Competitive for most draws
+• 500+: Strong position for general draws`
+    },
+    "ielts celpip": {
+      keywords: ["ielts vs celpip", "ielts or celpip", "language test", "ielts celpip difference", "which test"],
+      response: `Both IELTS General Training and CELPIP General are accepted for Express Entry.
+
+IELTS GENERAL TRAINING
+
+• International test, accepted worldwide
+• Paper-based or computer-based
+• Scored 1-9 in each skill
+• Speaking test with human examiner
+• Available in most countries
+
+CELPIP GENERAL
+
+• Canadian-developed test
+• Computer-based only
+• Scored 1-12 in each skill
+• Speaking test recorded on computer
+• Available mainly in Canada and some international locations
+
+CLB CONVERSION
+
+CLB 9 = IELTS 7.0 in all skills = CELPIP 9 in all skills
+CLB 7 = IELTS 6.0 in all skills = CELPIP 7 in all skills
+
+For maximum CRS points, you need CLB 10+ (IELTS 7.5-8.0, CELPIP 10).`
+    },
+    "eca": {
+      keywords: ["what is eca", "educational credential", "credential assessment", "eca explained", "wes assessment"],
+      response: `An Educational Credential Assessment (ECA) verifies that your foreign education is equivalent to a Canadian credential.
+
+WHY YOU NEED IT
+
+• Required for Express Entry points
+• Validates your education level for immigration
+• Different from professional licensing
+
+DESIGNATED ORGANIZATIONS
+
+• WES (World Education Services) - most popular
+• IQAS (Alberta)
+• ICES, CES, PEBC (for pharmacists), MCC (for doctors)
+
+THE PROCESS
+
+1. Apply online with the organization
+2. Request transcripts from your institution
+3. Pay fees ($200-300 CAD typically)
+4. Wait for assessment (4-8 weeks usually)
+5. Receive ECA report
+
+VALIDITY
+
+ECAs are valid for 5 years from the date of issue for immigration purposes.`
+    },
+    "cec fsw fst": {
+      keywords: ["cec fsw fst", "three programs", "express entry programs", "which program"],
+      response: `Express Entry has three immigration programs:
+
+FEDERAL SKILLED WORKER (FSW)
+
+Requirements:
+• 1+ year continuous skilled work experience (NOC 0, A, or B)
+• Language: CLB 7 minimum
+• Education: High school minimum (ECA required)
+• Must score 67+ on FSW points grid
+
+Best for: Skilled workers outside Canada
+
+CANADIAN EXPERIENCE CLASS (CEC)
+
+Requirements:
+• 1+ year skilled Canadian work experience in last 3 years
+• Language: CLB 7 for NOC 0/A, CLB 5 for NOC B
+• No education requirement
+
+Best for: Those with Canadian work experience
+
+FEDERAL SKILLED TRADES (FST)
+
+Requirements:
+• 2+ years skilled trade experience
+• Job offer OR certificate of qualification
+• Language: CLB 5 speaking/listening, CLB 4 reading/writing
+
+Best for: Qualified tradespeople (electricians, plumbers, etc.)`
+    },
+    "ita pr process": {
+      keywords: ["ita", "invitation to apply", "pr process", "process stages", "after ita"],
+      response: `The Express Entry process has clear stages:
+
+STAGE 1: PROFILE CREATION
+
+• Create Express Entry profile online
+• Receive CRS score
+• Enter the candidate pool
+
+STAGE 2: POOL RANKING
+
+• Your profile is ranked against others
+• IRCC conducts draws every 2 weeks typically
+• If your score meets the cutoff, you receive an ITA
+
+STAGE 3: INVITATION TO APPLY (ITA)
+
+• You have 60 days to submit complete application
+• Include all supporting documents
+• Pay processing fees ($1,365 for principal applicant)
+
+STAGE 4: APPLICATION REVIEW
+
+• IRCC reviews your application (6-8 months typically)
+• May request additional documents
+• Background and medical checks
+
+STAGE 5: CONFIRMATION OF PR (COPR)
+
+• If approved, receive COPR and entry visa
+• Land in Canada to activate PR status
+• Receive PR card by mail`
+    },
+    "eligibility": {
+      keywords: ["am i eligible", "eligible for express entry", "do i qualify", "check eligibility"],
+      response: `To be eligible for Express Entry, you need to meet minimum requirements for at least one program.
+
+BASIC REQUIREMENTS FOR FSW
+
+✓ 1+ year skilled work experience (NOC TEER 0, 1, 2, or 3)
+✓ Language test results (CLB 7 minimum)
+✓ Educational Credential Assessment
+✓ Score 67+ on FSW selection factors
+✓ Proof of funds (unless working in Canada)
+
+BASIC REQUIREMENTS FOR CEC
+
+✓ 1+ year skilled Canadian work experience in last 3 years
+✓ Language test results (CLB 7 for TEER 0/1, CLB 5 for TEER 2/3)
+✓ Plan to live outside Quebec
+
+DISQUALIFYING FACTORS
+
+✗ Criminal inadmissibility
+✗ Medical inadmissibility
+✗ Misrepresentation in previous applications
+✗ Previous removal order
+
+Would you like me to help you check your specific eligibility? Tell me about your education, work experience, and language test scores.`
+    },
+    "calculate crs": {
+      keywords: ["calculate crs", "my crs score", "what's my crs", "realistic crs", "estimate crs"],
+      response: `I can help estimate your CRS score. To calculate accurately, I need:
+
+CORE FACTORS
+
+1. Your age
+2. Highest education level
+3. Years of skilled work experience (foreign and Canadian)
+4. Language test scores (IELTS or CELPIP)
+5. Do you have a spouse/common-law partner?
+
+ADDITIONAL FACTORS
+
+6. Any Canadian education?
+7. French language ability?
+8. Sibling who is Canadian citizen/PR?
+9. Valid job offer from Canadian employer?
+10. Provincial nomination?
+
+Share your details and I'll provide an estimate. For example:
+
+"I'm 32, have a Master's degree, 5 years work experience as a software developer, IELTS 7.5 in all bands, single, no Canadian connections."
+
+The more details you provide, the more accurate my estimate will be.`
+    },
+    "inadmissibility": {
+      keywords: ["inadmissibility", "police check", "medical exam", "criminal record", "background check"],
+      response: `Canada screens all immigration applicants for admissibility.
+
+CRIMINAL INADMISSIBILITY
+
+• DUI/DWI can make you inadmissible
+• Serious criminality = 10+ year sentence
+• Criminality = any conviction
+• Solutions: Rehabilitation application or Temporary Resident Permit
+
+MEDICAL INADMISSIBILITY
+
+• Conditions that pose public health risk
+• Conditions requiring excessive healthcare costs
+• Immigration Medical Exam (IME) required
+• Must use IRCC-approved panel physician
+
+SECURITY INADMISSIBILITY
+
+• Espionage or terrorism
+• Human rights violations
+• Organized crime involvement
+
+REQUIRED CHECKS
+
+• Police Clearance Certificate from each country you lived 6+ months since age 18
+• Processing time varies by country (FBI takes 12-16 weeks)
+• Valid for 1 year typically
+
+If you have concerns about inadmissibility, I can explain options. What's your specific situation?`
+    },
+    "consultant lawyer": {
+      keywords: ["consultant", "lawyer", "rcic", "do i need", "immigration help", "hire consultant"],
+      response: `You don't legally need a consultant or lawyer, but professional help can be valuable in complex cases.
+
+WHEN TO CONSIDER PROFESSIONAL HELP
+
+• Previous refusals or inadmissibility issues
+• Complex family situations
+• Employer-sponsored applications
+• Appeals or humanitarian cases
+• You're unsure about your eligibility
+
+RCIC vs IMMIGRATION LAWYER
+
+RCIC (Regulated Canadian Immigration Consultant):
+• Licensed by College of Immigration Consultants
+• Can handle most immigration applications
+• Generally lower fees ($1,500-5,000)
+
+Immigration Lawyer:
+• Member of provincial law society
+• Can represent in court/appeals
+• Generally higher fees ($3,000-10,000+)
+
+HOW TO VERIFY
+
+• Check CICC registry for RCICs
+• Check provincial law society for lawyers
+• Never use "ghost consultants" (unlicensed)
+
+Matin Immigration Services (RCIC #R712582) offers professional consultation if you need expert guidance on your case.`
+    },
+    "low crs": {
+      keywords: ["crs too low", "low crs", "low score", "increase crs", "boost crs", "improve score"],
+      response: `A low CRS score isn't the end of your journey. Here are proven strategies:
+
+FASTEST WINS (can add 50-150 points)
+
+1. Improve language scores → Up to 40 extra points
+   Moving from CLB 8 to CLB 10 adds significant points
+
+2. Get a provincial nomination → 600 points
+   Some PNPs have lower requirements than Express Entry
+
+3. One year Canadian work/study → 15-30 points
+   Also opens CEC pathway
+
+MEDIUM-TERM OPTIONS
+
+4. Additional education → 15-30 points
+   Canadian diploma or degree
+
+5. French language → 25-50 points
+   Even basic French helps
+
+6. Job offer (LMIA) → 50-200 points
+   Difficult but valuable
+
+ALTERNATIVE PATHWAYS
+
+• Atlantic Immigration Program
+• Rural and Northern Immigration Pilot
+• Provincial Nominee Programs (non-EE streams)
+• Start-up Visa (entrepreneurs)
+
+What's your current score and situation? I can suggest the best strategy for your case.`
+    },
+    "boost fast": {
+      keywords: ["boost fast", "quick points", "fast improvement", "50 points"],
+      response: `Here are the fastest ways to boost your CRS score:
+
+IMMEDIATE IMPACT
+
+1. RETAKE LANGUAGE TEST
+   • CLB 9 to 10 = +20-40 points
+   • Focus on weakest skill
+   • Many improve 0.5-1.0 band with preparation
+   • Cost: ~$300-400
+
+2. SECOND LANGUAGE (FRENCH)
+   • NCLC 7+ = 25 points (with strong English)
+   • NCLC 5 gives some points too
+   • TEF or TCF Canada accepted
+
+WITHIN 3-6 MONTHS
+
+3. PROVINCIAL NOMINATION
+   • 600 points added to CRS
+   • Some PNPs have NOI streams
+   • Research BC, Ontario, Alberta, Saskatchewan PNPs
+
+4. GET ECA FOR ALL CREDENTIALS
+   • Each credential assessed separately
+   • Multiple degrees = higher education points
+
+WITHIN 1 YEAR
+
+5. CANADIAN EXPERIENCE
+   • Work permit → 1 year work → CEC eligible
+   • Study permit → Canadian credential + PGWP
+
+Which of these options would you like me to explain further?`
+    },
+    "common mistakes": {
+      keywords: ["mistakes", "common mistakes", "avoid mistakes", "application errors", "kill applications"],
+      response: `These mistakes can seriously harm or destroy your application:
+
+CRITICAL ERRORS
+
+1. MISREPRESENTATION
+   • Even unintentional errors can be seen as misrepresentation
+   • 5-year ban from all Canadian immigration
+   • Always disclose everything, even unfavorable info
+
+2. INCOMPLETE WORK HISTORY
+   • Must list ALL jobs, including gaps
+   • Unexplained gaps raise red flags
+   • Keep reference letters from all employers
+
+3. EXPIRED DOCUMENTS
+   • Language tests valid 2 years
+   • ECA valid 5 years
+   • Police checks typically 1 year
+   • Medical exam valid 1 year
+
+COMMON PROBLEMS
+
+4. Wrong NOC code selection
+5. Missing reference letter requirements
+6. Poor quality document scans
+7. Not updating profile changes
+8. Missing deadlines (60 days for ITA)
+
+PROCESS MISTAKES
+
+9. Applying without complete documents ready
+10. Not saving copies of everything submitted
+11. Using unregulated consultants
+12. Relying on forums instead of official sources
+
+Would you like me to explain any of these in more detail?`
+    },
+    "improve profile": {
+      keywords: ["improve profile", "strengthen profile", "boost profile", "100 points"],
+      response: `Here's how others have significantly improved their profiles:
+
+LANGUAGE IMPROVEMENT STORIES
+
+• Engineer improved IELTS from 7.0 to 8.0 = +30 points
+• Took 3 months of focused preparation
+• Used official practice tests and tutoring
+
+PROVINCIAL NOMINATION SUCCESS
+
+• IT professional got Ontario nomination = +600 points
+• Applied through Human Capital Priorities stream
+• Total processing: 4 months
+
+CANADIAN EDUCATION PATHWAY
+
+• Completed 1-year diploma in Canada = +15-30 points
+• Also gained Canadian work experience through PGWP
+• Qualified for CEC instead of FSW
+
+STRATEGIC COMBINATIONS
+
+• French + English bilingual bonus = +50 points
+• Spouse improved scores = family points boost
+• Canadian work + education = maximum additional points
+
+YOUR PATH FORWARD
+
+1. Identify your biggest point gaps
+2. Focus on highest ROI improvements
+3. Consider timeline and investment
+4. Have backup pathways ready
+
+Tell me about your current profile and I'll suggest specific improvements.`
+    },
+    "pnp": {
+      keywords: ["pnp", "provincial nominee", "provincial nomination", "province"],
+      response: `Provincial Nominee Programs (PNPs) are powerful immigration pathways.
+
+HOW PNP WORKS
+
+• Each province has its own immigration programs
+• They nominate candidates who meet their needs
+• A nomination adds 600 CRS points (virtually guarantees ITA)
+
+EXPRESS ENTRY-LINKED PNPs
+
+Ontario (OINP):
+• Human Capital Priorities - for high-scoring EE candidates
+• Skilled Trades - for trade workers
+• French-Speaking Skilled Worker
+
+British Columbia (BC PNP):
+• Skills Immigration - Express Entry stream
+• Tech stream - fast processing for tech workers
+
+Alberta (AINP):
+• Alberta Express Entry stream
+• Alberta Opportunity Stream
+
+Saskatchewan (SINP):
+• Express Entry category
+• Occupation In-Demand
+
+NON-EXPRESS ENTRY PNPs
+
+• Often have lower requirements
+• Longer processing times
+• Good backup options
+
+STRATEGY
+
+1. Create Express Entry profile first
+2. Indicate which provinces interest you
+3. Research specific PNP requirements
+4. Apply to relevant streams
+
+Which province interests you most?`
+    },
+    "job offer vs pnp": {
+      keywords: ["job offer vs pnp", "job offer or pnp", "lmia or nomination", "which better"],
+      response: `Both job offers and PNPs can significantly boost your CRS, but they work differently.
+
+JOB OFFER (LMIA-SUPPORTED)
+
+Points: 50-200 CRS points
+• NOC 00 (senior management) = 200 points
+• Other NOC 0/A/B = 50 points
+
+Pros:
+• Employment waiting for you
+• Income from day one
+• Employer support
+
+Cons:
+• Requires employer to get LMIA (expensive, time-consuming)
+• Employer must prove no Canadians available
+• You're dependent on that employer
+
+PROVINCIAL NOMINATION
+
+Points: 600 CRS points
+
+Pros:
+• Virtually guarantees invitation
+• No employer dependency
+• More flexibility in job search
+
+Cons:
+• Must meet provincial requirements
+• Some streams are competitive
+• May require commitment to live in that province
+
+RECOMMENDATION
+
+• PNP is usually more valuable (600 vs 50 points)
+• Job offer is good if employer is willing
+• Best case: Both (job offer can help PNP applications)
+
+What's your current situation? Do you have job offer prospects or provincial interest?`
+    },
+    "timeline": {
+      keywords: ["how long", "timeline", "processing time", "how fast", "when will i"],
+      response: `Here are typical timelines for Express Entry:
+
+PREPARATION PHASE (1-6 months)
+
+• Language test: 2-4 weeks for results
+• ECA: 4-8 weeks (WES)
+• Police checks: varies by country (2-16 weeks)
+• Document gathering: 2-4 weeks
+
+EXPRESS ENTRY POOL (varies)
+
+• Profile creation: 1-2 hours
+• Time in pool: 1 week to 6+ months
+• Depends on your CRS score and draw patterns
+
+POST-ITA (6-8 months typically)
+
+• Application preparation: 1-2 weeks
+• IRCC processing: 6-8 months (80% processed)
+• Medical exam: valid 1 year
+• Background check: included in processing
+
+TOTAL TIMELINE
+
+Fast scenario (high CRS): 8-12 months total
+Average scenario: 12-18 months total
+Complex cases: 18-24+ months
+
+CURRENT PROCESSING
+
+IRCC aims to process 80% of Express Entry applications within 6 months. Check IRCC website for current processing times.
+
+What stage are you at in your journey?`
+    },
+    "costs": {
+      keywords: ["cost", "costs", "how much", "total cost", "fees", "money", "expensive"],
+      response: `Here's a comprehensive cost breakdown for Express Entry:
+
+REQUIRED FEES (CAD)
+
+Application Processing:
+• Principal applicant: $1,365
+• Spouse/partner: $1,365
+• Dependent child: $230
+
+Right of Permanent Residence:
+• Principal + spouse: $515 each
+• Children: $0
+
+Biometrics:
+• Per person: $85
+
+PREPARATION COSTS
+
+Language Test:
+• IELTS: $300-350
+• CELPIP: $280-300
+
+Educational Credential Assessment:
+• WES: $220-300
+• Other organizations: similar
+
+Police Certificates:
+• Varies by country ($20-100 each)
+
+Medical Exam:
+• $200-450 depending on location
+
+TOTAL ESTIMATE
+
+Single applicant: $2,500-3,500 CAD
+Couple: $4,500-6,000 CAD
+Family of 4: $5,500-7,500 CAD
+
+PROOF OF FUNDS REQUIREMENT
+
+• Single: $14,690
+• Couple: $18,288
+• Family of 4: $27,514
+(Not a cost - just must prove you have it)
+
+OPTIONAL COSTS
+
+• Immigration consultant: $1,500-5,000
+• Document translation: $50-100/document
+• Additional language tests: $300`
+    },
+    "documents": {
+      keywords: ["documents", "document checklist", "what documents", "need documents", "required documents"],
+      response: `Here's your Express Entry document checklist:
+
+IDENTITY DOCUMENTS
+
+□ Valid passport (all pages)
+□ National ID card (if applicable)
+□ Birth certificate
+□ Marriage certificate (if applicable)
+□ Divorce/death certificates (if applicable)
+
+LANGUAGE PROOF
+
+□ IELTS or CELPIP test results
+□ TEF/TCF for French (if claiming)
+□ Must be less than 2 years old
+
+EDUCATION DOCUMENTS
+
+□ Educational Credential Assessment (ECA)
+□ Degrees/diplomas (originals and translations)
+□ Transcripts
+□ Professional licenses (if applicable)
+
+WORK EXPERIENCE DOCUMENTS
+
+□ Reference letters from each employer
+  - Must include: job title, duties, hours, salary, dates
+  - On company letterhead with contact info
+□ Employment contracts
+□ Pay stubs or tax documents
+
+POLICE CERTIFICATES
+
+□ From each country lived 6+ months since age 18
+□ Must be less than 1 year old typically
+
+PROOF OF FUNDS
+
+□ Bank statements (6 months)
+□ Investment statements
+□ Property valuations (if applicable)
+
+PHOTOS
+
+□ Passport-style photos meeting IRCC specs
+
+Need help with any specific document?`
+    },
+    "pricing services": {
+      keywords: ["pricing", "services", "your pricing", "matin services", "matin pricing"],
+      response: `Matin Immigration Services offers AI-powered planning and preparation.
+
+CORE SUBSCRIPTIONS
+
+📚 Language Training (Evolve) - $250 CAD/year
+• IELTS and CELPIP preparation
+• AI-powered writing and reading tests
+• Real-time feedback and scoring
+• Vocabulary tracking and review
+
+🩺 Licensing Support (Elevate) - $350 CAD/year
+• NCLEX preparation for nurses
+• NNAS credential guidance
+• Provincial licensing pathways
+• Study plans and practice questions
+
+🛫 Immigration Pathway (Execute) - $450 CAD/year
+• Express Entry guidance
+• CRS optimization strategies
+• Document preparation support
+• Application readiness audits
+
+BUNDLE OFFERS
+
+• Nurse Success Pack (Evolve + Elevate): $550/year - Save $50
+• Skilled Worker Pack (Evolve + Execute): $625/year - Save $75
+• Complete Migration Pack (Elevate + Execute): $725/year - Save $75
+• All Access Pack (All three): $900/year - Save $150
+
+PROFESSIONAL SERVICES
+
+• Application Audit and Review: $300 CAD
+• Full Application Preparation: Starting at $2,000 CAD
+• Private Advisory Sessions: By appointment
+
+Click 💳 Subscribe to get started, or contact info@migratenorth.ca`
+    },
+    "about matin": {
+      keywords: ["about matin", "who are you", "matin immigration", "your company", "about company"],
+      response: `Matin Immigration Services is an AI-powered immigration education and planning platform.
+
+WHO WE ARE
+
+Matin Immigration Services Inc. operates under RCIC License #R712582, issued by the College of Immigration and Citizenship Consultants of Canada.
+
+We help individuals understand Canadian immigration clearly, affordably, and independently.
+
+OUR PLATFORM - MIGRATE NORTH
+
+🧭 Explore (FREE)
+Your starting point. Understand pathways, check eligibility, learn the system.
+
+📚 Evolve - Language Training
+IELTS and CELPIP preparation with AI-powered practice and feedback.
+
+🩺 Elevate - Licensing Support
+For internationally educated nurses pursuing Canadian registration.
+
+🛫 Execute - Immigration Pathway
+Step-by-step guidance through Express Entry and PNP applications.
+
+OUR APPROACH
+
+• AI-assisted tools available 24/7
+• Structured learning paths
+• Affordable subscription pricing
+• Professional support when needed
+
+CONTACT
+
+Email: info@migratenorth.ca
+Website: migratenorth.ca
+RCIC License: R712582
+
+How can we help with your immigration journey?`
+    },
+    "strategy": {
+      keywords: ["personalized strategy", "my strategy", "custom strategy", "immigration strategy"],
+      response: `I'd be happy to help create your personalized immigration strategy.
+
+To give you the best guidance, I need to understand your profile:
+
+BASIC INFORMATION NEEDED
+
+1. What is your age?
+2. What is your highest education level?
+3. What field/occupation do you work in?
+4. How many years of skilled work experience do you have?
+5. Have you taken IELTS or CELPIP? What were your scores?
+
+ADDITIONAL FACTORS
+
+6. Do you have any Canadian education or work experience?
+7. Do you speak French?
+8. Do you have a spouse/partner? What are their qualifications?
+9. Do you have a job offer from a Canadian employer?
+10. Are there specific provinces you're interested in?
+
+Please share these details and I'll provide:
+• Your estimated CRS score
+• Your eligible programs
+• Recommended pathways
+• Specific steps to improve your profile
+• Timeline estimate
+
+The more details you provide, the more personalized my recommendations will be.`
+    }
+  };
+
+  // Check each FAQ category
+  for (const [key, faq] of Object.entries(faqs)) {
+    for (const keyword of faq.keywords) {
+      if (lowerMessage.includes(keyword)) {
+        return faq.response;
+      }
+    }
+  }
+
+  return null;
+}
+
+// ==============================================================================
+// CRS ESTIMATION
+// ==============================================================================
+
+const CRS_TABLES = {
+  age: {
+    17: 0, 18: 99, 19: 105, 20: 110, 21: 110, 22: 110, 23: 110, 24: 110, 25: 110,
+    26: 110, 27: 110, 28: 110, 29: 110, 30: 105, 31: 99, 32: 94, 33: 88, 34: 83,
+    35: 77, 36: 72, 37: 66, 38: 61, 39: 55, 40: 50, 41: 39, 42: 28, 43: 17, 44: 6, 45: 0
+  },
+  education: {
+    "phd": 150, "doctorate": 150, "doctoral": 150,
+    "master": 135, "masters": 135, "master's": 135,
+    "two or more": 128, "multiple degrees": 128, "two degrees": 128,
+    "bachelor": 120, "bachelors": 120, "bachelor's": 120, "degree": 120,
+    "three year diploma": 98, "3 year diploma": 98, "3-year diploma": 98,
+    "two year diploma": 91, "2 year diploma": 91, "2-year diploma": 91, "diploma": 91,
+    "one year diploma": 84, "1 year diploma": 84, "1-year diploma": 84, "certificate": 84,
+    "high school": 30, "secondary": 30
+  },
+  workYears: { 0: 0, 1: 40, 2: 53, 3: 64, 4: 72, 5: 80 },
+  languageCLB: {
+    10: 34, 9: 31, 8: 23, 7: 17, 6: 9, 5: 6, 4: 0
+  }
 };
 
-function getSpecificTest(level, testIndex) {
-  const [start, end] = LEVEL_RANGES[level];
-  const range = tests.slice(start, end);
-  return range[testIndex] || null;
-}
+function estimateCRS(profile) {
+  let score = 0;
+  let breakdown = [];
 
-// Build feedback prompt
-function buildFeedbackPrompt(task, essay) {
-  return `Task:
-${task.prompt}
-
-Student Essay:
-${essay}`.trim();
-}
-
-// Progress helpers
-function getProgressHelper(memory, level) {
-  const key = "progress_" + level;
-  const rec = memory.find(m => m.role === "progress" && m.key === key);
-  return rec ? rec.value : 0;
-}
-
-function getProgressStats(memory) {
-  const foundationDone = getProgressHelper(memory, "level 1");
-  const intermediateDone = getProgressHelper(memory, "level 2");
-  const advancedDone = getProgressHelper(memory, "level 3");
-  const total = foundationDone + intermediateDone + advancedDone;
-  const percentage = Math.round((total / 33) * 100);
-
-  const wordsEntry = memory.find(m => m.role === "stat" && m.key === "total_words");
-  const streakEntry = memory.find(m => m.role === "stat" && m.key === "streak_days");
-
-  const totalWords = wordsEntry ? Number(wordsEntry.value) || 0 : 0;
-  const streakDays = streakEntry ? Number(streakEntry.value) || 0 : 0;
-
-  return {
-    foundationDone,
-    intermediateDone,
-    advancedDone,
-    totalDone: total,
-    percentage,
-    currentLevel: advancedDone > 0
-      ? "Advanced"
-      : intermediateDone > 0
-        ? "Intermediate"
-        : foundationDone > 0
-          ? "Foundation"
-          : "Not started",
-    totalWords,
-    streakDays
-  };
-}
-
-// chooseNextTest function
-function chooseNextTest(memory) {
-  const stats = getProgressStats(memory);
-
-  function nextIndexForLevel(level) {
-    const done = getProgressHelper(memory, level);
-    const [start, end] = LEVEL_RANGES[level];
-    const maxIndex = end - start - 1;
-    if (done > maxIndex) return null;
-    return done;
+  // Age points
+  if (profile.age) {
+    const agePoints = CRS_TABLES.age[Math.min(Math.max(profile.age, 17), 45)] || 0;
+    score += agePoints;
+    breakdown.push(`Age (${profile.age}): ${agePoints} points`);
   }
 
-  let currentLevel = "level 1";
-  if (stats.advancedDone > 0) currentLevel = "level 3";
-  else if (stats.intermediateDone > 0) currentLevel = "level 2";
-  else if (stats.foundationDone > 0) currentLevel = "level 1";
-
-  let levelToUse = currentLevel;
-  let nextIndex = nextIndexForLevel(levelToUse);
-
-  if (nextIndex === null) {
-    if (currentLevel === "level 1") levelToUse = "level 2";
-    else if (currentLevel === "level 2") levelToUse = "level 3";
-    nextIndex = nextIndexForLevel(levelToUse);
+  // Education points
+  if (profile.education) {
+    const eduLower = profile.education.toLowerCase();
+    let eduPoints = 0;
+    for (const [key, points] of Object.entries(CRS_TABLES.education)) {
+      if (eduLower.includes(key)) {
+        eduPoints = Math.max(eduPoints, points);
+      }
+    }
+    score += eduPoints;
+    breakdown.push(`Education: ${eduPoints} points`);
   }
 
-  if (nextIndex === null) {
-    const randomTest = tests[Math.floor(Math.random() * tests.length)];
-    return {
-      task: randomTest,
-      level: "random",
-      index: -1,
-      message: "You have completed all tests. Here is a random practice task."
-    };
+  // Work experience points
+  if (profile.workYears !== undefined) {
+    const workPoints = CRS_TABLES.workYears[Math.min(profile.workYears, 5)] || 0;
+    score += workPoints;
+    breakdown.push(`Work Experience (${profile.workYears} years): ${workPoints} points`);
   }
 
-  const t = getSpecificTest(levelToUse, nextIndex);
-  if (!t) {
-    const randomTest = tests[Math.floor(Math.random() * tests.length)];
-    return {
-      task: randomTest,
-      level: "random",
-      index: -1,
-      message: "Could not load the next sequential task. Here is a random task."
-    };
+  // Language points (simplified - using average of IELTS bands)
+  if (profile.ieltsAverage) {
+    const clb = Math.floor(profile.ieltsAverage);
+    const langPoints = (CRS_TABLES.languageCLB[clb] || 0) * 4;
+    score += langPoints;
+    breakdown.push(`Language (IELTS ~${profile.ieltsAverage}): ${langPoints} points`);
   }
 
-  return {
-    task: t,
-    level: levelToUse,
-    index: nextIndex,
-    message: `Next task selected for ${levelToUse}, Test ${nextIndex + 1}.`
-  };
+  return { score, breakdown };
 }
 
-export const handler = async (event) => {
+// ==============================================================================
+// PROFILE EXTRACTION
+// ==============================================================================
+
+function extractProfileFromMessage(message, existingProfile = {}) {
+  const profile = { ...existingProfile };
+  const lowerMessage = message.toLowerCase();
+
+  // Extract age
+  const ageMatch = message.match(/(?:i am|i'm|age is|aged?)\s*(\d{2})/i) ||
+                   message.match(/(\d{2})\s*years?\s*old/i);
+  if (ageMatch) {
+    profile.age = parseInt(ageMatch[1]);
+  }
+
+  // Extract education
+  const eduPatterns = [
+    { pattern: /\b(phd|doctorate|doctoral)\b/i, value: "PhD" },
+    { pattern: /\b(master'?s?|mba|msc|ma)\b/i, value: "Master's" },
+    { pattern: /\b(bachelor'?s?|degree|bsc|ba|beng)\b/i, value: "Bachelor's" },
+    { pattern: /\b(diploma|certificate|college)\b/i, value: "Diploma" },
+    { pattern: /\b(high school|secondary)\b/i, value: "High School" }
+  ];
+  for (const { pattern, value } of eduPatterns) {
+    if (pattern.test(lowerMessage)) {
+      profile.education = value;
+      profile.education_level = value;
+      break;
+    }
+  }
+
+  // Extract work years
+  const workMatch = message.match(/(\d+)\s*years?\s*(?:of\s*)?(?:work|experience|working)/i) ||
+                    message.match(/experience\s*(?:of\s*)?(\d+)\s*years?/i);
+  if (workMatch) {
+    profile.workYears = parseInt(workMatch[1]);
+    profile.years_experience = parseInt(workMatch[1]);
+  }
+
+  // Extract IELTS scores
+  const ieltsMatch = message.match(/ielts[:\s]*(\d\.?\d?)[,\s]*(\d\.?\d?)?[,\s]*(\d\.?\d?)?[,\s]*(\d\.?\d?)?/i);
+  if (ieltsMatch) {
+    const scores = [ieltsMatch[1], ieltsMatch[2], ieltsMatch[3], ieltsMatch[4]]
+      .filter(s => s)
+      .map(s => parseFloat(s));
+    if (scores.length > 0) {
+      profile.ieltsAverage = scores.reduce((a, b) => a + b, 0) / scores.length;
+      profile.ieltsSummary = scores.join(", ");
+      if (scores.length >= 4) {
+        profile.ielts_listening = scores[0];
+        profile.ielts_reading = scores[1];
+        profile.ielts_writing = scores[2];
+        profile.ielts_speaking = scores[3];
+      }
+    }
+  }
+
+  // Extract single IELTS band mentioned
+  const singleBandMatch = message.match(/ielts\s*(?:band\s*)?(\d\.?\d?)\s*(?:in\s*all|overall|bands?)?/i);
+  if (singleBandMatch && !profile.ieltsAverage) {
+    const band = parseFloat(singleBandMatch[1]);
+    profile.ieltsAverage = band;
+    profile.ieltsSummary = `${band} overall`;
+    profile.ielts_listening = band;
+    profile.ielts_reading = band;
+    profile.ielts_writing = band;
+    profile.ielts_speaking = band;
+  }
+
+  return profile;
+}
+
+function buildCRSExplanation(profile, crsResult) {
+  let explanation = `Based on the information you provided:\n\n`;
+  
+  if (crsResult.breakdown.length > 0) {
+    explanation += `**CRS Breakdown:**\n`;
+    for (const item of crsResult.breakdown) {
+      explanation += `• ${item}\n`;
+    }
+    explanation += `\n**Estimated Total: ${crsResult.score} points**\n\n`;
+  }
+
+  // Add context about competitiveness
+  if (crsResult.score < 450) {
+    explanation += `This score is below typical invitation cutoffs (450-500+). Consider:\n`;
+    explanation += `• Improving language scores (biggest impact)\n`;
+    explanation += `• Provincial Nominee Programs (+600 points)\n`;
+    explanation += `• Canadian education or work experience\n`;
+  } else if (crsResult.score < 480) {
+    explanation += `This score may be competitive for targeted draws. To improve:\n`;
+    explanation += `• Boost language to CLB 10+ (+40 points possible)\n`;
+    explanation += `• Consider PNP streams\n`;
+  } else {
+    explanation += `This is a competitive score for Express Entry general draws.\n`;
+  }
+
+  // Add limiter info if available
+  if (profile.primary_limiter) {
+    explanation += `\n**Your primary limiting factor:** ${profile.primary_limiter}\n`;
+    if (profile.primary_limiter === "language") {
+      explanation += `Consider our Language Training (Evolve) module to improve your scores.\n`;
+    }
+  }
+
+  return explanation;
+}
+
+function buildBothOptionsFollowUp(profile) {
+  let response = `I understand you want to explore both options. Let me help you assess your situation.\n\n`;
+  
+  if (!profile.age || !profile.education || !profile.workYears) {
+    response += `To give you specific guidance, I need a few details:\n\n`;
+    if (!profile.age) response += `• What is your age?\n`;
+    if (!profile.education) response += `• What is your highest education level?\n`;
+    if (!profile.workYears) response += `• How many years of work experience do you have?\n`;
+    response += `\nOnce I have these details, I can estimate your CRS score and recommend the best pathway.`;
+  }
+  
+  return response;
+}
+
+// ==============================================================================
+// OPENAI CALL
+// ==============================================================================
+
+async function callOpenAI(message, history, userProfile) {
+  const systemPrompt = `You are North Star GPS, an expert Canadian immigration assistant for Migrate North.
+
+Your role:
+- Help users understand Canadian immigration pathways
+- Explain Express Entry, PNPs, and requirements clearly
+- Estimate CRS scores when given profile information
+- Identify gaps and suggest improvements
+- Never provide legal advice or guarantees
+
+User's known profile:
+${JSON.stringify(userProfile, null, 2)}
+
+Guidelines:
+- Be warm and encouraging but realistic
+- Use clear structure in responses
+- When users share profile details, extract and remember them
+- If they ask about CRS, provide estimates based on what you know
+- Recommend relevant Migrate North services when appropriate:
+  - Evolve (Language Training) for low language scores
+  - Elevate (Licensing) for healthcare professionals
+  - Execute (Immigration) for application guidance
+
+Keep responses concise but comprehensive. Use bullet points for lists.`;
+
+  const messages = [
+    { role: "system", content: systemPrompt },
+    ...history.slice(-10).map(h => ({ role: h.role, content: h.text || h.content })),
+    { role: "user", content: message }
+  ];
+
+  const response = await client.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: messages,
+    max_tokens: 1000,
+    temperature: 0.7
+  });
+
+  return response.choices[0].message.content;
+}
+
+// ==============================================================================
+// NORMALIZE HISTORY
+// ==============================================================================
+
+function normalizeHistory(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw.map(item => {
+    if (item.role && (item.text || item.content)) {
+      return {
+        role: item.role === "bot" ? "assistant" : item.role,
+        text: item.text || item.content
+      };
+    }
+    return null;
+  }).filter(Boolean);
+}
+
+function getLastAssistantMessage(history) {
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].role === "assistant" || history[i].role === "bot") {
+      return history[i].text || history[i].content || "";
+    }
+  }
+  return "";
+}
+
+// ==============================================================================
+// MAIN HANDLER
+// ==============================================================================
+
+export async function handler(event) {
+  // Handle CORS preflight
   if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 200, headers: corsHeaders(), body: "ok" };
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Methods": "POST, OPTIONS"
+      },
+      body: ""
+    };
   }
 
   if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      headers: corsHeaders(),
-      body: JSON.stringify({ error: "Method not allowed" })
-    };
+    return errorResponse(405, "Method not allowed");
+  }
+
+  // Rate limiting
+  const clientIP = event.headers["x-forwarded-for"] || event.headers["client-ip"] || "unknown";
+  if (!checkRateLimit(clientIP)) {
+    return errorResponse(429, "Rate limit exceeded. Please wait a few minutes.");
   }
 
   try {
-    const body = JSON.parse(event.body || "{}");
-    const action = body.action || null;
-    const params = body.params || {};
-    const rawUserMessage = (body.message || "").trim();
-    const previousMemory = body.memory || [];
-    const userId = body.userId || null; // For Supabase logging
-    const sessionTime = body.timestamp || Date.now();
+    const parsed = JSON.parse(event.body || "{}");
+    const message = (parsed.message || "").trim();
+    const rawHistory = parsed.history || [];
 
-    const THIRTY = 1800000;
-    const now = Date.now();
-    const expired = now - sessionTime > THIRTY;
-
-    let memory = expired ? [] : previousMemory;
-    let reply = "";
-
-    function getProgress(level) {
-      const key = "progress_" + level;
-      const rec = memory.find(m => m.role === "progress" && m.key === key);
-      return rec ? rec.value : 0;
+    if (!message) {
+      return errorResponse(400, "Message is required");
     }
 
-    function setProgress(level, val) {
-      const key = "progress_" + level;
-      memory = memory.filter(m => !(m.role === "progress" && m.key === key));
-      memory.push({ role: "progress", key, value: val });
+    // ==============================================================================
+    // PHASE 1B: Get authenticated user
+    // ==============================================================================
+    const user = await getUserFromRequest(event);
+    
+    // Create profile row if new user
+    if (user) {
+      await ensureProfile(user);
     }
 
-    function getStat(key) {
-      const rec = memory.find(m => m.role === "stat" && m.key === key);
-      return rec ? rec.value : undefined;
+    // ==============================================================================
+    // PHASE 1C: Load profile from database
+    // ==============================================================================
+    let dbProfile = await loadProfile(user);
+
+    // Merge database profile with incoming profile data
+    const incomingProfile = { ...(dbProfile || {}), ...(parsed.userProfile || {}) };
+
+    // Normalize history
+    const history = normalizeHistory(rawHistory);
+
+    // ==============================================================================
+    // CHECK FOR FAQ RESPONSE
+    // ==============================================================================
+    const faqResponse = getFAQResponse(message);
+    if (faqResponse) {
+      // Log FAQ activity
+      if (user) {
+        await logActivity(user, "explore_faq", message.substring(0, 100));
+      }
+      return ok({ reply: faqResponse, userProfile: incomingProfile });
     }
 
-    function setStat(key, value) {
-      memory = memory.filter(m => !(m.role === "stat" && m.key === key));
-      memory.push({ role: "stat", key, value });
+    // ==============================================================================
+    // CHECK FOR "BOTH OPTIONS" INTENT
+    // ==============================================================================
+    const lowerMessage = message.toLowerCase();
+    const lastAssistant = getLastAssistantMessage(history).toLowerCase();
+    
+    if ((lowerMessage.includes("both") || lowerMessage.includes("all")) &&
+        (lastAssistant.includes("option 1") || lastAssistant.includes("option 2") ||
+         lastAssistant.includes("fsw") || lastAssistant.includes("pnp"))) {
+      
+      if (user) {
+        await logActivity(user, "explore_both_options", "");
+      }
+      
+      const response = buildBothOptionsFollowUp(incomingProfile);
+      return ok({ reply: response, userProfile: incomingProfile });
     }
 
-    const stats = getProgressStats(memory);
+    // ==============================================================================
+    // EXTRACT PROFILE DATA FROM MESSAGE
+    // ==============================================================================
+    let updatedProfile = extractProfileFromMessage(message, incomingProfile);
 
-    // AUTO TEST
-    if (action === "auto_test") {
-      const choice = chooseNextTest(memory);
-      const t = choice.task;
+    // ==============================================================================
+    // PHASE 1C: Update pillars and compute limiter
+    // ==============================================================================
+    if (user) {
+      updatedProfile = updatePillars(updatedProfile);
+      updatedProfile.primary_limiter = computeLimiter(updatedProfile);
+    }
 
-      memory = memory.filter(
-        m => !(m.role === "system" && m.content && m.content.includes('"task_id":'))
-      );
-      memory.push({
-        role: "system",
-        content: JSON.stringify({ ...t, level: choice.level, testIndex: choice.index })
-      });
+    // ==============================================================================
+    // CHECK FOR CRS CALCULATION REQUEST (requires login for personalization)
+    // ==============================================================================
+    const wantsCRS = lowerMessage.includes("crs") || 
+                     lowerMessage.includes("score") ||
+                     lowerMessage.includes("calculate") ||
+                     lowerMessage.includes("estimate");
+    
+    const hasProfileData = updatedProfile.age || updatedProfile.education || 
+                          updatedProfile.workYears || updatedProfile.ieltsAverage;
 
-      // FIX: Actually show the test prompt to the user!
-      reply = `${choice.message}\n\n${t.type ? '**' + t.type + '**\n\n' : ''}${t.prompt}\n\nYou have 20 minutes. Write at least 150 words. When ready, write your answer and click Submit.`;
-
-      memory.push({ role: "assistant", content: reply });
-
-      // Save to Supabase
-      if (userId) {
-        await supabase.from("evolve_history").insert({
-          user_id: userId,
-          message_in: rawUserMessage || "auto_test",
-          message_out: reply,
-          action: action,
-          timestamp: new Date().toISOString()
+    if (wantsCRS && hasProfileData) {
+      // Personalized CRS analysis requires login
+      if (!user) {
+        return ok({
+          reply: `I can see you've shared some profile information. To give you a personalized CRS analysis that saves to your profile, please login first (it's free!).\n\nClick the 🔐 Login button above to continue.`,
+          userProfile: updatedProfile
         });
       }
 
-      return {
-        statusCode: 200,
-        headers: corsHeaders(),
-        body: JSON.stringify({
-          message: reply,
-          memory,
-          timestamp: now,
-          stats: getProgressStats(memory)
-        })
-      };
+      // Log CRS analysis activity
+      await logActivity(user, "explore_crs_analysis", JSON.stringify(updatedProfile));
+
+      const crsResult = estimateCRS(updatedProfile);
+      const explanation = buildCRSExplanation(updatedProfile, crsResult);
+
+      // Save profile updates
+      await saveProfile(user, updatedProfile);
+
+      return ok({ reply: explanation, userProfile: updatedProfile });
     }
 
-    // START TEST - FIXED TO SHOW THE ACTUAL TEST
-    if (action === "start_test") {
-      const level = (params.level || "level 1").toLowerCase();
-      const index = Number(params.testIndex ?? 0);
-
-      if (!LEVEL_RANGES[level]) {
-        reply = "Choose a valid level.";
-      } else if (isNaN(index) || index < 0 || index > 10) {
-        reply = "Choose a valid test number.";
-      } else {
-        const unlocked = getProgress(level);
-        if (index > unlocked) {
-          reply = "This test is locked. Complete the previous test first.";
-        } else {
-          const t = getSpecificTest(level, index);
-          if (!t) {
-            reply = "Test not found.";
-          } else {
-            memory = memory.filter(
-              m => !(m.role === "system" && m.content && m.content.includes('"task_id":'))
-            );
-            memory.push({
-              role: "system",
-              content: JSON.stringify({ ...t, level, testIndex: index })
-            });
-
-            // FIX: Actually display the test prompt!
-            reply = `${t.type ? '**' + t.type + '**\n\n' : ''}${t.prompt}\n\nYou have 20 minutes. Write at least 150 words. When ready, write your answer and click Submit.`;
-          }
-        }
-      }
-
-      memory.push({ role: "assistant", content: reply });
-
-      // Save to Supabase
-      if (userId) {
-        await supabase.from("evolve_history").insert({
-          user_id: userId,
-          message_in: rawUserMessage || `start_test:${level}:${index}`,
-          message_out: reply,
-          action: action,
-          timestamp: new Date().toISOString()
-        });
-      }
-
-      return {
-        statusCode: 200,
-        headers: corsHeaders(),
-        body: JSON.stringify({
-          message: reply,
-          memory,
-          timestamp: now,
-          stats: getProgressStats(memory)
-        })
-      };
+    // ==============================================================================
+    // GENERAL AI RESPONSE
+    // ==============================================================================
+    if (user) {
+      await logActivity(user, "explore_message", message.substring(0, 100));
     }
 
-    // SUBMIT ESSAY
-    if (action === "submit_essay") {
-      const lastTask = [...memory]
-        .reverse()
-        .find(m => m.role === "system" && m.content && m.content.includes('"task_id"'));
+    const aiReply = await callOpenAI(message, history, updatedProfile);
 
-      if (!lastTask) {
-        reply = "Start a test first, then submit your writing.";
-      } else {
-        const task = JSON.parse(lastTask.content);
-        let essay = (params.essay || "").trim();
-
-        if (!essay) {
-          const lastEssay = [...memory].reverse().find(m => m.role === "user");
-          essay = lastEssay ? (lastEssay.content || "").trim() : "";
-        }
-
-        if (!essay || essay.split(/\s+/).filter(Boolean).length < 20) {
-          reply = "Write at least 20 words before submitting.";
-        } else {
-          const wordCount = essay.split(/\s+/).filter(Boolean).length;
-          const previousWords = Number(getStat("total_words") || 0);
-          setStat("total_words", previousWords + wordCount);
-
-          const todayStr = new Date(now).toISOString().slice(0, 10);
-          const lastDateStr = getStat("last_study_date");
-          let streak = Number(getStat("streak_days") || 0);
-
-          if (!lastDateStr) {
-            streak = 1;
-          } else {
-            const lastDate = new Date(lastDateStr);
-            const todayDate = new Date(todayStr);
-            const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / 86400000);
-            if (diffDays === 0) {
-              if (streak < 1) streak = 1;
-            } else if (diffDays === 1) {
-              streak = (streak || 0) + 1;
-            } else {
-              streak = 1;
-            }
-          }
-
-          setStat("last_study_date", todayStr);
-          setStat("streak_days", streak);
-
-          const feedbackPrompt = buildFeedbackPrompt(task, essay);
-
-          // TASK MODE SYSTEM PROMPT
-          const taskModeSystemPrompt = `You are North Star GPS, the Reading and Writing tutor of Migrate North Academy, created by Matin Immigration Services.
-
-You are in TASK MODE. You evaluate IELTS Writing using the North Star skill framework.
-
-Perform the following steps:
-1. Give a short overall comment.
-2. Give an estimated IELTS band RANGE, not a single number.
-3. Provide the rubric breakdown: Task Achievement or Response, Coherence and Cohesion, Lexical Resource, Grammar Range and Accuracy.
-4. Provide the top three priorities for improvement.
-5. Provide two improved versions: a sentence level correction example and a full paragraph improved rewrite.
-6. Provide one next step exercise.
-
-Be honest, clear and practical. Never copy rubric text word for word. Use natural tutor language.
-
-Only talk about IELTS and academic writing. Do not mention CELPIP or any other exam.
-
-Stay inside Task Mode until the user leaves it.`;
-
-          const completion = await client.chat.completions.create({
-            model: "gpt-4o-mini",
-            temperature: 0.7,
-            max_tokens: 950,
-            messages: [
-              { role: "system", content: taskModeSystemPrompt },
-              { role: "user", content: feedbackPrompt }
-            ]
-          });
-
-          reply = completion.choices?.[0]?.message?.content?.trim() ||
-            "I could not generate feedback right now.";
-
-          if (task.level && Number.isInteger(task.testIndex)) {
-            const done = getProgress(task.level);
-            const needed = task.testIndex + 1;
-            if (needed > done) setProgress(task.level, needed);
-          }
-
-          const updated = getProgressStats(memory);
-          reply += `\n\nProgress: ${updated.totalDone} of 33 tests completed.`;
-        }
-      }
-
-      memory.push({ role: "assistant", content: reply });
-
-      // Save to Supabase
-      if (userId) {
-        await supabase.from("evolve_history").insert({
-          user_id: userId,
-          message_in: params.essay || rawUserMessage || "submit_essay",
-          message_out: reply,
-          action: action,
-          timestamp: new Date().toISOString()
-        });
-      }
-
-      return {
-        statusCode: 200,
-        headers: corsHeaders(),
-        body: JSON.stringify({
-          message: reply,
-          memory,
-          timestamp: now,
-          stats: getProgressStats(memory)
-        })
-      };
+    // Extract any new profile data from AI response context
+    updatedProfile = extractProfileFromMessage(message, updatedProfile);
+    
+    // Update pillars after extraction
+    if (user) {
+      updatedProfile = updatePillars(updatedProfile);
+      updatedProfile.primary_limiter = computeLimiter(updatedProfile);
+      
+      // Save profile updates
+      await saveProfile(user, updatedProfile);
     }
 
-    // RANDOM TEST
-    if (action === "generate_random") {
-      const chosen = tests[Math.floor(Math.random() * tests.length)];
-
-      memory.push({
-        role: "system",
-        content: JSON.stringify({ ...chosen, level: "random", testIndex: -1 })
-      });
-
-      // FIX: Show the actual test prompt!
-      reply = `${chosen.type ? '**' + chosen.type + '**\n\n' : ''}${chosen.prompt}\n\nWrite at least 150 words. When ready, write your answer and click Submit.`;
-
-      memory.push({ role: "assistant", content: reply });
-
-      // Save to Supabase
-      if (userId) {
-        await supabase.from("evolve_history").insert({
-          user_id: userId,
-          message_in: rawUserMessage || "generate_random",
-          message_out: reply,
-          action: action,
-          timestamp: new Date().toISOString()
-        });
-      }
-
-      return {
-        statusCode: 200,
-        headers: corsHeaders(),
-        body: JSON.stringify({
-          message: reply,
-          memory,
-          timestamp: now,
-          stats: getProgressStats(memory)
-        })
-      };
-    }
-
-    // Detect if this is a REFINE request
-    const isRefineRequest = rawUserMessage.includes("CRITICAL INSTRUCTIONS") &&
-      rawUserMessage.includes("USER TEXT:");
-
-    // SPECIAL BRANCH: REFINE MODE
-    if (isRefineRequest) {
-      // Try to extract only the user text after "USER TEXT:"
-      const parts = rawUserMessage.split("USER TEXT:");
-      const userText = (parts[1] || "").trim() || rawUserMessage;
-
-      const refineSystemPrompt = `You are North Star GPS, the Reading and Writing tutor of Migrate North Academy.
-
-You are in REFINE MODE. Your job is to help a student improve a short piece of writing.
-
-Work ONLY with the text the student has written. Do not invent examples that are not actually in the text.
-
-Steps:
-1. Brief overall comment on the writing quality.
-2. List weak or vague words or phrases that appear in the student's text (for example: very, good, bad, a lot, really, stuff), but ONLY if they actually appear in the text.
-3. For each weak word you find, give 2 or 3 stronger alternatives that match the context.
-4. Give a short improved version of one key sentence or a short section of the text.
-5. End with one clear suggestion for how the student could rewrite the paragraph.
-
-If there are no weak or vague words in the text, clearly say so and give one suggestion for making the writing more precise or more formal.`.trim();
-
-      const completion = await client.chat.completions.create({
-        model: "gpt-4o-mini",
-        temperature: 0.4,
-        max_tokens: 600,
-        messages: [
-          { role: "system", content: refineSystemPrompt },
-          { role: "user", content: userText }
-        ]
-      });
-
-      const refineReply = completion.choices?.[0]?.message?.content?.trim() ||
-        "Your writing looks strong. I did not find obvious weak words. You can focus on adding more precise detail or clearer examples.";
-
-      // Store a simplified version of the interaction in memory
-      memory.push({ role: "user", content: userText });
-      memory.push({ role: "assistant", content: refineReply });
-
-      // Save to Supabase
-      if (userId) {
-        await supabase.from("evolve_history").insert({
-          user_id: userId,
-          message_in: userText,
-          message_out: refineReply,
-          action: "refine",
-          timestamp: new Date().toISOString()
-        });
-      }
-
-      return {
-        statusCode: 200,
-        headers: corsHeaders(),
-        body: JSON.stringify({
-          message: refineReply,
-          memory,
-          timestamp: now,
-          stats: getProgressStats(memory)
-        })
-      };
-    }
-
-    // MAIN CHAT MODE SYSTEM PROMPT (DUAL MODE) - for normal conversation
-    const systemPrompt = `You are North Star GPS, the Reading and Writing tutor of Migrate North Academy.
-
-The academy is operated by Matin Immigration Services.
-
-You are a friendly expert who teaches IELTS Reading and Writing. You do not teach Listening or Speaking in this chat.
-
-DUAL MODE:
-
-Conversation Mode: default mode for answering questions, teaching concepts, explaining reading strategies, writing structures, vocabulary, grammar and general coaching.
-
-Task Mode: activated when the user starts a test, submits an essay or asks for a practice task. In Task Mode you are structured, exam focused and specific.
-
-NORTH STAR LEVEL SYSTEM:
-
-Foundation: Fundamentals. Reading basics like skimming, scanning and paraphrasing. Writing basics like sentence structure and clear paragraphs.
-
-Intermediate: Development. Reading includes inference, summary completion and distractors. Writing includes complex sentences, cause and effect, problem and solution, and better cohesion.
-
-Advanced: Mastery. Reading includes dense academic texts, Section 3 logic, author attitude and timed passages. Writing aims for Band 7 to 9 quality with advanced vocabulary and sophisticated cohesion.
-
-You always keep explanations clear, structured and practical. Correct grammar, vocabulary and structure when needed.
-
-Do not provide immigration legal advice. Only Reading and Writing.`.trim();
-
-    // For normal chat, use last 10 turns of user/assistant history
-    const conversationHistory = memory
-      .filter(m => m.role === "user" || m.role === "assistant")
-      .slice(-10);
-
-    const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      temperature: 0.7,
-      max_tokens: 700,
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...conversationHistory,
-        { role: "user", content: rawUserMessage || "Help me with IELTS reading and writing." }
-      ]
-    });
-
-    const response = completion.choices?.[0]?.message?.content?.trim() ||
-      "How can I help next with your reading or writing practice.";
-
-    if (rawUserMessage) {
-      memory.push({ role: "user", content: rawUserMessage });
-    }
-    memory.push({ role: "assistant", content: response });
-
-    // Save to Supabase
-    if (userId) {
-      await supabase.from("evolve_history").insert({
-        user_id: userId,
-        message_in: rawUserMessage || "chat",
-        message_out: response,
-        action: action || "chat",
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    return {
-      statusCode: 200,
-      headers: corsHeaders(),
-      body: JSON.stringify({
-        message: response,
-        memory,
-        timestamp: now,
-        stats: getProgressStats(memory)
-      })
-    };
+    return ok({ reply: aiReply, userProfile: updatedProfile });
 
   } catch (err) {
-    return {
-      statusCode: 500,
-      headers: corsHeaders(),
-      body: JSON.stringify({ error: err.message })
-    };
+    console.error("Handler error:", err);
+    return errorResponse(500, "Internal server error: " + err.message);
   }
-};
+}
