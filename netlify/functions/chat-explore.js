@@ -1,5 +1,6 @@
 // /netlify/functions/chat-explore.js
-// North Star Explore server function v6 - Identity Layer + Full FAQ + CRS Logic + Supabase Logging
+// North Star Explore server function v7 - Identity Layer + Permanent Memory + Pillar Logic
+// Phase 1C Complete: Persistent case files, readiness pillars, limiting factor tracking
 
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
@@ -15,9 +16,9 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
-// =============================================================================
+// ==============================================================================
 // IDENTITY LAYER - Phase 1B
-// =============================================================================
+// ==============================================================================
 
 async function getUserFromRequest(event) {
   const authHeader = event.headers.authorization || event.headers.Authorization;
@@ -42,1392 +43,1200 @@ async function ensureProfile(user) {
   }
 }
 
-// =============================================================================
+async function loadProfile(user) {
+  if (!user) return null;
+  const { data } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("user_id", user.id)
+    .single();
+  return data || {};
+}
+
+async function saveProfile(user, profile) {
+  if (!user || !profile) return;
+  
+  // Add updated_at timestamp
+  profile.updated_at = new Date().toISOString();
+  
+  await supabase
+    .from("profiles")
+    .update(profile)
+    .eq("user_id", user.id);
+}
+
+async function logActivity(user, eventType, eventValue) {
+  if (!user) return;
+  await supabase.from("activity_log").insert({
+    user_id: user.id,
+    event_type: eventType,
+    event_value: eventValue,
+  });
+}
+
+// ==============================================================================
 // END IDENTITY LAYER
-// =============================================================================
+// ==============================================================================
 
-const ORIGIN = "https://migratenorth.ca";
+// ==============================================================================
+// PILLAR LOGIC - Phase 1C
+// ==============================================================================
 
-// Rate limiting
-const requestCounts = new Map();
-const RATE_LIMIT_MAX = 20;
-const RATE_LIMIT_WINDOW = 5 * 60 * 1000;
+function updatePillars(profile) {
+  // Language pillar - based on IELTS scores
+  const hasLanguage = profile.ielts_listening || profile.ielts_reading || 
+                      profile.ielts_writing || profile.ielts_speaking ||
+                      profile.ieltsSummary;
+  profile.pillar_language_status = hasLanguage ? "stable" : "blocking";
+
+  // Education pillar - based on education level
+  const hasEducation = profile.education_level || profile.education;
+  profile.pillar_education_status = hasEducation ? "stable" : "blocking";
+
+  // Work pillar - based on years experience
+  const workYears = profile.years_experience || profile.workYears || 0;
+  profile.pillar_work_status = workYears >= 1 ? "stable" : "blocking";
+
+  // Path pillar - based on overall profile completeness
+  const isComplete = isProfileComplete(profile);
+  profile.pillar_path_status = isComplete ? "weak" : "blocking";
+
+  return profile;
+}
+
+function computeLimiter(profile) {
+  if (profile.pillar_language_status === "blocking") return "language";
+  if (profile.pillar_education_status === "blocking") return "education";
+  if (profile.pillar_work_status === "blocking") return "work";
+  if (profile.pillar_path_status === "blocking") return "path";
+  return null;
+}
+
+function isProfileComplete(profile) {
+  return !!(
+    profile.age &&
+    (profile.education_level || profile.education) &&
+    (profile.years_experience || profile.workYears) &&
+    (profile.ielts_listening || profile.ieltsSummary)
+  );
+}
+
+// ==============================================================================
+// END PILLAR LOGIC
+// ==============================================================================
+
+// ==============================================================================
+// RATE LIMITING
+// ==============================================================================
+const rateLimitMap = new Map();
+const RATE_LIMIT = 20;
+const RATE_WINDOW = 5 * 60 * 1000;
 
 function checkRateLimit(ip) {
   const now = Date.now();
-  const key = ip || "unknown";
-  
-  if (!requestCounts.has(key)) {
-    requestCounts.set(key, []);
+  const record = rateLimitMap.get(ip) || { count: 0, start: now };
+  if (now - record.start > RATE_WINDOW) {
+    record.count = 1;
+    record.start = now;
+  } else {
+    record.count++;
   }
-  
-  const timestamps = requestCounts.get(key);
-  const recentRequests = timestamps.filter(t => now - t < RATE_LIMIT_WINDOW);
-  
-  if (recentRequests.length >= RATE_LIMIT_MAX) {
-    return false;
-  }
-  
-  recentRequests.push(now);
-  requestCounts.set(key, recentRequests);
-  return true;
+  rateLimitMap.set(ip, record);
+  return record.count <= RATE_LIMIT;
 }
+
+// ==============================================================================
+// RESPONSE HELPERS
+// ==============================================================================
 
 function ok(body) {
   return {
     statusCode: 200,
     headers: {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": ORIGIN,
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
     },
     body: JSON.stringify(body),
   };
 }
 
-function errorResponse(statusCode, message) {
+function errorResponse(code, message) {
   return {
-    statusCode: statusCode,
+    statusCode: code,
     headers: {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": ORIGIN,
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
     },
     body: JSON.stringify({ error: message }),
   };
 }
 
-// =============================================================================
-// FAQ RESPONSE LIBRARY (ALL 31 RESPONSES)
-// =============================================================================
+// ==============================================================================
+// FAQ RESPONSES
+// ==============================================================================
 
-const FAQ_RESPONSES = {
-  "Am I Eligible for Express Entry?": `Great question! Let me break this down simply.
+function getFAQResponse(message) {
+  const lowerMessage = message.toLowerCase();
+  
+  const faqs = {
+    "express entry": {
+      keywords: ["what is express entry", "explain express entry", "how express entry works", "express entry system"],
+      response: `Express Entry is Canada's flagship immigration system for skilled workers. It's an online application management system that ranks candidates based on their Comprehensive Ranking System (CRS) score.
 
-✅ You are likely eligible if:
-• You have at least 1 year of skilled work experience (NOC TEER 0, 1, 2, or 3)
-• You have IELTS or CELPIP results (or can get them)
-• Your degree can be assessed by WES or another IRCC listed body
-• You are under 45 years old
+HOW IT WORKS
 
-❌ Red flags that block most applicants:
-• Less than 1 year of continuous full time skilled work
-• Work experience in NOC TEER 4 or 5
-• No post secondary education
-• Serious criminal or medical inadmissibility issues
+1. You create an online profile with your qualifications
+2. The system calculates your CRS score (out of 1200 points)
+3. You enter a pool with other candidates
+4. IRCC conducts regular draws and invites top-scoring candidates
+5. If invited, you have 60 days to submit a complete application
 
-📊 Reality check:
-In recent years, general ITA cutoffs for Express Entry have often landed around the high 400s to low 500s CRS. If you are:
-• Around 25 to 35 years old
-• With a bachelor degree and 3 years skilled work experience
-• With IELTS around CLB 7 to 8
-• Applying without spouse
+THREE PROGRAMS UNDER EXPRESS ENTRY
 
-You are probably somewhere around 380 to 450 CRS. That is not hopeless, it just means you need a deliberate strategy to close the gap.
+• Federal Skilled Worker (FSW) - for skilled workers with foreign work experience
+• Canadian Experience Class (CEC) - for those with Canadian work experience
+• Federal Skilled Trades (FST) - for qualified tradespeople
 
-💡 Want a more exact picture?
-Tell me your:
-Age | Education | Years of skilled work | Test scores | Marital status
+The minimum CRS score for invitations varies by draw, typically ranging from 450-550 points for general draws.`
+    },
+    "crs scoring": {
+      keywords: ["crs score", "crs scoring", "how crs works", "comprehensive ranking", "crs points"],
+      response: `The Comprehensive Ranking System (CRS) scores candidates out of 1200 points.
 
-I will estimate your CRS and show where you can gain the most points.`,
+CORE FACTORS (up to 600 points for singles, 500 with spouse)
 
-  "What's My Realistic CRS Score?": `We can build a realistic CRS estimate, but first I need a few details.
+Age: Maximum points at 20-29 years
+Education: Up to 150 points for PhD
+Language: Up to 160 points for CLB 10+ in all skills
+Work Experience: Up to 80 points for 5+ years
 
-Please tell me:
-1) Your age
-2) Highest education level (high school, diploma, bachelor, master, PhD)
-3) Total years of full time skilled work (NOC TEER 0, 1, 2, or 3)
-4) IELTS or CELPIP scores in each skill, or at least an average
-5) Marital status (single or married, and whether spouse has education and English)
+ADDITIONAL FACTORS (up to 600 points)
 
-Once I have that, I will:
-• Estimate your CRS
-• Compare it with recent ITA levels
-• Show you which levers are easiest to pull for extra points
-• Flag whether you should think about PNP, job offer, or study route
+• Canadian education: 15-30 points
+• Canadian work experience: up to 80 points
+• Sibling in Canada: 15 points
+• French language: 25-50 points
+• Provincial nomination: 600 points
+• Valid job offer: 50-200 points
 
-If you already know your CRS, you can simply send: "My CRS is X, what are my options?"`,
+WHAT SCORES ARE COMPETITIVE?
 
-  "Express Entry vs Immigration Consultant - Differences": `This confuses a lot of people, so let us keep it simple.
+• Below 450: Challenging without additional points
+• 450-480: Possible in targeted draws
+• 480-500: Competitive for most draws
+• 500+: Strong position for general draws`
+    },
+    "ielts celpip": {
+      keywords: ["ielts vs celpip", "ielts or celpip", "language test", "ielts celpip difference", "which test"],
+      response: `Both IELTS General Training and CELPIP General are accepted for Express Entry.
 
----
+IELTS GENERAL TRAINING
 
-WHAT IS EXPRESS ENTRY?
+• International test, accepted worldwide
+• Paper-based or computer-based
+• Scored 1-9 in each skill
+• Speaking test with human examiner
+• Available in most countries
 
-Express Entry is not a consultant. It is Canada's online application system managed by IRCC (Immigration, Refugees and Citizenship Canada).
+CELPIP GENERAL
 
-It is the platform where you:
-- Create your profile
-- Enter the pool
-- Receive an invitation to apply (ITA)
-- Submit your permanent residence application
+• Canadian-developed test
+• Computer-based only
+• Scored 1-12 in each skill
+• Speaking test recorded on computer
+• Available mainly in Canada and some international locations
 
-You are applying directly to the Canadian government.
+CLB CONVERSION
 
----
+CLB 9 = IELTS 7.0 in all skills = CELPIP 9 in all skills
+CLB 7 = IELTS 6.0 in all skills = CELPIP 7 in all skills
 
-CAN YOU USE BOTH EXPRESS ENTRY AND A CONSULTANT?
+For maximum CRS points, you need CLB 10+ (IELTS 7.5-8.0, CELPIP 10).`
+    },
+    "eca": {
+      keywords: ["what is eca", "educational credential", "credential assessment", "eca explained", "wes assessment"],
+      response: `An Educational Credential Assessment (ECA) verifies that your foreign education is equivalent to a Canadian credential.
 
-Yes. Here are the options.
+WHY YOU NEED IT
 
-Option 1: Do it yourself with Express Entry only
-- You create and manage your own profile and application
-- You pay only the government fees
-- Risk: Mistakes or missing documents can lead to delays or refusals
+• Required for Express Entry points
+• Validates your education level for immigration
+• Different from professional licensing
 
-Option 2: Use a consultant (RCIC)
-- A licensed professional reviews and guides your application
-- They help with strategy, documentation, and risk spotting
-- You pay professional fees plus government fees
-- Benefit: A second set of expert eyes reduces avoidable errors
+DESIGNATED ORGANIZATIONS
 
-Option 3: Hybrid
-- Use tools like this chatbot and Execute for most of the heavy lifting
-- Then use a consultant only for a focused review
-- Cost is usually lower than full representation, but you still get risk checks
+• WES (World Education Services) - most popular
+• IQAS (Alberta)
+• ICES, CES, PEBC (for pharmacists), MCC (for doctors)
 
----
+THE PROCESS
 
-EXPRESS ENTRY VS CONSULTANT SUMMARY:
+1. Apply online with the organization
+2. Request transcripts from your institution
+3. Pay fees ($200-300 CAD typically)
+4. Wait for assessment (4-8 weeks usually)
+5. Receive ECA report
 
-Express Entry
-- Government system
-- Mandatory if you want to immigrate through that pathway
-- Handles scoring and invitations
+VALIDITY
 
-Consultant
-- Human expert
-- Optional
-- Helps with strategy, paperwork, and minimizing mistakes
-
-You always remain responsible for your own file. A consultant can advise you, but you decide.
-
-If you tell me your situation, I can suggest which path makes the most sense for you.`,
-
-  "CEC vs FSW - Which category am I?": `Here is the simple way to think about CEC and FSW.
-
----
+ECAs are valid for 5 years from the date of issue for immigration purposes.`
+    },
+    "cec fsw fst": {
+      keywords: ["cec fsw fst", "three programs", "express entry programs", "which program"],
+      response: `Express Entry has three immigration programs:
 
 FEDERAL SKILLED WORKER (FSW)
 
-Best fit if:
-- Your skilled work experience is outside Canada
-- You have at least 1 year continuous skilled work (NOC TEER 0, 1, 2, or 3)
-- You have post secondary education
-- You can score at least CLB 7 on IELTS or CELPIP
+Requirements:
+• 1+ year continuous skilled work experience (NOC 0, A, or B)
+• Language: CLB 7 minimum
+• Education: High school minimum (ECA required)
+• Must score 67+ on FSW points grid
 
-You are mainly competing based on:
-- Age
-- Education
-- Foreign work experience
-- Language score
-
----
+Best for: Skilled workers outside Canada
 
 CANADIAN EXPERIENCE CLASS (CEC)
 
-Best fit if:
-- You already have at least 1 year of skilled work experience in Canada
-- You have Canadian status (for example a work permit)
-- Your language score meets the program requirements (often CLB 5 to 7 or higher, depending on NOC)
+Requirements:
+• 1+ year skilled Canadian work experience in last 3 years
+• Language: CLB 7 for NOC 0/A, CLB 5 for NOC B
+• No education requirement
 
-CEC is often more forgiving on:
-- Points needed
-- Certain documentation
-because you already have proven Canadian work history.
+Best for: Those with Canadian work experience
 
----
+FEDERAL SKILLED TRADES (FST)
 
-WHICH ONE ARE YOU?
+Requirements:
+• 2+ years skilled trade experience
+• Job offer OR certificate of qualification
+• Language: CLB 5 speaking/listening, CLB 4 reading/writing
 
-Ask yourself:
-1. Do you have at least 1 year of skilled work experience in Canada?
-   • Yes: You likely qualify for CEC (and possibly also FSW if you meet other criteria)
-   • No: You are probably applying under FSW
+Best for: Qualified tradespeople (electricians, plumbers, etc.)`
+    },
+    "ita pr process": {
+      keywords: ["ita", "invitation to apply", "pr process", "process stages", "after ita"],
+      response: `The Express Entry process has clear stages:
 
-2. Do you have only foreign work experience, no Canadian work?
-   • Then you are usually in FSW
+STAGE 1: PROFILE CREATION
 
-3. Do you have both foreign and Canadian experience?
-   • Then you may be eligible for both, and IRCC will process you under the most appropriate program when you receive an ITA.
+• Create Express Entry profile online
+• Receive CRS score
+• Enter the candidate pool
 
----
+STAGE 2: POOL RANKING
 
-IMPORTANT POINT
+• Your profile is ranked against others
+• IRCC conducts draws every 2 weeks typically
+• If your score meets the cutoff, you receive an ITA
 
-You do not need to manually pick CEC or FSW every time. When you submit an Express Entry profile and meet the criteria, the system can consider you under more than one program.
+STAGE 3: INVITATION TO APPLY (ITA)
 
-Tell me:
-- Where you have worked (inside or outside Canada)
-- For how long
-- Your job types
+• You have 60 days to submit complete application
+• Include all supporting documents
+• Pay processing fees ($1,365 for principal applicant)
 
-I can suggest which category likely fits you best.`,
+STAGE 4: APPLICATION REVIEW
 
-  "ITA vs PR - What's the difference?": `Think of it like this:
+• IRCC reviews your application (6-8 months typically)
+• May request additional documents
+• Background and medical checks
 
-- ITA (Invitation to Apply) is an invitation from IRCC to submit a complete application.
-- PR (Permanent Residence) is the final status you receive if your application is approved.
+STAGE 5: CONFIRMATION OF PR (COPR)
 
----
+• If approved, receive COPR and entry visa
+• Land in Canada to activate PR status
+• Receive PR card by mail`
+    },
+    "eligibility": {
+      keywords: ["am i eligible", "eligible for express entry", "do i qualify", "check eligibility"],
+      response: `To be eligible for Express Entry, you need to meet minimum requirements for at least one program.
 
-ITA (INVITATION TO APPLY)
+BASIC REQUIREMENTS FOR FSW
 
-What it means:
-- You were selected from the Express Entry pool
-- You now have a fixed deadline (normally 60 days) to submit a full application
-- You need to upload documents, medicals, police certificates, proof of funds, and more
+✓ 1+ year skilled work experience (NOC TEER 0, 1, 2, or 3)
+✓ Language test results (CLB 7 minimum)
+✓ Educational Credential Assessment
+✓ Score 67+ on FSW selection factors
+✓ Proof of funds (unless working in Canada)
 
-At the ITA stage:
-- You are not yet a permanent resident
-- You cannot rely on it as status
-- It is a time sensitive opportunity
+BASIC REQUIREMENTS FOR CEC
 
----
+✓ 1+ year skilled Canadian work experience in last 3 years
+✓ Language test results (CLB 7 for TEER 0/1, CLB 5 for TEER 2/3)
+✓ Plan to live outside Quebec
 
-PR (PERMANENT RESIDENCE)
+DISQUALIFYING FACTORS
 
-What it means:
-- IRCC has reviewed and approved your full application
-- You receive Confirmation of Permanent Residence (COPR)
-- You can land in Canada as a permanent resident
-- You can live, work, and study in Canada, subject to residency obligations
+✗ Criminal inadmissibility
+✗ Medical inadmissibility
+✗ Misrepresentation in previous applications
+✗ Previous removal order
 
----
+Would you like me to help you check your specific eligibility? Tell me about your education, work experience, and language test scores.`
+    },
+    "calculate crs": {
+      keywords: ["calculate crs", "my crs score", "what's my crs", "realistic crs", "estimate crs"],
+      response: `I can help estimate your CRS score. To calculate accurately, I need:
 
-SIMPLE ANALOGY
+CORE FACTORS
 
-- ITA is like being invited to submit a full job application after a good resume
-- PR is like signing the employment contract and starting your first day
+1. Your age
+2. Highest education level
+3. Years of skilled work experience (foreign and Canadian)
+4. Language test scores (IELTS or CELPIP)
+5. Do you have a spouse/common-law partner?
 
-One is an opportunity. The other is a completed status.
+ADDITIONAL FACTORS
 
-If you are not sure where you are in this process, tell me what letter or email you received from IRCC and I can help interpret it.`,
+6. Any Canadian education?
+7. French language ability?
+8. Sibling who is Canadian citizen/PR?
+9. Valid job offer from Canadian employer?
+10. Provincial nomination?
 
-  "Do I need IELTS if I'm from an English country?": `Short answer: it depends on which country you are a citizen of.
+Share your details and I'll provide an estimate. For example:
 
----
+"I'm 32, have a Master's degree, 5 years work experience as a software developer, IELTS 7.5 in all bands, single, no Canadian connections."
 
-COUNTRIES TYPICALLY EXEMPT FROM PROVING ENGLISH THROUGH IELTS OR CELPIP FOR SOME PROGRAMS:
+The more details you provide, the more accurate my estimate will be.`
+    },
+    "inadmissibility": {
+      keywords: ["inadmissibility", "police check", "medical exam", "criminal record", "background check"],
+      response: `Canada screens all immigration applicants for admissibility.
 
-- Canada
-- United States
-- United Kingdom
-- Ireland
-- Australia
-- New Zealand
+CRIMINAL INADMISSIBILITY
 
-If you are a citizen of one of these countries, certain language proof requirements may not apply the same way as they do for other applicants, depending on the program.
+• DUI/DWI can make you inadmissible
+• Serious criminality = 10+ year sentence
+• Criminality = any conviction
+• Solutions: Rehabilitation application or Temporary Resident Permit
 
-However, in Express Entry, language test results are usually still needed to claim points, even for many native speakers.
+MEDICAL INADMISSIBILITY
 
----
+• Conditions that pose public health risk
+• Conditions requiring excessive healthcare costs
+• Immigration Medical Exam (IME) required
+• Must use IRCC-approved panel physician
 
-IF YOU ARE FROM ANOTHER COUNTRY WHERE ENGLISH IS COMMON
+SECURITY INADMISSIBILITY
 
-Examples:
-- India
-- Nigeria
-- Philippines
-- South Africa
-- Pakistan
+• Espionage or terrorism
+• Human rights violations
+• Organized crime involvement
 
-Even if English is widely spoken and you studied in English, IRCC will generally still require a recognized test like IELTS or CELPIP to award points for language.
+REQUIRED CHECKS
 
----
+• Police Clearance Certificate from each country you lived 6+ months since age 18
+• Processing time varies by country (FBI takes 12-16 weeks)
+• Valid for 1 year typically
 
-WHY THIS MATTERS
+If you have concerns about inadmissibility, I can explain options. What's your specific situation?`
+    },
+    "consultant lawyer": {
+      keywords: ["consultant", "lawyer", "rcic", "do i need", "immigration help", "hire consultant"],
+      response: `You don't legally need a consultant or lawyer, but professional help can be valuable in complex cases.
 
-Without an official language test:
-- You usually cannot claim CRS points for language
-- Your CRS score will be much lower
-- It becomes extremely difficult to receive an ITA
+WHEN TO CONSIDER PROFESSIONAL HELP
 
-In practice, most Express Entry candidates, even strong English speakers, take IELTS or CELPIP.
+• Previous refusals or inadmissibility issues
+• Complex family situations
+• Employer-sponsored applications
+• Appeals or humanitarian cases
+• You're unsure about your eligibility
 
-Tell me your country of citizenship and which program you are aiming for, and I can explain whether a language test is effectively mandatory for you.`,
+RCIC vs IMMIGRATION LAWYER
 
-  "How Long Will This Take?": `Timelines are one of the biggest sources of stress. Here is a simple breakdown.
+RCIC (Regulated Canadian Immigration Consultant):
+• Licensed by College of Immigration Consultants
+• Can handle most immigration applications
+• Generally lower fees ($1,500-5,000)
 
----
+Immigration Lawyer:
+• Member of provincial law society
+• Can represent in court/appeals
+• Generally higher fees ($3,000-10,000+)
 
-STEP 1: PREPARATION (0 to 3 months, sometimes more)
+HOW TO VERIFY
 
-You gather:
-- Language test results
-- Educational Credential Assessment (ECA)
-- Work reference letters
-- Police certificates
-- Proof of funds
+• Check CICC registry for RCICs
+• Check provincial law society for lawyers
+• Never use "ghost consultants" (unlicensed)
 
-Some of these, like ECA and police certificates, depend heavily on your country and can take weeks or months.
+Matin Immigration Services (RCIC #R712582) offers professional consultation if you need expert guidance on your case.`
+    },
+    "low crs": {
+      keywords: ["crs too low", "low crs", "low score", "increase crs", "boost crs", "improve score"],
+      response: `A low CRS score isn't the end of your journey. Here are proven strategies:
 
----
+FASTEST WINS (can add 50-150 points)
 
-STEP 2: EXPRESS ENTRY PROFILE (1 to 3 days)
+1. Improve language scores → Up to 40 extra points
+   Moving from CLB 8 to CLB 10 adds significant points
 
-Once you have your language test and ECA, creating your profile is quick. You enter your information online and join the pool.
+2. Get a provincial nomination → 600 points
+   Some PNPs have lower requirements than Express Entry
 
----
+3. One year Canadian work/study → 15-30 points
+   Also opens CEC pathway
 
-STEP 3: WAITING FOR ITA (Invitation to Apply)
+MEDIUM-TERM OPTIONS
 
-This is the most unpredictable part. It depends on:
-- Your CRS score
-- The types of draws IRCC is doing (general vs category based)
-- Cutoff trends at that time
+4. Additional education → 15-30 points
+   Canadian diploma or degree
 
-If your CRS is above recent cutoffs, you might receive an ITA in the next draw or two.
+5. French language → 25-50 points
+   Even basic French helps
 
-If your CRS is far below, you might wait many months or need a strategy to improve your score.
+6. Job offer (LMIA) → 50-200 points
+   Difficult but valuable
 
----
+ALTERNATIVE PATHWAYS
 
-STEP 4: POST ITA APPLICATION (Up to 60 days for you, then IRCC time)
+• Atlantic Immigration Program
+• Rural and Northern Immigration Pilot
+• Provincial Nominee Programs (non-EE streams)
+• Start-up Visa (entrepreneurs)
 
-You have a fixed deadline (often 60 days) to:
-- Upload documents
-- Complete medical exams
-- Submit your full application
+What's your current score and situation? I can suggest the best strategy for your case.`
+    },
+    "boost fast": {
+      keywords: ["boost fast", "quick points", "fast improvement", "50 points"],
+      response: `Here are the fastest ways to boost your CRS score:
 
-After you submit, IRCC's processing time for Express Entry permanent residence is often around 6 months, though this can vary.
+IMMEDIATE IMPACT
 
----
+1. RETAKE LANGUAGE TEST
+   • CLB 9 to 10 = +20-40 points
+   • Focus on weakest skill
+   • Many improve 0.5-1.0 band with preparation
+   • Cost: ~$300-400
 
-ROUGH SUMMARY
+2. SECOND LANGUAGE (FRENCH)
+   • NCLC 7+ = 25 points (with strong English)
+   • NCLC 5 gives some points too
+   • TEF or TCF Canada accepted
 
-- 1 to 3 months (or more) to prepare tests and documents
-- 0 to many months waiting in the pool, depending on CRS
-- Up to 60 days to submit after ITA
-- Often around 6 months for IRCC to finalize
-
-Your realistic timeline is directly tied to your CRS score and which category you are in. If you tell me your current CRS and situation, I can give a more tailored estimate.`,
-
-  "Total Cost Breakdown": `Here is a simple way to think about the costs for a typical single Express Entry applicant, in Canadian dollars (estimates only, not legal or financial advice).
-
----
-
-MANDATORY GOVERNMENT FEES (EXPRESS ENTRY PR APPLICATION)
-
-- Application processing fee: around $950
-- Right of permanent residence fee: around $515
-Total core PR fee: about $1,465
-
-If you have a spouse or partner, their fees are similar. Children have lower fees.
-
----
-
-COMMON ADDITIONAL COSTS
-
-- Language test (IELTS or CELPIP): $300 to $400 per attempt
-- Educational Credential Assessment (ECA): $250 to $400 including courier
-- Medical exam: $250 to $400 per person
-- Police certificates: varies by country (sometimes free, sometimes $50 to $100)
-- Biometrics: around $85 per person, or $170 per family
-
----
-
-PROOF OF FUNDS (NOT A FEE BUT ESSENTIAL)
-
-For a single applicant, IRCC requires you to show several thousand dollars in available, unencumbered funds. This is not a payment to IRCC, but you must be able to prove you have access to it.
-
----
-
-OPTIONAL PROFESSIONAL OR SUPPORT COSTS
-
-These can include:
-- Consultant or lawyer fees
-- Translation fees
-- Document courier or notary costs
-- Test preparation courses
-
-These vary widely and are not required by IRCC.
-
----
-
-BOTTOM LINE
-
-A realistic rough range for one person from first English test to landing, including tests, medicals, ECA, government fees, and some incidentals, can easily reach a few thousand dollars.
-
-If you tell me your family size and which country you are applying from, I can give a more specific rough breakdown by category.`,
-
-  "My CRS Is Too Low - What Now?": `You are not alone. Many people start with a CRS that is too low for recent draws. The key is to treat CRS as something you can engineer, not as a fixed number.
-
-Here are the main levers.
-
----
-
-1. LANGUAGE IMPROVEMENT
-
-This is often the biggest and fastest lever.
-
-Going from:
-- CLB 7 to CLB 9 in all abilities
-can add dozens of points for:
-- Language
-- Skill transferability (combination of language plus education or work)
-
-This is why focusing on IELTS or CELPIP improvement can be a game changer.
-
----
-
-2. EDUCATION
-
-If you already have:
-- A bachelor's degree
-and you also have:
-- A diploma
-- A second degree
-- A master's
-
-Then getting an updated ECA that counts multiple credentials can increase your points.
-
-Sometimes a second recognized credential can give a meaningful bump.
-
----
-
-3. CANADIAN EXPERIENCE OR JOB OFFER
-
-If you can:
-- Work in Canada on a valid work permit, or
-- Obtain a valid job offer supported by an LMIA
-
-you might unlock:
-- Extra CRS points
-- Or access to CEC or PNP options that have lower cutoffs
-
----
-
-4. PROVINCIAL NOMINEE PROGRAM (PNP)
-
-A nomination from a province usually gives you:
-- An additional 600 CRS points
-
-That turns a low CRS into a guaranteed ITA in most cases.
-
-Finding the right PNP often depends on:
-- Your NOC
-- Your ties to that province
-- Your language level
-- Whether you studied or worked there
-
----
-
-5. AGE AND TIMING
-
-If you are approaching a birthday that will reduce your CRS, timing becomes crucial. Sometimes it is better to:
-- Enter the pool quickly
-- Aim for category based draws
-while you still have maximum age points.
-
----
-
-If you tell me:
-- Your current CRS
-- Age
-- Education
-- Work history
-- Language scores
-
-I can walk you through which of these levers is realistic for you and what your highest impact move would be.`,
-
-  "Will I Get an ITA This Year?": `No one can guarantee an ITA by a specific date, but we can look at the probabilities.
-
-The main factors are:
-- Your current CRS
-- The type of draws IRCC is doing (general or category based)
-- How often draws happen
-- Whether your occupation or language falls into a priority group
-
----
-
-ROUGH GUIDELINE
-
-If your CRS is:
-- Above recent general draw cutoffs: your chances are strong if draws continue
-- Within about 20 points of recent cutoffs: you might get picked in a slightly lower or targeted draw
-- More than 50 to 70 points below: you likely need a score improvement or a PNP strategy rather than just waiting
-
----
-
-CATEGORY BASED DRAWS
-
-IRCC has been doing draws focused on:
-- Specific occupations
-- French language
-- Other priority groups
-
-If you fit one of these groups, your target CRS might be lower than general draws. That can help even if your CRS is not high enough for a general draw.
-
----
-
-WHAT YOU CAN CONTROL THIS YEAR
-
-You can work on:
-- Improving language test scores
-- Getting your ECA if you have not yet
-- Looking for PNP streams that match your profile
-- Exploring Canadian job offers or study options
-
----
-
-If you share:
-- Your CRS
-- Your NOC
-- Your language scores
-I can give a realistic view on whether this year is likely or whether we should frame it as a longer plan.`,
-
-  "How to Boost CRS by 50+ Points Fast": `When people ask how to add 50 points fast, I usually focus on three levers.
-
----
-
-1. LANGUAGE SCORE IMPROVEMENT
-
-This is often the fastest gain.
-
-Examples:
-- Moving from CLB 7 to CLB 9 in all abilities
-- Turning a 6.5 into a 7.5 or 8.0
-
-This can:
-- Increase your core language score
-- Improve skill transferability combinations (language plus education or work)
-
-Together, that can easily be worth 40 to 60 points in some profiles.
-
----
-
-2. ADDING OR UPGRADING EDUCATION
-
-If you have:
-- One bachelor's degree recognized by ECA
-
-and you also have:
-- A second diploma or degree that can be assessed,
-
-then updating your ECA so that IRCC counts both can increase points.
-
-A completed master's recognized by ECA can also add a noticeable amount.
-
----
+WITHIN 3-6 MONTHS
 
 3. PROVINCIAL NOMINATION
+   • 600 points added to CRS
+   • Some PNPs have NOI streams
+   • Research BC, Ontario, Alberta, Saskatchewan PNPs
 
-This is the most powerful single lever:
-- A PNP nomination gives you 600 CRS points
+4. GET ECA FOR ALL CREDENTIALS
+   • Each credential assessed separately
+   • Multiple degrees = higher education points
 
-That turns almost any score into an ITA level score.
+WITHIN 1 YEAR
 
-However:
-- It is highly competitive
-- Targeted to specific NOCs and criteria
-- Requires careful research and timing
+5. CANADIAN EXPERIENCE
+   • Work permit → 1 year work → CEC eligible
+   • Study permit → Canadian credential + PGWP
 
----
+Which of these options would you like me to explain further?`
+    },
+    "common mistakes": {
+      keywords: ["mistakes", "common mistakes", "avoid mistakes", "application errors", "kill applications"],
+      response: `These mistakes can seriously harm or destroy your application:
 
-OTHER LEVERS
+CRITICAL ERRORS
 
-- Spouse language test and ECA
-- Extra Canadian work experience
-- Valid job offer supported by LMIA
+1. MISREPRESENTATION
+   • Even unintentional errors can be seen as misrepresentation
+   • 5-year ban from all Canadian immigration
+   • Always disclose everything, even unfavorable info
 
----
+2. INCOMPLETE WORK HISTORY
+   • Must list ALL jobs, including gaps
+   • Unexplained gaps raise red flags
+   • Keep reference letters from all employers
 
-If you show me your current CRS breakdown, I can identify which lever would realistically give you the largest improvement within the next few months.`,
+3. EXPIRED DOCUMENTS
+   • Language tests valid 2 years
+   • ECA valid 5 years
+   • Police checks typically 1 year
+   • Medical exam valid 1 year
 
-  "What is Express Entry?": `Express Entry is an online system used by the Government of Canada to manage permanent residence applications for certain economic immigration programs.
+COMMON PROBLEMS
 
-It is not a visa and not a program by itself. It is a selection and invitation system for:
+4. Wrong NOC code selection
+5. Missing reference letter requirements
+6. Poor quality document scans
+7. Not updating profile changes
+8. Missing deadlines (60 days for ITA)
 
-- Federal Skilled Worker Program (FSW)
-- Canadian Experience Class (CEC)
-- Federal Skilled Trades Program (FST)
-- Some Provincial Nominee Program (PNP) streams that are aligned with Express Entry
+PROCESS MISTAKES
 
----
+9. Applying without complete documents ready
+10. Not saving copies of everything submitted
+11. Using unregulated consultants
+12. Relying on forums instead of official sources
 
-HOW IT WORKS
+Would you like me to explain any of these in more detail?`
+    },
+    "improve profile": {
+      keywords: ["improve profile", "strengthen profile", "boost profile", "100 points"],
+      response: `Here's how others have significantly improved their profiles:
 
-1. You check if you are eligible for one or more of these programs.
-2. You complete an online profile with your age, education, work experience, language scores, and other details.
-3. You receive a CRS (Comprehensive Ranking System) score.
-4. You enter the Express Entry pool and wait for draws.
-5. If your score is high enough for a particular draw, you receive an Invitation to Apply (ITA).
-6. After ITA, you submit a full application for permanent residence.
+LANGUAGE IMPROVEMENT STORIES
 
----
+• Engineer improved IELTS from 7.0 to 8.0 = +30 points
+• Took 3 months of focused preparation
+• Used official practice tests and tutoring
 
-KEY POINTS
+PROVINCIAL NOMINATION SUCCESS
 
-- Express Entry does not guarantee immigration. It is a competitive ranking system.
-- You are competing mostly on age, education, language, and skilled work experience.
-- The system is dynamic. CRS cutoffs can change with each draw.
+• IT professional got Ontario nomination = +600 points
+• Applied through Human Capital Priorities stream
+• Total processing: 4 months
 
-If you tell me your basic profile, I can:
-- Explain whether Express Entry is realistically a fit for you
-- Suggest alternatives if CRS looks too low right now.`,
+CANADIAN EDUCATION PATHWAY
 
-  "Understanding CRS Score System": `The Comprehensive Ranking System (CRS) is how IRCC ranks people in the Express Entry pool.
+• Completed 1-year diploma in Canada = +15-30 points
+• Also gained Canadian work experience through PGWP
+• Qualified for CEC instead of FSW
 
-Your CRS score is based on several components.
+STRATEGIC COMBINATIONS
 
----
+• French + English bilingual bonus = +50 points
+• Spouse improved scores = family points boost
+• Canadian work + education = maximum additional points
 
-MAIN CRS COMPONENTS
+YOUR PATH FORWARD
 
-1. Core human capital factors
-   • Age
-   • Education
-   • First official language (English or French)
-   • Second official language
-   • Canadian work experience
+1. Identify your biggest point gaps
+2. Focus on highest ROI improvements
+3. Consider timeline and investment
+4. Have backup pathways ready
 
-2. Spouse or common law partner factors (if applicable)
-   • Their education
-   • Their language test
-   • Their Canadian work experience
+Tell me about your current profile and I'll suggest specific improvements.`
+    },
+    "pnp": {
+      keywords: ["pnp", "provincial nominee", "provincial nomination", "province"],
+      response: `Provincial Nominee Programs (PNPs) are powerful immigration pathways.
 
-3. Skill transferability factors
-   • Combination of education and language
-   • Combination of foreign work and language
-   • Combination of Canadian and foreign work
+HOW PNP WORKS
 
-4. Additional factors
-   • Provincial nomination (+600 points)
-   • Valid job offer with LMIA
-   • Canadian study experience
-   • Sibling in Canada (citizen or PR)
-   • Strong French language skills
+• Each province has its own immigration programs
+• They nominate candidates who meet their needs
+• A nomination adds 600 CRS points (virtually guarantees ITA)
 
----
+EXPRESS ENTRY-LINKED PNPs
 
-WHY THIS MATTERS
+Ontario (OINP):
+• Human Capital Priorities - for high-scoring EE candidates
+• Skilled Trades - for trade workers
+• French-Speaking Skilled Worker
 
-Understanding where your points come from shows you where to focus:
-- Improve language scores
-- Upgrade or reassess education
-- Gain Canadian experience
-- Aim for a PNP
+British Columbia (BC PNP):
+• Skills Immigration - Express Entry stream
+• Tech stream - fast processing for tech workers
 
-If you give me your age, education, language scores, and work history, I can walk you through which CRS components you are strong or weak in and what can be improved.`,
+Alberta (AINP):
+• Alberta Express Entry stream
+• Alberta Opportunity Stream
 
-  "ECA Process Explained": `An Educational Credential Assessment (ECA) is how IRCC verifies that your foreign education is equivalent to a Canadian credential.
+Saskatchewan (SINP):
+• Express Entry category
+• Occupation In-Demand
 
----
+NON-EXPRESS ENTRY PNPs
 
-WHEN YOU NEED AN ECA
+• Often have lower requirements
+• Longer processing times
+• Good backup options
 
-You generally need an ECA if:
-- Your highest education is from outside Canada
-- You are applying under FSW or want CRS points for education
+STRATEGY
 
-If all of your education is Canadian, you usually do not need an ECA.
+1. Create Express Entry profile first
+2. Indicate which provinces interest you
+3. Research specific PNP requirements
+4. Apply to relevant streams
 
----
+Which province interests you most?`
+    },
+    "job offer vs pnp": {
+      keywords: ["job offer vs pnp", "job offer or pnp", "lmia or nomination", "which better"],
+      response: `Both job offers and PNPs can significantly boost your CRS, but they work differently.
 
-HOW IT WORKS
+JOB OFFER (LMIA-SUPPORTED)
 
-1. You choose an IRCC approved organization (WES, IQAS, ICES, CES, etc.).
-2. You submit:
-   • Degree certificates
-   • Transcripts
-   • Any required forms and fees
-3. The organization reviews your documents and issues a report stating what your foreign credential is equivalent to in Canada.
+Points: 50-200 CRS points
+• NOC 00 (senior management) = 200 points
+• Other NOC 0/A/B = 50 points
 
----
+Pros:
+• Employment waiting for you
+• Income from day one
+• Employer support
 
-TIMELINE
+Cons:
+• Requires employer to get LMIA (expensive, time-consuming)
+• Employer must prove no Canadians available
+• You're dependent on that employer
 
-- It can take several weeks to a few months, depending on:
-  • The organization
-  • Your country
-  • How fast your school sends documents
+PROVINCIAL NOMINATION
 
----
+Points: 600 CRS points
 
-IMPORTANT TIPS
+Pros:
+• Virtually guarantees invitation
+• No employer dependency
+• More flexibility in job search
 
-- Make sure you follow the specific document instructions for your country and institution.
-- If you have more than one degree, consider assessing multiple credentials, since that can sometimes increase CRS points.
-- Keep copies of everything and track courier deliveries.
+Cons:
+• Must meet provincial requirements
+• Some streams are competitive
+• May require commitment to live in that province
 
-If you tell me which country your degree is from and which level (bachelor's, master's, etc.), I can suggest which assessing body might be a good fit and what to expect.`,
+RECOMMENDATION
 
-  "IELTS Requirements for PR": `For most economic immigration pathways, you need to show official language ability in English or French.
+• PNP is usually more valuable (600 vs 50 points)
+• Job offer is good if employer is willing
+• Best case: Both (job offer can help PNP applications)
 
-For English, the common tests are:
-- IELTS General Training
-- CELPIP General
+What's your current situation? Do you have job offer prospects or provincial interest?`
+    },
+    "timeline": {
+      keywords: ["how long", "timeline", "processing time", "how fast", "when will i"],
+      response: `Here are typical timelines for Express Entry:
 
-For permanent residence via Express Entry, IRCC converts your scores into CLB (Canadian Language Benchmark) levels.
+PREPARATION PHASE (1-6 months)
 
----
+• Language test: 2-4 weeks for results
+• ECA: 4-8 weeks (WES)
+• Police checks: varies by country (2-16 weeks)
+• Document gathering: 2-4 weeks
 
-TYPICAL MINIMUMS
+EXPRESS ENTRY POOL (varies)
 
-Federal Skilled Worker (FSW):
-- Minimum CLB 7 in each ability
-  - IELTS equivalent: 6.0 in each skill
+• Profile creation: 1-2 hours
+• Time in pool: 1 week to 6+ months
+• Depends on your CRS score and draw patterns
 
-Canadian Experience Class (CEC):
-- Minimum CLB 5 or 7 depending on your NOC
-  - For NOC TEER 0 or 1: usually CLB 7
-  - For NOC TEER 2 or 3: sometimes CLB 5 is acceptable
+POST-ITA (6-8 months typically)
 
----
+• Application preparation: 1-2 weeks
+• IRCC processing: 6-8 months (80% processed)
+• Medical exam: valid 1 year
+• Background check: included in processing
 
-COMPETITIVE SCORES
+TOTAL TIMELINE
 
-To be competitive in many recent Express Entry draws, people often aim for:
-- CLB 9 or higher in all abilities
+Fast scenario (high CRS): 8-12 months total
+Average scenario: 12-18 months total
+Complex cases: 18-24+ months
 
-For IELTS General, CLB 9 usually means:
-- Listening: 8.0
-- Reading: 7.0
-- Writing: 7.0
-- Speaking: 7.0
+CURRENT PROCESSING
 
-Higher scores can unlock:
-- More language points
-- Extra skill transferability points
+IRCC aims to process 80% of Express Entry applications within 6 months. Check IRCC website for current processing times.
 
----
+What stage are you at in your journey?`
+    },
+    "costs": {
+      keywords: ["cost", "costs", "how much", "total cost", "fees", "money", "expensive"],
+      response: `Here's a comprehensive cost breakdown for Express Entry:
 
-OTHER PATHWAYS
+REQUIRED FEES (CAD)
 
-Some PNPs and pilot programs may accept lower language scores, especially for certain occupations, but you still need to meet their minimum CLB.
+Application Processing:
+• Principal applicant: $1,365
+• Spouse/partner: $1,365
+• Dependent child: $230
 
-If you tell me your current or target IELTS scores and your program (FSW, CEC, PNP), I can explain what CLB you are at and what you would gain by improving.`,
+Right of Permanent Residence:
+• Principal + spouse: $515 each
+• Children: $0
 
-  "What Documents Do I Actually Need?": `The exact list depends on your program and personal situation, but for an Express Entry PR application after ITA, common documents include:
+Biometrics:
+• Per person: $85
 
-IDENTITY AND CIVIL STATUS
-- Passport for all applicants
-- Birth certificates
-- Marriage certificate, divorce documents, or proof of common law if applicable
+PREPARATION COSTS
 
-EDUCATION
-- Degree certificates and transcripts
-- Educational Credential Assessment (ECA) report for foreign education
+Language Test:
+• IELTS: $300-350
+• CELPIP: $280-300
 
-WORK EXPERIENCE
-- Employer reference letters on official letterhead
-- Pay stubs, T4s, tax documents (for Canadian work)
-- Employment contracts or appointment letters where available
+Educational Credential Assessment:
+• WES: $220-300
+• Other organizations: similar
 
-LANGUAGE
-- Official IELTS or CELPIP test report (and TEF or TCF for French, if applicable)
+Police Certificates:
+• Varies by country ($20-100 each)
 
-POLICE AND SECURITY
-- Police certificates from each country where you have lived for 6 months or more since age 18
+Medical Exam:
+• $200-450 depending on location
 
-MEDICAL
-- Up front medical exam from a panel physician (for many PR applications)
+TOTAL ESTIMATE
 
-FUNDS
-- Proof of funds (bank statements, fixed deposits, etc.) if required for your program
+Single applicant: $2,500-3,500 CAD
+Couple: $4,500-6,000 CAD
+Family of 4: $5,500-7,500 CAD
 
-OTHER POSSIBLE DOCUMENTS
-- Proof of relationship to a Canadian sibling (if claiming those points)
-- Documents supporting PNP nomination
-- Job offer letter and LMIA if applicable
+PROOF OF FUNDS REQUIREMENT
 
-If you describe your situation (single or married, where you lived and worked, which program you are in), I can generate a personalized checklist for you.`,
+• Single: $14,690
+• Couple: $18,288
+• Family of 4: $27,514
+(Not a cost - just must prove you have it)
 
-  "Provincial Nominee Programs Explained": `Provincial Nominee Programs (PNPs) allow Canadian provinces and territories to nominate people who fit their local labor market needs.
+OPTIONAL COSTS
 
-A provincial nomination usually gives you:
-- An extra 600 CRS points if it is an Express Entry aligned nomination
+• Immigration consultant: $1,500-5,000
+• Document translation: $50-100/document
+• Additional language tests: $300`
+    },
+    "documents": {
+      keywords: ["documents", "document checklist", "what documents", "need documents", "required documents"],
+      response: `Here's your Express Entry document checklist:
 
-That almost always guarantees an ITA in the next relevant draw.
+IDENTITY DOCUMENTS
 
----
+□ Valid passport (all pages)
+□ National ID card (if applicable)
+□ Birth certificate
+□ Marriage certificate (if applicable)
+□ Divorce/death certificates (if applicable)
 
-TYPES OF PNP STREAMS
+LANGUAGE PROOF
 
-1. Express Entry aligned (enhanced)
-   • You must have an Express Entry profile
-   • The province nominates you through the online system
-   • You get 600 CRS points added
+□ IELTS or CELPIP test results
+□ TEF/TCF for French (if claiming)
+□ Must be less than 2 years old
 
-2. Base streams
-   • You apply directly to the province
-   • If nominated, you then apply for PR through a separate process
-   • Not automatically linked to Express Entry
+EDUCATION DOCUMENTS
 
----
+□ Educational Credential Assessment (ECA)
+□ Degrees/diplomas (originals and translations)
+□ Transcripts
+□ Professional licenses (if applicable)
 
-TYPICAL CRITERIA
+WORK EXPERIENCE DOCUMENTS
 
-Provinces may look for:
-- Specific occupations (for example health care, tech, trades)
-- Work or study experience in that province
-- Job offers from local employers
-- French language ability
-- Connections such as relatives in the province
+□ Reference letters from each employer
+  - Must include: job title, duties, hours, salary, dates
+  - On company letterhead with contact info
+□ Employment contracts
+□ Pay stubs or tax documents
 
----
+POLICE CERTIFICATES
 
-WHY PNP MATTERS
+□ From each country lived 6+ months since age 18
+□ Must be less than 1 year old typically
 
-If your CRS is too low for a federal draw, a PNP can be the difference between never getting an ITA and being almost guaranteed one.
+PROOF OF FUNDS
 
-However:
-- The streams open and close
-- Criteria change
-- Competition can be intense
+□ Bank statements (6 months)
+□ Investment statements
+□ Property valuations (if applicable)
 
-If you tell me your occupation, language level, and where you would like to live in Canada, I can suggest which types of PNP streams might be relevant for you.`,
+PHOTOS
 
-  "Job Offer vs PNP - Which Is Better?": `It is not always about which is absolutely better, but which is more realistic and strategic for you.
+□ Passport-style photos meeting IRCC specs
 
----
+Need help with any specific document?`
+    },
+    "pricing services": {
+      keywords: ["pricing", "services", "your pricing", "matin services", "matin pricing"],
+      response: `Matin Immigration Services offers AI-powered planning and preparation.
 
-JOB OFFER PATH
+CORE SUBSCRIPTIONS
 
-If you can get a valid job offer supported by an LMIA (or an exempt category that counts), you might receive:
-- Extra CRS points (often 50 or 200, depending on the NOC)
-- A work permit route into Canada
-- Canadian experience that leads later to CEC or PNP options
+📚 Language Training (Evolve) - $250 CAD/year
+• IELTS and CELPIP preparation
+• AI-powered writing and reading tests
+• Real-time feedback and scoring
+• Vocabulary tracking and review
 
-However:
-- Getting an LMIA backed job offer from outside Canada can be difficult
-- Employers must go through a process to prove no suitable Canadians are available
+🩺 Licensing Support (Elevate) - $350 CAD/year
+• NCLEX preparation for nurses
+• NNAS credential guidance
+• Provincial licensing pathways
+• Study plans and practice questions
 
----
+🛫 Immigration Pathway (Execute) - $450 CAD/year
+• Express Entry guidance
+• CRS optimization strategies
+• Document preparation support
+• Application readiness audits
 
-PNP PATH
+BUNDLE OFFERS
 
-If you qualify for a PNP stream:
-- A nomination can give 600 CRS points in Express Entry
-- That virtually guarantees an ITA
-- Some streams do not require a job offer
-- Others require a job offer or work experience in the province
+• Nurse Success Pack (Evolve + Elevate): $550/year - Save $50
+• Skilled Worker Pack (Evolve + Execute): $625/year - Save $75
+• Complete Migration Pack (Elevate + Execute): $725/year - Save $75
+• All Access Pack (All three): $900/year - Save $150
 
----
+PROFESSIONAL SERVICES
 
-HOW TO CHOOSE
+• Application Audit and Review: $300 CAD
+• Full Application Preparation: Starting at $2,000 CAD
+• Private Advisory Sessions: By appointment
 
-Ask yourself:
-1. Do you have employers in Canada already interested in you?
-   • If yes, job offer plus possible LMIA may be realistic.
+Click 💳 Subscribe to get started, or contact info@migratenorth.ca`
+    },
+    "about matin": {
+      keywords: ["about matin", "who are you", "matin immigration", "your company", "about company"],
+      response: `Matin Immigration Services is an AI-powered immigration education and planning platform.
 
-2. Are you in an occupation that is on a provincial in demand list?
-   • If yes, a PNP might be a clearer path.
+WHO WE ARE
 
-3. Are you already working or studying in a particular province?
-   • Local PNP streams might favor you.
+Matin Immigration Services Inc. operates under RCIC License #R712582, issued by the College of Immigration and Citizenship Consultants of Canada.
 
-Often the best approach is to:
-- Explore both
-- Apply for PNP where possible
-- Continue searching for legitimate job offers
+We help individuals understand Canadian immigration clearly, affordably, and independently.
 
-If you tell me your NOC, language score, and target province, I can explain which of the two looks more achievable for you.`,
+OUR PLATFORM - MIGRATE NORTH
 
-  "How Others Boosted CRS by 100+ Points": `There is no single magic trick, but there are recurring patterns in how real people managed to add 50 to 100 points or more.
+🧭 Explore (FREE)
+Your starting point. Understand pathways, check eligibility, learn the system.
 
-Common moves:
+📚 Evolve - Language Training
+IELTS and CELPIP preparation with AI-powered practice and feedback.
 
-1. Language score jumps
-   • Moving from CLB 7 to CLB 9 in all skills
-   • Adding or improving French as a second language
-   Together, this can add a very large number of points between core language and transferability.
+🩺 Elevate - Licensing Support
+For internationally educated nurses pursuing Canadian registration.
 
-2. PNP nominations
-   • A successful nomination adds 600 CRS points
-   • Profiles that started in the low 400s suddenly land above 1000
+🛫 Execute - Immigration Pathway
+Step-by-step guidance through Express Entry and PNP applications.
 
-3. Reassessing or adding education
-   • Getting a master's assessed
-   • Having multiple credentials recognized
-   • Completing additional one year programs that count
+OUR APPROACH
 
-4. Canadian work or study
-   • One year of skilled work in Canada
-   • Completion of post secondary study in Canada
+• AI-assisted tools available 24/7
+• Structured learning paths
+• Affordable subscription pricing
+• Professional support when needed
 
-If you show me your current CRS and what you are willing or able to change (test again, study, move, etc.), I can walk through which of these success patterns might apply to you.`,
+CONTACT
 
-  "Real Results from Evolve Students": `Evolve is designed as an intensive practice system for English tests like IELTS, built around realistic tasks, feedback patterns, and repetition.
+Email: info@migratenorth.ca
+Website: migratenorth.ca
+RCIC License: R712582
 
-Typical outcomes for serious users:
-- Better control of time in reading and listening sections
-- Clearer structure for writing tasks (Task 1 and Task 2)
-- More confident speaking with predictable frameworks
+How can we help with your immigration journey?`
+    },
+    "strategy": {
+      keywords: ["personalized strategy", "my strategy", "custom strategy", "immigration strategy"],
+      response: `I'd be happy to help create your personalized immigration strategy.
 
-While no one can guarantee scores, what we often see when people practice consistently is:
-- 1 band improvement in weak skills over a few months
-- More stable performance instead of random test day swings
+To give you the best guidance, I need to understand your profile:
 
-The value is not just in the higher score. It is in:
-- Understanding why answers are right or wrong
-- Getting used to English under pressure
-- Reducing panic on test day
+BASIC INFORMATION NEEDED
 
-If you tell me your current IELTS or CELPIP scores and your target, I can explain how a structured 33 test plan might help bridge that gap.`,
+1. What is your age?
+2. What is your highest education level?
+3. What field/occupation do you work in?
+4. How many years of skilled work experience do you have?
+5. Have you taken IELTS or CELPIP? What were your scores?
 
-  "Why Choose Migrate North Over Consultants?": `A fair way to look at this is not us versus all consultants, but what kind of support model fits you.
+ADDITIONAL FACTORS
 
-Traditional model:
-- Pay a consultant several thousand dollars
-- They manage or supervise your file
-- You rely heavily on their office and schedule
+6. Do you have any Canadian education or work experience?
+7. Do you speak French?
+8. Do you have a spouse/partner? What are their qualifications?
+9. Do you have a job offer from a Canadian employer?
+10. Are there specific provinces you're interested in?
 
-Migrate North model:
-- Use guided AI tools (like this Explore bot and Execute) to do most of the analysis and document preparation
-- Keep control, visibility, and flexibility over your own file
-- Optionally use a licensed professional for final review instead of full representation
+Please share these details and I'll provide:
+• Your estimated CRS score
+• Your eligible programs
+• Recommended pathways
+• Specific steps to improve your profile
+• Timeline estimate
 
-This can:
-- Lower your cost
-- Increase your understanding of your own application
-- Reduce the risk of feeling lost if you change representatives later
-
-If you tell me what you are most worried about (cost, mistakes, time, complexity), I can explain how this model does or does not fit your needs.`,
-
-  "Unlock Evolve - IELTS Mastery": `Evolve is built as a yearly access pass to a focused English test training environment.
-
-You get:
-- A structured sequence of practice tasks
-- Exposure to question types you will actually see
-- Guidance and patterns for writing and speaking
-
-The goal is simple:
-- Help you move your language scores into a range that meaningfully raises your CRS
-- Do this in a predictable, repeatable way rather than random test attempts
-
-If you tell me your current scores and when your next test is, I can suggest how to use a 6 to 8 week sprint effectively.`,
-
-  "Unlock Execute - AI RCIC": `Execute acts like an AI based assistant trained to think like an immigration professional for your file.
-
-It helps you:
-- Understand the steps and requirements
-- Draft letters, explanations, and checklists
-- Spot potential risk areas you might overlook
-
-It does not replace a licensed representative, but it gets you much closer to a complete, organized file, which you can then:
-- File yourself, or
-- Take to a human professional for a final review
-
-If you tell me which stage you are in now (no profile yet, in the pool, at ITA, responding to ADR, etc.), I can explain what Execute would focus on for you.`,
-
-  "Professional Services": `Sometimes using tools and self direction is not enough and you want a human to sit with your file.
-
-Professional services usually include:
-- Detailed review of your profile and documents
-- Strategy discussion (timing, program choice, risk)
-- Feedback on drafts like letters of explanation
-- Ongoing support through stages of the process
-
-This can be useful if:
-- Your case has complexity (status issues, refusals, inadmissibility risks)
-- You do not have time or energy to manage all details yourself
-- You want extra confidence before you submit
-
-If you share your current situation, I can outline whether a DIY or supported approach is likely viable or whether a more hands on professional service is advisable for you.`
-};
-
-// =============================================================================
-// FAQ MATCHING
-// =============================================================================
-
-function getFAQResponse(message) {
-  if (!message) return null;
-  const raw = String(message).trim();
-  if (!raw) return null;
-
-  if (FAQ_RESPONSES[raw]) {
-    return FAQ_RESPONSES[raw];
-  }
-
-  const lower = raw.toLowerCase();
-
-  const variations = {
-    eligible: "Am I Eligible for Express Entry?",
-    eligibility: "Am I Eligible for Express Entry?",
-    qualify: "Am I Eligible for Express Entry?",
-    crs: "What's My Realistic CRS Score?",
-    score: "What's My Realistic CRS Score?",
-    timeline: "How Long Will This Take?",
-    "how long": "How Long Will This Take?",
-    cost: "Total Cost Breakdown",
-    price: "Total Cost Breakdown",
-    fees: "Total Cost Breakdown",
-    "low crs": "My CRS Is Too Low - What Now?",
-    stuck: "My CRS Is Too Low - What Now?",
-    mistake: "Common Mistakes That Kill Applications",
-    error: "Common Mistakes That Kill Applications",
-    ita: "Will I Get an ITA This Year?",
-    invitation: "Will I Get an ITA This Year?",
-    boost: "How to Boost CRS by 50+ Points Fast",
-    increase: "How to Boost CRS by 50+ Points Fast",
-    improve: "How to Boost CRS by 50+ Points Fast",
-    reading: "Try Free IELTS Reading Sample",
-    writing: "Try Free IELTS Writing Sample",
-    listening: "Try Free IELTS Listening Sample",
-    "clb 9": "How to Hit CLB 9 in 6 Weeks",
-    strategy: "Get My Personalized Immigration Strategy",
-    roadmap: "Get My Personalized Immigration Strategy",
-    documents: "What Documents Do I Actually Need?",
-    docs: "What Documents Do I Actually Need?",
-    pnp: "Provincial Nominee Programs Explained",
-    provincial: "Provincial Nominee Programs Explained",
-    "why migrate north": "Why Choose Migrate North Over Consultants?",
-    "why you": "Why Choose Migrate North Over Consultants?"
+The more details you provide, the more personalized my recommendations will be.`
+    }
   };
 
-  for (const [keyword, keyName] of Object.entries(variations)) {
-    if (lower.includes(keyword) && FAQ_RESPONSES[keyName]) {
-      return FAQ_RESPONSES[keyName];
+  // Check each FAQ category
+  for (const [key, faq] of Object.entries(faqs)) {
+    for (const keyword of faq.keywords) {
+      if (lowerMessage.includes(keyword)) {
+        return faq.response;
+      }
     }
   }
 
   return null;
 }
 
-// =============================================================================
-// HISTORY HELPERS
-// =============================================================================
+// ==============================================================================
+// CRS ESTIMATION
+// ==============================================================================
 
-function normalizeHistory(history) {
-  if (!Array.isArray(history)) return [];
-  return history
-    .map((m) => {
-      if (!m || typeof m !== "object") return null;
-      const role = m.role === "assistant" || m.role === "bot" ? "assistant" : "user";
-      const content = m.content ?? m.text ?? "";
-      if (!content) return null;
-      return { role, content: String(content).slice(0, 2000) };
-    })
-    .filter(Boolean);
-}
-
-function getLastAssistantMessage(history) {
-  const norm = normalizeHistory(history);
-  for (let i = norm.length - 1; i >= 0; i -= 1) {
-    if (norm[i].role === "assistant") return norm[i].content;
+const CRS_TABLES = {
+  age: {
+    17: 0, 18: 99, 19: 105, 20: 110, 21: 110, 22: 110, 23: 110, 24: 110, 25: 110,
+    26: 110, 27: 110, 28: 110, 29: 110, 30: 105, 31: 99, 32: 94, 33: 88, 34: 83,
+    35: 77, 36: 72, 37: 66, 38: 61, 39: 55, 40: 50, 41: 39, 42: 28, 43: 17, 44: 6, 45: 0
+  },
+  education: {
+    "phd": 150, "doctorate": 150, "doctoral": 150,
+    "master": 135, "masters": 135, "master's": 135,
+    "two or more": 128, "multiple degrees": 128, "two degrees": 128,
+    "bachelor": 120, "bachelors": 120, "bachelor's": 120, "degree": 120,
+    "three year diploma": 98, "3 year diploma": 98, "3-year diploma": 98,
+    "two year diploma": 91, "2 year diploma": 91, "2-year diploma": 91, "diploma": 91,
+    "one year diploma": 84, "1 year diploma": 84, "1-year diploma": 84, "certificate": 84,
+    "high school": 30, "secondary": 30
+  },
+  workYears: { 0: 0, 1: 40, 2: 53, 3: 64, 4: 72, 5: 80 },
+  languageCLB: {
+    10: 34, 9: 31, 8: 23, 7: 17, 6: 9, 5: 6, 4: 0
   }
-  return "";
+};
+
+function estimateCRS(profile) {
+  let score = 0;
+  let breakdown = [];
+
+  // Age points
+  if (profile.age) {
+    const agePoints = CRS_TABLES.age[Math.min(Math.max(profile.age, 17), 45)] || 0;
+    score += agePoints;
+    breakdown.push(`Age (${profile.age}): ${agePoints} points`);
+  }
+
+  // Education points
+  if (profile.education) {
+    const eduLower = profile.education.toLowerCase();
+    let eduPoints = 0;
+    for (const [key, points] of Object.entries(CRS_TABLES.education)) {
+      if (eduLower.includes(key)) {
+        eduPoints = Math.max(eduPoints, points);
+      }
+    }
+    score += eduPoints;
+    breakdown.push(`Education: ${eduPoints} points`);
+  }
+
+  // Work experience points
+  if (profile.workYears !== undefined) {
+    const workPoints = CRS_TABLES.workYears[Math.min(profile.workYears, 5)] || 0;
+    score += workPoints;
+    breakdown.push(`Work Experience (${profile.workYears} years): ${workPoints} points`);
+  }
+
+  // Language points (simplified - using average of IELTS bands)
+  if (profile.ieltsAverage) {
+    const clb = Math.floor(profile.ieltsAverage);
+    const langPoints = (CRS_TABLES.languageCLB[clb] || 0) * 4;
+    score += langPoints;
+    breakdown.push(`Language (IELTS ~${profile.ieltsAverage}): ${langPoints} points`);
+  }
+
+  return { score, breakdown };
 }
 
-// =============================================================================
-// PROFILE EXTRACTION AND CRS (IMPROVED)
-// =============================================================================
+// ==============================================================================
+// PROFILE EXTRACTION
+// ==============================================================================
 
 function extractProfileFromMessage(message, existingProfile = {}) {
-  const profile = { ...(existingProfile || {}) };
-  const text = String(message || "");
-  const lower = text.toLowerCase();
+  const profile = { ...existingProfile };
+  const lowerMessage = message.toLowerCase();
 
-  const agePatterns = [
-    /\b(\d{1,2})\s*(?:years?\s*old|y\.?o\.?|yrs?\s*old|age)\b/i,
-    /\bi\s*am\s*(\d{1,2})\b/i,
-    /\bmy\s+age\s*(?:is)?\s*(\d{1,2})\b/i,
-    /\b(?:aged?|currently)\s*(\d{1,2})\b/i,
-    /\b(\d{1,2})\s*(?:year\s*)?old\s*(?:male|female|man|woman)\b/i
+  // Extract age
+  const ageMatch = message.match(/(?:i am|i'm|age is|aged?)\s*(\d{2})/i) ||
+                   message.match(/(\d{2})\s*years?\s*old/i);
+  if (ageMatch) {
+    profile.age = parseInt(ageMatch[1]);
+  }
+
+  // Extract education
+  const eduPatterns = [
+    { pattern: /\b(phd|doctorate|doctoral)\b/i, value: "PhD" },
+    { pattern: /\b(master'?s?|mba|msc|ma)\b/i, value: "Master's" },
+    { pattern: /\b(bachelor'?s?|degree|bsc|ba|beng)\b/i, value: "Bachelor's" },
+    { pattern: /\b(diploma|certificate|college)\b/i, value: "Diploma" },
+    { pattern: /\b(high school|secondary)\b/i, value: "High School" }
   ];
-  
-  for (const pattern of agePatterns) {
-    const match = text.match(pattern);
-    if (match) {
-      const age = parseInt(match[1], 10);
-      if (age >= 18 && age <= 65) {
-        profile.age = age;
-        break;
+  for (const { pattern, value } of eduPatterns) {
+    if (pattern.test(lowerMessage)) {
+      profile.education = value;
+      profile.education_level = value;
+      break;
+    }
+  }
+
+  // Extract work years
+  const workMatch = message.match(/(\d+)\s*years?\s*(?:of\s*)?(?:work|experience|working)/i) ||
+                    message.match(/experience\s*(?:of\s*)?(\d+)\s*years?/i);
+  if (workMatch) {
+    profile.workYears = parseInt(workMatch[1]);
+    profile.years_experience = parseInt(workMatch[1]);
+  }
+
+  // Extract IELTS scores
+  const ieltsMatch = message.match(/ielts[:\s]*(\d\.?\d?)[,\s]*(\d\.?\d?)?[,\s]*(\d\.?\d?)?[,\s]*(\d\.?\d?)?/i);
+  if (ieltsMatch) {
+    const scores = [ieltsMatch[1], ieltsMatch[2], ieltsMatch[3], ieltsMatch[4]]
+      .filter(s => s)
+      .map(s => parseFloat(s));
+    if (scores.length > 0) {
+      profile.ieltsAverage = scores.reduce((a, b) => a + b, 0) / scores.length;
+      profile.ieltsSummary = scores.join(", ");
+      if (scores.length >= 4) {
+        profile.ielts_listening = scores[0];
+        profile.ielts_reading = scores[1];
+        profile.ielts_writing = scores[2];
+        profile.ielts_speaking = scores[3];
       }
     }
   }
 
-  if (lower.includes("phd") || lower.includes("doctorate")) {
-    profile.education = "PhD";
-  } else if (lower.includes("master")) {
-    profile.education = "Master";
-  } else if (lower.includes("bachelor")) {
-    profile.education = "Bachelor";
-  } else if (lower.includes("diploma")) {
-    profile.education = "Diploma";
-  } else if (lower.includes("high school") || lower.includes("secondary school")) {
-    profile.education = "High school";
-  }
-
-  const workPatterns = [
-    /(\d{1,2})\s*(?:years?|yrs?)\s*(?:of\s+)?(?:work|experience|exp|worked)/i,
-    /work(?:ed)?\s+for\s+(\d{1,2})\s*(?:years?|yrs?)/i,
-    /(\d{1,2})\s*(?:years?|yrs?)\s+(?:in|at|with)\s+(?:my\s+)?(?:job|career|field)/i
-  ];
-
-  for (const pattern of workPatterns) {
-    const match = text.match(pattern);
-    if (match) {
-      const years = parseInt(match[1], 10);
-      if (years >= 1 && years <= 50) {
-        profile.workYears = years;
-        break;
-      }
-    }
-  }
-
-  let ieltsSummary = profile.ieltsSummary || null;
-
-  const singleBandAllMatch = lower.match(/(\d(?:\.\d)?)\s*(?:band)?s?\s*(?:in\s*all|all\s*around|overall|across\s+the\s+board)/i);
-  if (singleBandAllMatch) {
-    const band = parseFloat(singleBandAllMatch[1]);
-    if (!Number.isNaN(band) && band >= 4 && band <= 9) {
-      ieltsSummary = `Approximately ${band} in all bands`;
-    }
-  }
-
-  const patternFourBands = text.match(
-    /(?:l|listening)\s*(\d(?:\.\d)?)\s*(?:,|\s+|\/|and)\s*(?:r|reading)\s*(\d(?:\.\d)?)\s*(?:,|\s+|\/|and)\s*(?:w|writing)\s*(\d(?:\.\d)?)\s*(?:,|\s+|\/|and)\s*(?:s|speaking)\s*(\d(?:\.\d)?)/i
-  );
-  if (patternFourBands) {
-    const bands = patternFourBands.slice(1, 5).map((x) => parseFloat(x));
-    const validBands = bands.filter((x) => !Number.isNaN(x) && x >= 4 && x <= 9);
-    if (validBands.length === 4) {
-      const avg = validBands.reduce((sum, x) => sum + x, 0) / validBands.length;
-      ieltsSummary = `L${bands[0]}, R${bands[1]}, W${bands[2]}, S${bands[3]} (avg ${avg.toFixed(1)})`;
-    }
-  }
-
-  if (!ieltsSummary) {
-    const aroundIelts = text.match(/(ielts|celpip)[^0-9]{0,40}(\d(?:\.\d)?)/i);
-    if (aroundIelts) {
-      const band = parseFloat(aroundIelts[2]);
-      if (!Number.isNaN(band) && band >= 4 && band <= 9) {
-        ieltsSummary = `Approximately ${band}`;
-      }
-    }
-  }
-
-  if (ieltsSummary) {
-    profile.ieltsSummary = ieltsSummary;
-  }
-
-  if (lower.includes("married")) {
-    profile.maritalStatus = "married";
-  } else if (lower.includes("single")) {
-    profile.maritalStatus = "single";
+  // Extract single IELTS band mentioned
+  const singleBandMatch = message.match(/ielts\s*(?:band\s*)?(\d\.?\d?)\s*(?:in\s*all|overall|bands?)?/i);
+  if (singleBandMatch && !profile.ieltsAverage) {
+    const band = parseFloat(singleBandMatch[1]);
+    profile.ieltsAverage = band;
+    profile.ieltsSummary = `${band} overall`;
+    profile.ielts_listening = band;
+    profile.ielts_reading = band;
+    profile.ielts_writing = band;
+    profile.ielts_speaking = band;
   }
 
   return profile;
 }
 
-function isProfileComplete(profile) {
-  if (!profile) return false;
-  return (
-    typeof profile.age === "number" &&
-    profile.age > 0 &&
-    typeof profile.workYears === "number" &&
-    profile.workYears >= 1 &&
-    typeof profile.education === "string" &&
-    profile.education.length > 0 &&
-    typeof profile.ieltsSummary === "string" &&
-    profile.ieltsSummary.length > 0
-  );
-}
-
-const CRS_AGE_TABLE = {
-  20: 100, 21: 100, 22: 100, 23: 100, 24: 100, 25: 100,
-  26: 100, 27: 100, 28: 100, 29: 100, 30: 95,
-  31: 90, 32: 85, 33: 80, 34: 75, 35: 70,
-  36: 65, 37: 60, 38: 55, 39: 50, 40: 45,
-  41: 35, 42: 35, 43: 35, 44: 35, 45: 0
-};
-
-const CRS_EDUCATION_TABLE = {
-  "High school": 30,
-  "Diploma": 60,
-  "Bachelor": 90,
-  "Master": 110,
-  "PhD": 140
-};
-
-const CRS_WORK_TABLE = {
-  1: 30, 2: 30, 3: 50, 4: 50, 5: 70, 6: 70, 7: 70
-};
-
-const CRS_LANGUAGE_TABLE = {
-  9: 130, 8.5: 120, 8: 115, 7.5: 110, 7: 100, 6.5: 85, 6: 70, 5.5: 50
-};
-
-function estimateCRS(profile) {
-  if (!profile) return null;
+function buildCRSExplanation(profile, crsResult) {
+  let explanation = `Based on the information you provided:\n\n`;
   
-  let crs = 0;
-
-  if (typeof profile.age === "number") {
-    crs += CRS_AGE_TABLE[profile.age] || 0;
+  if (crsResult.breakdown.length > 0) {
+    explanation += `**CRS Breakdown:**\n`;
+    for (const item of crsResult.breakdown) {
+      explanation += `• ${item}\n`;
+    }
+    explanation += `\n**Estimated Total: ${crsResult.score} points**\n\n`;
   }
 
-  if (profile.education && CRS_EDUCATION_TABLE[profile.education]) {
-    crs += CRS_EDUCATION_TABLE[profile.education];
+  // Add context about competitiveness
+  if (crsResult.score < 450) {
+    explanation += `This score is below typical invitation cutoffs (450-500+). Consider:\n`;
+    explanation += `• Improving language scores (biggest impact)\n`;
+    explanation += `• Provincial Nominee Programs (+600 points)\n`;
+    explanation += `• Canadian education or work experience\n`;
+  } else if (crsResult.score < 480) {
+    explanation += `This score may be competitive for targeted draws. To improve:\n`;
+    explanation += `• Boost language to CLB 10+ (+40 points possible)\n`;
+    explanation += `• Consider PNP streams\n`;
+  } else {
+    explanation += `This is a competitive score for Express Entry general draws.\n`;
   }
 
-  if (typeof profile.workYears === "number") {
-    const workYears = Math.min(profile.workYears, 7);
-    crs += CRS_WORK_TABLE[workYears] || 0;
-  }
-
-  if (profile.ieltsSummary) {
-    const bandMatch = profile.ieltsSummary.match(/(\d(?:\.\d)?)/);
-    if (bandMatch) {
-      const avg = parseFloat(bandMatch[1]);
-      if (!Number.isNaN(avg)) {
-        const tables = Object.keys(CRS_LANGUAGE_TABLE).map(parseFloat).sort((a, b) => b - a);
-        const closest = tables.find(t => avg >= t) || tables[tables.length - 1];
-        crs += CRS_LANGUAGE_TABLE[closest] || 0;
-      }
+  // Add limiter info if available
+  if (profile.primary_limiter) {
+    explanation += `\n**Your primary limiting factor:** ${profile.primary_limiter}\n`;
+    if (profile.primary_limiter === "language") {
+      explanation += `Consider our Language Training (Evolve) module to improve your scores.\n`;
     }
   }
 
-  if (profile.maritalStatus === "married") {
-    crs -= 10;
-  }
+  return explanation;
+}
 
-  if (crs < 0) crs = 0;
-  if (crs > 1200) crs = 1200;
+function buildBothOptionsFollowUp(profile) {
+  let response = `I understand you want to explore both options. Let me help you assess your situation.\n\n`;
   
-  return crs;
-}
-
-function buildCRSExplanation(profile, crsScore) {
-  const safeScore = typeof crsScore === "number" ? crsScore : null;
-  const scoreLine = safeScore === null
-    ? "I can only give a qualitative estimate from what you shared."
-    : `My rough CRS style estimate from your description is around ${safeScore}. This is only an orientation number, not an official calculation.`;
-
-  let competitiveness = "challenging";
-  if (safeScore !== null) {
-    if (safeScore >= 520) competitiveness = "very strong";
-    else if (safeScore >= 480) competitiveness = "competitive";
-    else if (safeScore >= 440) competitiveness = "borderline and depends on draws or PNP";
-    else competitiveness = "difficult without changes";
+  if (!profile.age || !profile.education || !profile.workYears) {
+    response += `To give you specific guidance, I need a few details:\n\n`;
+    if (!profile.age) response += `• What is your age?\n`;
+    if (!profile.education) response += `• What is your highest education level?\n`;
+    if (!profile.workYears) response += `• How many years of work experience do you have?\n`;
+    response += `\nOnce I have these details, I can estimate your CRS score and recommend the best pathway.`;
   }
-
-  return `Here is how I read your profile based on what you wrote.
-
-Profile snapshot:
-• Age: ${profile.age ?? "not clear yet"}
-• Education: ${profile.education ?? "not clear yet"}
-• Skilled work experience: ${profile.workYears ?? "not clear yet"} year(s)
-• Language: ${profile.ieltsSummary ?? "not yet clear"}
-• Marital status: ${profile.maritalStatus ?? "not specified"}
-
-${scoreLine}
-
-Competitiveness:
-• In recent years many general draws have landed in the high 400s to low 500s.
-• Based on this estimate, your position looks ${competitiveness} for general draws.
-• Category based draws or PNP can change this picture, depending on your field.
-
-The main levers for you are usually:
-• Language improvement
-• PNP targeting
-• Spouse strategy
-• Sometimes Canadian work or study, depending on your goals
-
-If you want, I can now:
-1) Show you the fastest realistic path to strengthen this score.
-2) Walk through PNP options that match your background.
-3) Or both, one after the other.`;
+  
+  return response;
 }
 
-function buildBothOptionsFollowUp(profile, crsScore) {
-  const safeScore = typeof crsScore === "number" ? crsScore : null;
-  const header = safeScore === null
-    ? "Let us look at both paths in a structured way."
-    : `Based on an estimated CRS around ${safeScore}, here are both paths in order.`;
+// ==============================================================================
+// OPENAI CALL
+// ==============================================================================
 
-  return `${header}
+async function callOpenAI(message, history, userProfile) {
+  const systemPrompt = `You are North Star GPS, an expert Canadian immigration assistant for Migrate North.
 
-Option 1: Fastest path to a stronger CRS
-• Focus language first. Moving your average band up by even 0.5 to 1.0 can add a noticeable number of points.
-• Decide whether your spouse should be included as accompanying for points, or whether a different configuration might improve the score.
-• Make sure all education that can be assessed is actually counted through ECAs.
-• If you are close to a higher experience bracket, plan your timing so that your profile reflects that.
+Your role:
+- Help users understand Canadian immigration pathways
+- Explain Express Entry, PNPs, and requirements clearly
+- Estimate CRS scores when given profile information
+- Identify gaps and suggest improvements
+- Never provide legal advice or guarantees
 
-Option 2: PNP route in parallel
-• Identify provinces that match your NOC, age, and experience pattern.
-• Check whether you are more suitable for Express Entry aligned streams or base PNP streams.
-• If you are already in Canada, look carefully at provincial pathways for in province workers or graduates.
-• If you are outside Canada, focus on PNP streams that accept applicants abroad or are linked to Express Entry.
+User's known profile:
+${JSON.stringify(userProfile, null, 2)}
 
-How to use both together:
-• While you upgrade language or complete another year of experience, you can also keep an eye on PNP opportunities.
-• This way you are not waiting passively for one single federal draw.
+Guidelines:
+- Be warm and encouraging but realistic
+- Use clear structure in responses
+- When users share profile details, extract and remember them
+- If they ask about CRS, provide estimates based on what you know
+- Recommend relevant Migrate North services when appropriate:
+  - Evolve (Language Training) for low language scores
+  - Elevate (Licensing) for healthcare professionals
+  - Execute (Immigration) for application guidance
 
-If you tell me your field (for example nurse, engineer, software developer, tradesperson) and whether you are in Canada now, I can tailor these two paths more specifically for you.`;
-}
-
-// =============================================================================
-// OPENAI CALLBACK - USING CHAT COMPLETIONS
-// =============================================================================
-
-async function callOpenAI(historyMessages, userMessage, profile = {}, meta = {}) {
-  const profileContext = isProfileComplete(profile)
-    ? `\n\n[USER PROFILE FROM CONVERSATION]\n${JSON.stringify(profile, null, 2)}\n\nUse this profile context when providing guidance.`
-    : "";
-
-  const systemPrompt = `
-You are North Star GPS, the front door assistant for Migrate North.
-You help people understand Canadian immigration options and English testing in plain language.
-You are careful, factual, and realistic. You never guarantee visas, approvals, or specific draw outcomes.
-You do not give formal legal advice. You provide general education and orientation.
-
-You see a history of messages plus the latest user question.
-You must:
-- Listen to what the user actually asked most recently.
-- Avoid repeating long blocks you already gave, unless repetition genuinely helps.
-- If the user asks for "both options", or "next step", or "what now", continue the logic instead of starting over.
-- If you are not sure about details, ask for clarification in one or two concise questions.
-- If a rough CRS estimate has been shared, do not invent a different score. Reference it qualitatively if helpful.
-- Keep answers structured, but not overly long.
-${profileContext}
-`.trim();
-
-  const normHistory = normalizeHistory(historyMessages).slice(-30);
+Keep responses concise but comprehensive. Use bullet points for lists.`;
 
   const messages = [
     { role: "system", content: systemPrompt },
-    ...normHistory,
-    { role: "user", content: String(userMessage || "") }
+    ...history.slice(-10).map(h => ({ role: h.role, content: h.text || h.content })),
+    { role: "user", content: message }
   ];
 
-  try {
-    const completion = await client.chat.completions.create({
-      model: "gpt-4.1-mini",
-      messages
-    });
+  const response = await client.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: messages,
+    max_tokens: 1000,
+    temperature: 0.7
+  });
 
-    const reply =
-      completion?.choices?.[0]?.message?.content ||
-      "Sorry, I was not able to generate a response. Please try again.";
-
-    return reply;
-  } catch (error) {
-    console.error("[OpenAI] Error:", {
-      message: error.message,
-      status: error.status,
-      type: error.type
-    });
-    throw error;
-  }
+  return response.choices[0].message.content;
 }
 
-// =============================================================================
-// MAIN HANDLER WITH SUPABASE LOGGING + IDENTITY LAYER
-// =============================================================================
+// ==============================================================================
+// NORMALIZE HISTORY
+// ==============================================================================
 
-export const handler = async (event) => {
-  // CORS preflight
+function normalizeHistory(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw.map(item => {
+    if (item.role && (item.text || item.content)) {
+      return {
+        role: item.role === "bot" ? "assistant" : item.role,
+        text: item.text || item.content
+      };
+    }
+    return null;
+  }).filter(Boolean);
+}
+
+function getLastAssistantMessage(history) {
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].role === "assistant" || history[i].role === "bot") {
+      return history[i].text || history[i].content || "";
+    }
+  }
+  return "";
+}
+
+// ==============================================================================
+// MAIN HANDLER
+// ==============================================================================
+
+export async function handler(event) {
+  // Handle CORS preflight
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": ORIGIN,
+        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Allow-Methods": "POST,OPTIONS",
+        "Access-Control-Allow-Methods": "POST, OPTIONS"
       },
-      body: "ok"
+      body: ""
     };
   }
 
@@ -1435,233 +1244,142 @@ export const handler = async (event) => {
     return errorResponse(405, "Method not allowed");
   }
 
+  // Rate limiting
+  const clientIP = event.headers["x-forwarded-for"] || event.headers["client-ip"] || "unknown";
+  if (!checkRateLimit(clientIP)) {
+    return errorResponse(429, "Rate limit exceeded. Please wait a few minutes.");
+  }
+
   try {
-    const ip = event.requestContext?.identity?.sourceIp || "unknown";
-    if (!checkRateLimit(ip)) {
-      return errorResponse(429, "Too many requests. Please try again later.");
+    const parsed = JSON.parse(event.body || "{}");
+    const message = (parsed.message || "").trim();
+    const rawHistory = parsed.history || [];
+
+    if (!message) {
+      return errorResponse(400, "Message is required");
     }
 
-    const parsed = JSON.parse(event.body || "{}");
-    
-    // =========================================================================
-    // IDENTITY LAYER - Phase 1B: Auth verification and profile auto-creation
-    // =========================================================================
+    // ==============================================================================
+    // PHASE 1B: Get authenticated user
+    // ==============================================================================
     const user = await getUserFromRequest(event);
+    
+    // Create profile row if new user
     if (user) {
       await ensureProfile(user);
     }
-    // =========================================================================
-    
-    const message = parsed.message ?? "";
-    const history = parsed.history ?? [];
-    const meta = parsed.meta ?? {};
-    const incomingProfile = parsed.userProfile ?? {};
-    const userId = parsed.userId || null; // For Supabase logging
 
-    if (typeof message !== "string" || !message.trim()) {
-      return errorResponse(400, "Missing or invalid 'message'");
-    }
+    // ==============================================================================
+    // PHASE 1C: Load profile from database
+    // ==============================================================================
+    let dbProfile = await loadProfile(user);
 
-    if (String(message).length > 5000) {
-      return errorResponse(400, "Message too long (max 5000 characters)");
-    }
+    // Merge database profile with incoming profile data
+    const incomingProfile = { ...(dbProfile || {}), ...(parsed.userProfile || {}) };
 
-    const trimmedMessage = message.trim();
+    // Normalize history
+    const history = normalizeHistory(rawHistory);
 
-    // FAQ shortcut
-    const faqReply = getFAQResponse(trimmedMessage);
-    if (faqReply) {
-      const newHistory = [
-        ...normalizeHistory(history).slice(-30),
-        { role: "user", content: trimmedMessage },
-        { role: "assistant", content: faqReply }
-      ];
-
-      // Save FAQ reply in Supabase
-      if (userId) {
-        await supabase.from("explore_history").insert({
-          user_id: userId,
-          message_in: trimmedMessage,
-          message_out: faqReply,
-          timestamp: new Date().toISOString()
-        });
-      }
-
-      // Activity logging for authenticated users
+    // ==============================================================================
+    // CHECK FOR FAQ RESPONSE
+    // ==============================================================================
+    const faqResponse = getFAQResponse(message);
+    if (faqResponse) {
+      // Log FAQ activity
       if (user) {
-        await supabase.from("activity_log").insert({
-          user_id: user.id,
-          event_type: "interaction",
-          event_value: "explore_faq"
-        });
+        await logActivity(user, "explore_faq", message.substring(0, 100));
       }
-
-      return ok({
-        reply: faqReply,
-        history: newHistory,
-        meta,
-        userProfile: incomingProfile
-      });
+      return ok({ reply: faqResponse, userProfile: incomingProfile });
     }
 
-    // Update profile extraction
-    const updatedProfile = extractProfileFromMessage(trimmedMessage, incomingProfile);
-
-    // Decision logic for CRS or both options
+    // ==============================================================================
+    // CHECK FOR "BOTH OPTIONS" INTENT
+    // ==============================================================================
+    const lowerMessage = message.toLowerCase();
     const lastAssistant = getLastAssistantMessage(history).toLowerCase();
-    const lowerCurrent = trimmedMessage.toLowerCase();
-    const asksForBoth =
-      lowerCurrent.includes("both") ||
-      lowerCurrent.includes("both options") ||
-      lowerCurrent.includes("tell me both");
-
-    const lastOfferedChoice =
-      lastAssistant.includes("fastest path") &&
-      (lastAssistant.includes("pnp") ||
-        lastAssistant.includes("pnps") ||
-        lastAssistant.includes("pnp options"));
-
-    let crsScoreFromProfile = null;
-    if (isProfileComplete(updatedProfile)) {
-      crsScoreFromProfile = estimateCRS(updatedProfile);
-    }
-
-    // Respond with both options
-    if (asksForBoth && lastOfferedChoice) {
-      const bothReply = buildBothOptionsFollowUp(updatedProfile, crsScoreFromProfile);
-      const newHistory = [
-        ...normalizeHistory(history).slice(-30),
-        { role: "user", content: trimmedMessage },
-        { role: "assistant", content: bothReply }
-      ];
-
-      // Save to Supabase
-      if (userId) {
-        await supabase.from("explore_history").insert({
-          user_id: userId,
-          message_in: trimmedMessage,
-          message_out: bothReply,
-          timestamp: new Date().toISOString()
-        });
-      }
-
-      // Activity logging for authenticated users
+    
+    if ((lowerMessage.includes("both") || lowerMessage.includes("all")) &&
+        (lastAssistant.includes("option 1") || lastAssistant.includes("option 2") ||
+         lastAssistant.includes("fsw") || lastAssistant.includes("pnp"))) {
+      
       if (user) {
-        await supabase.from("activity_log").insert({
-          user_id: user.id,
-          event_type: "interaction",
-          event_value: "explore_both_options"
-        });
+        await logActivity(user, "explore_both_options", "");
       }
-
-      return ok({
-        reply: bothReply,
-        history: newHistory,
-        meta,
-        userProfile: updatedProfile
-      });
+      
+      const response = buildBothOptionsFollowUp(incomingProfile);
+      return ok({ reply: response, userProfile: incomingProfile });
     }
 
-    // Profile complete, send CRS explanation
-    // IDENTITY GATE: Only show personalized CRS if user is logged in
-    const looksLikeProfile =
-      /\b\d{1,2}\s*years?\b/i.test(trimmedMessage) ||
-      trimmedMessage.toLowerCase().includes("ielts") ||
-      trimmedMessage.toLowerCase().includes("celpip") ||
-      trimmedMessage.toLowerCase().includes("bachelor") ||
-      trimmedMessage.toLowerCase().includes("master") ||
-      trimmedMessage.toLowerCase().includes("phd");
+    // ==============================================================================
+    // EXTRACT PROFILE DATA FROM MESSAGE
+    // ==============================================================================
+    let updatedProfile = extractProfileFromMessage(message, incomingProfile);
 
-    if (user && looksLikeProfile && isProfileComplete(updatedProfile)) {
-      const crsScore = estimateCRS(updatedProfile);
-      const crsReply = buildCRSExplanation(updatedProfile, crsScore);
-
-      const newHistory = [
-        ...normalizeHistory(history).slice(-30),
-        { role: "user", content: trimmedMessage },
-        { role: "assistant", content: crsReply }
-      ];
-
-      // Save to Supabase
-      if (userId) {
-        await supabase.from("explore_history").insert({
-          user_id: userId,
-          message_in: trimmedMessage,
-          message_out: crsReply,
-          timestamp: new Date().toISOString()
-        });
-      }
-
-      // Activity logging for authenticated users
-      if (user) {
-        await supabase.from("activity_log").insert({
-          user_id: user.id,
-          event_type: "interaction",
-          event_value: "explore_crs_analysis"
-        });
-      }
-
-      return ok({
-        reply: crsReply,
-        history: newHistory,
-        meta,
-        userProfile: updatedProfile
-      });
-    }
-
-    // Normal OpenAI flow
-    const modelReply = await callOpenAI(history, trimmedMessage, updatedProfile, meta);
-    const newHistory = [
-      ...normalizeHistory(history).slice(-30),
-      { role: "user", content: trimmedMessage },
-      { role: "assistant", content: modelReply }
-    ];
-
-    // Save to Supabase
-    if (userId) {
-      await supabase.from("explore_history").insert({
-        user_id: userId,
-        message_in: trimmedMessage,
-        message_out: modelReply,
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    // Activity logging for authenticated users
+    // ==============================================================================
+    // PHASE 1C: Update pillars and compute limiter
+    // ==============================================================================
     if (user) {
-      await supabase.from("activity_log").insert({
-        user_id: user.id,
-        event_type: "interaction",
-        event_value: "explore_message"
-      });
+      updatedProfile = updatePillars(updatedProfile);
+      updatedProfile.primary_limiter = computeLimiter(updatedProfile);
     }
 
-    return ok({
-      reply: modelReply,
-      history: newHistory,
-      meta,
-      userProfile: updatedProfile
-    });
+    // ==============================================================================
+    // CHECK FOR CRS CALCULATION REQUEST (requires login for personalization)
+    // ==============================================================================
+    const wantsCRS = lowerMessage.includes("crs") || 
+                     lowerMessage.includes("score") ||
+                     lowerMessage.includes("calculate") ||
+                     lowerMessage.includes("estimate");
+    
+    const hasProfileData = updatedProfile.age || updatedProfile.education || 
+                          updatedProfile.workYears || updatedProfile.ieltsAverage;
+
+    if (wantsCRS && hasProfileData) {
+      // Personalized CRS analysis requires login
+      if (!user) {
+        return ok({
+          reply: `I can see you've shared some profile information. To give you a personalized CRS analysis that saves to your profile, please login first (it's free!).\n\nClick the 🔐 Login button above to continue.`,
+          userProfile: updatedProfile
+        });
+      }
+
+      // Log CRS analysis activity
+      await logActivity(user, "explore_crs_analysis", JSON.stringify(updatedProfile));
+
+      const crsResult = estimateCRS(updatedProfile);
+      const explanation = buildCRSExplanation(updatedProfile, crsResult);
+
+      // Save profile updates
+      await saveProfile(user, updatedProfile);
+
+      return ok({ reply: explanation, userProfile: updatedProfile });
+    }
+
+    // ==============================================================================
+    // GENERAL AI RESPONSE
+    // ==============================================================================
+    if (user) {
+      await logActivity(user, "explore_message", message.substring(0, 100));
+    }
+
+    const aiReply = await callOpenAI(message, history, updatedProfile);
+
+    // Extract any new profile data from AI response context
+    updatedProfile = extractProfileFromMessage(message, updatedProfile);
+    
+    // Update pillars after extraction
+    if (user) {
+      updatedProfile = updatePillars(updatedProfile);
+      updatedProfile.primary_limiter = computeLimiter(updatedProfile);
+      
+      // Save profile updates
+      await saveProfile(user, updatedProfile);
+    }
+
+    return ok({ reply: aiReply, userProfile: updatedProfile });
+
   } catch (err) {
-    console.error("[chat-explore] Error:", {
-      errorMessage: err?.message || "Unknown error",
-      errorType: err?.type || "Unknown type",
-      errorStatus: err?.status || "Unknown status",
-      timestamp: new Date().toISOString()
-    });
-
-    if (err.status === 401 || err.type === "authentication_error") {
-      return errorResponse(500, "Authentication error with API. Please check configuration.");
-    }
-
-    if (err.status === 429) {
-      return errorResponse(429, "API rate limit exceeded. Please try again in a moment.");
-    }
-
-    if (err.status === 500) {
-      return errorResponse(503, "Upstream service temporarily unavailable. Please try again.");
-    }
-
-    return errorResponse(500, "Internal server error. Please try again later.");
+    console.error("Handler error:", err);
+    return errorResponse(500, "Internal server error: " + err.message);
   }
-};
+}
