@@ -1,5 +1,5 @@
 // /netlify/functions/chat-explore.js
-// North Star Explore server function v5 - Full FAQ + CRS Logic + Supabase Logging
+// North Star Explore server function v6 - Identity Layer + Full FAQ + CRS Logic + Supabase Logging
 
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
@@ -14,6 +14,37 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
 );
+
+// =============================================================================
+// IDENTITY LAYER - Phase 1B
+// =============================================================================
+
+async function getUserFromRequest(event) {
+  const authHeader = event.headers.authorization || event.headers.Authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
+
+  const token = authHeader.replace("Bearer ", "");
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data?.user) return null;
+
+  return data.user;
+}
+
+async function ensureProfile(user) {
+  const { data: existing } = await supabase
+    .from("profiles")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!existing) {
+    await supabase.from("profiles").insert({ user_id: user.id });
+  }
+}
+
+// =============================================================================
+// END IDENTITY LAYER
+// =============================================================================
 
 const ORIGIN = "https://migratenorth.ca";
 
@@ -1383,7 +1414,7 @@ ${profileContext}
 }
 
 // =============================================================================
-// MAIN HANDLER WITH SUPABASE LOGGING
+// MAIN HANDLER WITH SUPABASE LOGGING + IDENTITY LAYER
 // =============================================================================
 
 export const handler = async (event) => {
@@ -1411,6 +1442,16 @@ export const handler = async (event) => {
     }
 
     const parsed = JSON.parse(event.body || "{}");
+    
+    // =========================================================================
+    // IDENTITY LAYER - Phase 1B: Auth verification and profile auto-creation
+    // =========================================================================
+    const user = await getUserFromRequest(event);
+    if (user) {
+      await ensureProfile(user);
+    }
+    // =========================================================================
+    
     const message = parsed.message ?? "";
     const history = parsed.history ?? [];
     const meta = parsed.meta ?? {};
@@ -1443,6 +1484,15 @@ export const handler = async (event) => {
           message_in: trimmedMessage,
           message_out: faqReply,
           timestamp: new Date().toISOString()
+        });
+      }
+
+      // Activity logging for authenticated users
+      if (user) {
+        await supabase.from("activity_log").insert({
+          user_id: user.id,
+          event_type: "interaction",
+          event_value: "explore_faq"
         });
       }
 
@@ -1495,6 +1545,15 @@ export const handler = async (event) => {
         });
       }
 
+      // Activity logging for authenticated users
+      if (user) {
+        await supabase.from("activity_log").insert({
+          user_id: user.id,
+          event_type: "interaction",
+          event_value: "explore_both_options"
+        });
+      }
+
       return ok({
         reply: bothReply,
         history: newHistory,
@@ -1504,6 +1563,7 @@ export const handler = async (event) => {
     }
 
     // Profile complete, send CRS explanation
+    // IDENTITY GATE: Only show personalized CRS if user is logged in
     const looksLikeProfile =
       /\b\d{1,2}\s*years?\b/i.test(trimmedMessage) ||
       trimmedMessage.toLowerCase().includes("ielts") ||
@@ -1512,7 +1572,7 @@ export const handler = async (event) => {
       trimmedMessage.toLowerCase().includes("master") ||
       trimmedMessage.toLowerCase().includes("phd");
 
-    if (looksLikeProfile && isProfileComplete(updatedProfile)) {
+    if (user && looksLikeProfile && isProfileComplete(updatedProfile)) {
       const crsScore = estimateCRS(updatedProfile);
       const crsReply = buildCRSExplanation(updatedProfile, crsScore);
 
@@ -1529,6 +1589,15 @@ export const handler = async (event) => {
           message_in: trimmedMessage,
           message_out: crsReply,
           timestamp: new Date().toISOString()
+        });
+      }
+
+      // Activity logging for authenticated users
+      if (user) {
+        await supabase.from("activity_log").insert({
+          user_id: user.id,
+          event_type: "interaction",
+          event_value: "explore_crs_analysis"
         });
       }
 
@@ -1555,6 +1624,15 @@ export const handler = async (event) => {
         message_in: trimmedMessage,
         message_out: modelReply,
         timestamp: new Date().toISOString()
+      });
+    }
+
+    // Activity logging for authenticated users
+    if (user) {
+      await supabase.from("activity_log").insert({
+        user_id: user.id,
+        event_type: "interaction",
+        event_value: "explore_message"
       });
     }
 
