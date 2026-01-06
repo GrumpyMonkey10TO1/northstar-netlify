@@ -10,10 +10,10 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Supabase client
+// Supabase client (using service key to bypass RLS for server-side operations)
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_SERVICE_KEY
 );
 
 // ==============================================================================
@@ -116,7 +116,7 @@ function updatePillars(profile) {
   // Language pillar - based on IELTS scores
   const hasLanguage = profile.ielts_listening || profile.ielts_reading || 
                       profile.ielts_writing || profile.ielts_speaking ||
-                      profile.ieltsSummary;
+                      profile.ielts_summary || profile.ielts_average;
   profile.pillar_language_status = hasLanguage ? "stable" : "blocking";
 
   // Education pillar - based on education level
@@ -124,7 +124,7 @@ function updatePillars(profile) {
   profile.pillar_education_status = hasEducation ? "stable" : "blocking";
 
   // Work pillar - based on years experience
-  const workYears = profile.years_experience || profile.workYears || 0;
+  const workYears = profile.years_experience || profile.work_years || 0;
   profile.pillar_work_status = workYears >= 1 ? "stable" : "blocking";
 
   // Path pillar - based on overall profile completeness
@@ -1042,17 +1042,19 @@ function estimateCRS(profile) {
   }
 
   // Work experience points
-  if (profile.workYears !== undefined) {
-    const workPoints = CRS_TABLES.workYears[Math.min(profile.workYears, 5)] || 0;
+  const workYrs = profile.work_years || profile.workYears || profile.years_experience;
+  if (workYrs !== undefined) {
+    const workPoints = CRS_TABLES.workYears[Math.min(workYrs, 5)] || 0;
     score += workPoints;
-    breakdown.push(`Work Experience (${profile.workYears} years): ${workPoints} points`);
+    breakdown.push(`Work Experience (${workYrs} years): ${workPoints} points`);
   }
 
   // Language points (simplified - using average of IELTS bands)
   // Convert IELTS to CLB: 9.0=CLB10, 8.5=CLB10, 8.0=CLB9, 7.5=CLB9, 7.0=CLB8, 6.5=CLB8, 6.0=CLB7, 5.5=CLB6
-  if (profile.ieltsAverage) {
+  const ieltsAvg = profile.ielts_average || profile.ieltsAverage;
+  if (ieltsAvg) {
     let clb = 4; // default minimum
-    const ielts = profile.ieltsAverage;
+    const ielts = ieltsAvg;
     if (ielts >= 8.5) clb = 10;
     else if (ielts >= 7.5) clb = 9;
     else if (ielts >= 6.5) clb = 8;
@@ -1062,7 +1064,7 @@ function estimateCRS(profile) {
     
     const langPoints = (CRS_TABLES.languageCLB[clb] || 0) * 4;
     score += langPoints;
-    breakdown.push(`Language (IELTS ${profile.ieltsAverage} = CLB ${clb}): ${langPoints} points`);
+    breakdown.push(`Language (IELTS ${ieltsAvg} = CLB ${clb}): ${langPoints} points`);
   }
 
   return { score, breakdown };
@@ -1103,7 +1105,7 @@ function extractProfileFromMessage(message, existingProfile = {}) {
   const workMatch = message.match(/(\d+)\s*years?\s*(?:of\s*)?(?:work|experience|working)/i) ||
                     message.match(/experience\s*(?:of\s*)?(\d+)\s*years?/i);
   if (workMatch) {
-    profile.workYears = parseInt(workMatch[1]);
+    profile.work_years = parseInt(workMatch[1]);
     profile.years_experience = parseInt(workMatch[1]);
   }
 
@@ -1114,8 +1116,8 @@ function extractProfileFromMessage(message, existingProfile = {}) {
       .filter(s => s)
       .map(s => parseFloat(s));
     if (scores.length > 0) {
-      profile.ieltsAverage = scores.reduce((a, b) => a + b, 0) / scores.length;
-      profile.ieltsSummary = scores.join(", ");
+      profile.ielts_average = scores.reduce((a, b) => a + b, 0) / scores.length;
+      profile.ielts_summary = scores.join(", ");
       if (scores.length >= 4) {
         profile.ielts_listening = scores[0];
         profile.ielts_reading = scores[1];
@@ -1127,10 +1129,10 @@ function extractProfileFromMessage(message, existingProfile = {}) {
 
   // Extract single IELTS band mentioned
   const singleBandMatch = message.match(/ielts\s*(?:band\s*)?(\d\.?\d?)\s*(?:in\s*all|overall|bands?)?/i);
-  if (singleBandMatch && !profile.ieltsAverage) {
+  if (singleBandMatch && !profile.ielts_average) {
     const band = parseFloat(singleBandMatch[1]);
-    profile.ieltsAverage = band;
-    profile.ieltsSummary = `${band} overall`;
+    profile.ielts_average = band;
+    profile.ielts_summary = `${band} overall`;
     profile.ielts_listening = band;
     profile.ielts_reading = band;
     profile.ielts_writing = band;
@@ -1371,7 +1373,8 @@ export async function handler(event) {
                      lowerMessage.includes("estimate");
     
     const hasProfileData = updatedProfile.age || updatedProfile.education || 
-                          updatedProfile.workYears || updatedProfile.ieltsAverage;
+                          updatedProfile.work_years || updatedProfile.years_experience ||
+                          updatedProfile.ielts_average;
 
     if (wantsCRS && hasProfileData) {
       // Personalized CRS analysis requires login
