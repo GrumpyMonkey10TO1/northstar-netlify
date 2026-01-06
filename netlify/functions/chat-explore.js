@@ -32,14 +32,27 @@ async function getUserFromRequest(event) {
 }
 
 async function ensureProfile(user) {
-  const { data: existing } = await supabase
-    .from("profiles")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .single();
+  try {
+    const { data: existing, error: selectError } = await supabase
+      .from("profiles")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .single();
 
-  if (!existing) {
-    await supabase.from("profiles").insert({ user_id: user.id });
+    if (selectError && selectError.code !== 'PGRST116') {
+      console.error("ensureProfile select error:", selectError);
+    }
+
+    if (!existing) {
+      const { error: insertError } = await supabase.from("profiles").insert({ user_id: user.id });
+      if (insertError) {
+        console.error("ensureProfile insert error:", insertError);
+      } else {
+        console.log("Created new profile for user:", user.id);
+      }
+    }
+  } catch (err) {
+    console.error("ensureProfile exception:", err);
   }
 }
 
@@ -56,22 +69,39 @@ async function loadProfile(user) {
 async function saveProfile(user, profile) {
   if (!user || !profile) return;
   
-  // Add updated_at timestamp
-  profile.updated_at = new Date().toISOString();
-  
-  await supabase
-    .from("profiles")
-    .update(profile)
-    .eq("user_id", user.id);
+  try {
+    // Add updated_at timestamp
+    profile.updated_at = new Date().toISOString();
+    
+    const { error } = await supabase
+      .from("profiles")
+      .update(profile)
+      .eq("user_id", user.id);
+    
+    if (error) {
+      console.error("saveProfile error:", error);
+    } else {
+      console.log("Saved profile for user:", user.id);
+    }
+  } catch (err) {
+    console.error("saveProfile exception:", err);
+  }
 }
 
 async function logActivity(user, eventType, eventValue) {
   if (!user) return;
-  await supabase.from("activity_log").insert({
-    user_id: user.id,
-    event_type: eventType,
-    event_value: eventValue,
-  });
+  try {
+    const { error } = await supabase.from("activity_log").insert({
+      user_id: user.id,
+      event_type: eventType,
+      event_value: eventValue,
+    });
+    if (error) {
+      console.error("logActivity error:", error);
+    }
+  } catch (err) {
+    console.error("logActivity exception:", err);
+  }
 }
 
 // ==============================================================================
@@ -1019,11 +1049,20 @@ function estimateCRS(profile) {
   }
 
   // Language points (simplified - using average of IELTS bands)
+  // Convert IELTS to CLB: 9.0=CLB10, 8.5=CLB10, 8.0=CLB9, 7.5=CLB9, 7.0=CLB8, 6.5=CLB8, 6.0=CLB7, 5.5=CLB6
   if (profile.ieltsAverage) {
-    const clb = Math.floor(profile.ieltsAverage);
+    let clb = 4; // default minimum
+    const ielts = profile.ieltsAverage;
+    if (ielts >= 8.5) clb = 10;
+    else if (ielts >= 7.5) clb = 9;
+    else if (ielts >= 6.5) clb = 8;
+    else if (ielts >= 6.0) clb = 7;
+    else if (ielts >= 5.5) clb = 6;
+    else if (ielts >= 5.0) clb = 5;
+    
     const langPoints = (CRS_TABLES.languageCLB[clb] || 0) * 4;
     score += langPoints;
-    breakdown.push(`Language (IELTS ~${profile.ieltsAverage}): ${langPoints} points`);
+    breakdown.push(`Language (IELTS ${profile.ieltsAverage} = CLB ${clb}): ${langPoints} points`);
   }
 
   return { score, breakdown };
