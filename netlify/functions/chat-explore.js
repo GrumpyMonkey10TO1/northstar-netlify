@@ -426,30 +426,17 @@ DISQUALIFYING FACTORS
 Would you like me to help you check your specific eligibility? Tell me about your education, work experience, and language test scores.`
     },
     "calculate crs": {
-      keywords: ["calculate crs", "my crs score", "what's my crs", "realistic crs", "estimate crs"],
-      response: `I can help estimate your CRS score. To calculate accurately, I need:
+      keywords: ["how to calculate crs", "crs calculation explained", "crs formula"],
+      response: `To get your personalized CRS score, just tell me your details:
 
-CORE FACTORS
+• Your age
+• Highest education level  
+• Years of work experience
+• IELTS or CELPIP scores
 
-1. Your age
-2. Highest education level
-3. Years of skilled work experience (foreign and Canadian)
-4. Language test scores (IELTS or CELPIP)
-5. Do you have a spouse/common-law partner?
+For example: "I'm 32 with a Master's degree, 5 years work experience, IELTS 7.5 in all bands"
 
-ADDITIONAL FACTORS
-
-6. Any Canadian education?
-7. French language ability?
-8. Sibling who is Canadian citizen/PR?
-9. Valid job offer from Canadian employer?
-10. Provincial nomination?
-
-Share your details and I'll provide an estimate. For example:
-
-"I'm 32, have a Master's degree, 5 years work experience as a software developer, IELTS 7.5 in all bands, single, no Canadian connections."
-
-The more details you provide, the more accurate my estimate will be.`
+Once you share these, I'll calculate your exact CRS score and show you the breakdown.`
     },
     "inadmissibility": {
       keywords: ["inadmissibility", "police check", "medical exam", "criminal record", "background check"],
@@ -1341,38 +1328,9 @@ export async function handler(event) {
     const history = normalizeHistory(rawHistory);
 
     // ==============================================================================
-    // CHECK FOR FAQ RESPONSE
-    // ==============================================================================
-    const faqResponse = getFAQResponse(message);
-    if (faqResponse) {
-      // Log FAQ activity
-      if (user) {
-        await logActivity(user, "explore_faq", message.substring(0, 100));
-      }
-      return ok({ reply: faqResponse, userProfile: incomingProfile });
-    }
-
-    // ==============================================================================
-    // CHECK FOR "BOTH OPTIONS" INTENT
+    // EXTRACT PROFILE DATA FROM MESSAGE (do this early)
     // ==============================================================================
     const lowerMessage = message.toLowerCase();
-    const lastAssistant = getLastAssistantMessage(history).toLowerCase();
-    
-    if ((lowerMessage.includes("both") || lowerMessage.includes("all")) &&
-        (lastAssistant.includes("option 1") || lastAssistant.includes("option 2") ||
-         lastAssistant.includes("fsw") || lastAssistant.includes("pnp"))) {
-      
-      if (user) {
-        await logActivity(user, "explore_both_options", "");
-      }
-      
-      const response = buildBothOptionsFollowUp(incomingProfile);
-      return ok({ reply: response, userProfile: incomingProfile });
-    }
-
-    // ==============================================================================
-    // EXTRACT PROFILE DATA FROM MESSAGE
-    // ==============================================================================
     let updatedProfile = extractProfileFromMessage(message, incomingProfile);
 
     // ==============================================================================
@@ -1384,10 +1342,10 @@ export async function handler(event) {
     }
 
     // ==============================================================================
-    // CHECK FOR CRS CALCULATION REQUEST (requires login for personalization)
+    // CHECK FOR CRS CALCULATION REQUEST FIRST (before FAQ)
     // ==============================================================================
     const wantsCRS = lowerMessage.includes("crs") || 
-                     lowerMessage.includes("score") ||
+                     lowerMessage.includes("my score") ||
                      lowerMessage.includes("calculate") ||
                      lowerMessage.includes("estimate");
     
@@ -1417,7 +1375,37 @@ export async function handler(event) {
     }
 
     // ==============================================================================
+    // CHECK FOR FAQ RESPONSE (after CRS check)
+    // ==============================================================================
+    const faqResponse = getFAQResponse(message);
+    if (faqResponse) {
+      // Log FAQ activity
+      if (user) {
+        await logActivity(user, "explore_faq", message.substring(0, 100));
+      }
+      return ok({ reply: faqResponse, userProfile: updatedProfile });
+    }
+
+    // ==============================================================================
+    // CHECK FOR "BOTH OPTIONS" INTENT
+    // ==============================================================================
+    const lastAssistant = getLastAssistantMessage(history).toLowerCase();
+    
+    if ((lowerMessage.includes("both") || lowerMessage.includes("all")) &&
+        (lastAssistant.includes("option 1") || lastAssistant.includes("option 2") ||
+         lastAssistant.includes("fsw") || lastAssistant.includes("pnp"))) {
+      
+      if (user) {
+        await logActivity(user, "explore_both_options", "");
+      }
+      
+      const response = buildBothOptionsFollowUp(updatedProfile);
+      return ok({ reply: response, userProfile: updatedProfile });
+    }
+
+    // ==============================================================================
     // GENERAL AI RESPONSE
+    // ==============================================================================
     // ==============================================================================
     if (user) {
       await logActivity(user, "explore_message", message.substring(0, 100));
