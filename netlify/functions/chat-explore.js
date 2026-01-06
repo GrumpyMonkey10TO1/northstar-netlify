@@ -10,10 +10,16 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Supabase client (using service key to bypass RLS for server-side operations)
+// Supabase client for database operations (service key bypasses RLS)
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
+);
+
+// Supabase client for auth verification (needs anon key)
+const supabaseAuth = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
 );
 
 // ==============================================================================
@@ -22,12 +28,25 @@ const supabase = createClient(
 
 async function getUserFromRequest(event) {
   const authHeader = event.headers.authorization || event.headers.Authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    console.log("No auth header found");
+    return null;
+  }
 
   const token = authHeader.replace("Bearer ", "");
-  const { data, error } = await supabase.auth.getUser(token);
-  if (error || !data?.user) return null;
+  console.log("Token received, length:", token.length);
+  
+  const { data, error } = await supabaseAuth.auth.getUser(token);
+  if (error) {
+    console.error("Auth error:", error.message);
+    return null;
+  }
+  if (!data?.user) {
+    console.log("No user found in token");
+    return null;
+  }
 
+  console.log("User authenticated:", data.user.id);
   return data.user;
 }
 
