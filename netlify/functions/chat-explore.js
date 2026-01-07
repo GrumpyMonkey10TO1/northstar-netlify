@@ -1,6 +1,6 @@
 // /netlify/functions/chat-explore.js
-// North Star Explore server function v7 - Identity Layer + Permanent Memory + Pillar Logic
-// Phase 1C Complete: Persistent case files, readiness pillars, limiting factor tracking
+// North Star Explore server function v8 - Phase 2: Funnel & Soft Gating
+// Phase 2 Complete: Funnel state tracking, tier recommendations, soft gates
 
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
@@ -172,6 +172,185 @@ function isProfileComplete(profile) {
 
 // ==============================================================================
 // END PILLAR LOGIC
+// ==============================================================================
+
+// ==============================================================================
+// PHASE 2: FUNNEL STATE & TIER MAPPING
+// ==============================================================================
+
+/**
+ * Funnel States:
+ * - anonymous: Not logged in, just browsing
+ * - exploring: Logged in, asking general questions
+ * - diagnosed: Profile assessed, CRS calculated, limiter identified
+ * - considering: Shown tier recommendation, hasn't subscribed
+ * - subscribed: Has active paid tier
+ */
+
+function computeFunnelState(user, profile) {
+  if (!user) return "anonymous";
+  
+  // Check if they have an active paid subscription
+  if (profile.active_tier && profile.tier_status === "active") {
+    return "subscribed";
+  }
+  
+  // Check if they've been shown a recommendation
+  if (profile.recommended_tier) {
+    return "considering";
+  }
+  
+  // Check if diagnosis is complete (have limiter or all pillars stable)
+  if (profile.primary_limiter || isProfileComplete(profile)) {
+    return "diagnosed";
+  }
+  
+  return "exploring";
+}
+
+/**
+ * Step 2.2: Map limiter to recommended tier
+ * 
+ * Limiter -> Tier mapping:
+ * - language -> evolve (IELTS/CELPIP training)
+ * - education -> execute (pathway planning, credential advice)
+ * - work -> execute (pathway planning, work permit guidance)
+ * - path -> execute (full immigration strategy)
+ * - null (no limiter) -> execute (ready for application guidance)
+ */
+function mapLimiterToTier(limiter, profile) {
+  // If language is the primary blocker, recommend Evolve
+  if (limiter === "language") {
+    return {
+      tier: "evolve",
+      reason: "Your language scores are your biggest opportunity for improvement",
+      pitch: "Evolve includes AI-powered IELTS practice with real-time feedback to help you reach CLB 9+."
+    };
+  }
+  
+  // Check if they're a healthcare professional (might need Elevate)
+  const occupation = (profile.occupation || "").toLowerCase();
+  const isHealthcare = occupation.includes("nurse") || 
+                       occupation.includes("doctor") || 
+                       occupation.includes("medical") ||
+                       occupation.includes("healthcare");
+  
+  if (isHealthcare) {
+    return {
+      tier: "elevate",
+      reason: "Healthcare professionals have specific licensing requirements in Canada",
+      pitch: "Elevate includes NCLEX preparation and Canadian licensing guidance for healthcare workers."
+    };
+  }
+  
+  // For all other limiters, recommend Execute
+  return {
+    tier: "execute",
+    reason: limiter 
+      ? `Your ${limiter} status needs strategic planning to optimize your pathway`
+      : "You're ready to move forward with your immigration application",
+    pitch: "Execute provides step-by-step guidance through Express Entry, PNP selection, and application preparation."
+  };
+}
+
+/**
+ * Step 2.3: Soft gating thresholds
+ * 
+ * Instead of hard blocks, we use "depth limits" - users can keep chatting,
+ * but we periodically remind them about relevant paid features.
+ * 
+ * Thresholds:
+ * - After CRS calculation: First soft prompt
+ * - After 5 messages post-diagnosis: Second reminder
+ * - After 10 messages post-diagnosis: Stronger suggestion
+ * - Never fully blocked - just guided
+ */
+function checkGateStatus(profile, messageCount) {
+  const funnelState = profile.funnel_state;
+  
+  // No gating for subscribers or anonymous users
+  if (funnelState === "subscribed" || funnelState === "anonymous") {
+    return { gated: false, promptLevel: 0 };
+  }
+  
+  // Track messages since diagnosis
+  const messagesSinceDiagnosis = profile.messages_since_diagnosis || 0;
+  
+  if (funnelState === "diagnosed" || funnelState === "considering") {
+    if (messagesSinceDiagnosis >= 10) {
+      return { gated: false, promptLevel: 3 }; // Strong suggestion
+    } else if (messagesSinceDiagnosis >= 5) {
+      return { gated: false, promptLevel: 2 }; // Reminder
+    } else if (messagesSinceDiagnosis >= 1) {
+      return { gated: false, promptLevel: 1 }; // Soft prompt
+    }
+  }
+  
+  return { gated: false, promptLevel: 0 };
+}
+
+/**
+ * Step 2.4: Generate escalation prompts (soft, helpful tone)
+ * 
+ * These are appended to AI responses, not replacements.
+ * The goal is to feel helpful, not pushy.
+ */
+function generateEscalationPrompt(profile, promptLevel) {
+  if (promptLevel === 0) return null;
+  
+  const recommendation = mapLimiterToTier(profile.primary_limiter, profile);
+  const tierName = recommendation.tier.charAt(0).toUpperCase() + recommendation.tier.slice(1);
+  
+  const prompts = {
+    1: `\n\n---\n💡 **Quick tip:** ${recommendation.reason}. When you're ready to take the next step, our **${tierName}** tier can help accelerate your progress.`,
+    
+    2: `\n\n---\n🎯 **Personalized recommendation:** Based on your profile, ${recommendation.pitch}\n\nClick **💳 Subscribe** to unlock ${tierName} features, or keep exploring - I'm here to help either way.`,
+    
+    3: `\n\n---\n🚀 **Ready to accelerate?**\n\nYou've done great work understanding your immigration pathway. ${recommendation.pitch}\n\n**${tierName}** is designed specifically for people in your situation. [Learn more about ${tierName} →]\n\nNo pressure - I'll keep helping you here in Explore regardless.`
+  };
+  
+  return prompts[promptLevel] || null;
+}
+
+/**
+ * Build the full tier recommendation message (shown after CRS calculation)
+ */
+function buildTierRecommendation(profile, crsResult) {
+  const recommendation = mapLimiterToTier(profile.primary_limiter, profile);
+  const tierName = recommendation.tier.charAt(0).toUpperCase() + recommendation.tier.slice(1);
+  
+  let message = `\n\n---\n\n### Your Personalized Next Step\n\n`;
+  message += `**${recommendation.reason}.**\n\n`;
+  message += `${recommendation.pitch}\n\n`;
+  
+  // Add tier-specific benefits
+  if (recommendation.tier === "evolve") {
+    message += `**What's included in Evolve ($150 CAD/year):**\n`;
+    message += `• AI-powered IELTS & CELPIP practice tests\n`;
+    message += `• Real-time writing and speaking feedback\n`;
+    message += `• Vocabulary tracking and personalized drills\n`;
+    message += `• Progress tracking toward your target scores\n`;
+  } else if (recommendation.tier === "elevate") {
+    message += `**What's included in Elevate ($250 CAD/year):**\n`;
+    message += `• Comprehensive NCLEX question bank (400+ questions)\n`;
+    message += `• Canadian nursing licensing guidance\n`;
+    message += `• NNAS credential assessment support\n`;
+    message += `• Provincial registration pathways\n`;
+  } else {
+    message += `**What's included in Execute ($350 CAD/year):**\n`;
+    message += `• Step-by-step Express Entry guidance\n`;
+    message += `• PNP selection and application support\n`;
+    message += `• Document preparation checklists\n`;
+    message += `• CRS optimization strategies\n`;
+  }
+  
+  message += `\nClick **💳 Subscribe** to get started, or continue exploring - I'm happy to answer more questions.`;
+  
+  return message;
+}
+
+// ==============================================================================
+// END PHASE 2 FUNNEL LOGIC
 // ==============================================================================
 
 // ==============================================================================
@@ -880,19 +1059,19 @@ Need help with any specific document?`
 
 CORE SUBSCRIPTIONS
 
-📚 Language Training (Evolve) - $250 CAD/year
+📚 Language Training (Evolve) - $150 CAD/year
 • IELTS and CELPIP preparation
 • AI-powered writing and reading tests
 • Real-time feedback and scoring
 • Vocabulary tracking and review
 
-🩺 Licensing Support (Elevate) - $350 CAD/year
+🩺 Licensing Support (Elevate) - $250 CAD/year
 • NCLEX preparation for nurses
 • NNAS credential guidance
 • Provincial licensing pathways
 • Study plans and practice questions
 
-🛫 Immigration Pathway (Execute) - $450 CAD/year
+🛫 Immigration Pathway (Execute) - $350 CAD/year
 • Express Entry guidance
 • CRS optimization strategies
 • Document preparation support
@@ -900,10 +1079,10 @@ CORE SUBSCRIPTIONS
 
 BUNDLE OFFERS
 
-• Nurse Success Pack (Evolve + Elevate): $550/year - Save $50
-• Skilled Worker Pack (Evolve + Execute): $625/year - Save $75
-• Complete Migration Pack (Elevate + Execute): $725/year - Save $75
-• All Access Pack (All three): $900/year - Save $150
+• Nurse Success Pack (Evolve + Elevate): $350/year - Save $50
+• Skilled Worker Pack (Evolve + Execute): $425/year - Save $75
+• Complete Migration Pack (Elevate + Execute): $525/year - Save $75
+• All Access Pack (All three): $600/year - Save $150
 
 PROFESSIONAL SERVICES
 
@@ -1115,6 +1294,22 @@ function extractProfileFromMessage(message, existingProfile = {}) {
     profile.years_experience = parseInt(workMatch[1]);
   }
 
+  // Extract occupation/profession
+  const occupationPatterns = [
+    { pattern: /\b(nurse|nursing|registered nurse|rn)\b/i, value: "nurse" },
+    { pattern: /\b(doctor|physician|medical doctor|md)\b/i, value: "doctor" },
+    { pattern: /\b(engineer|engineering)\b/i, value: "engineer" },
+    { pattern: /\b(software|developer|programmer|it)\b/i, value: "software developer" },
+    { pattern: /\b(accountant|accounting)\b/i, value: "accountant" },
+    { pattern: /\b(teacher|teaching|educator)\b/i, value: "teacher" }
+  ];
+  for (const { pattern, value } of occupationPatterns) {
+    if (pattern.test(lowerMessage)) {
+      profile.occupation = value;
+      break;
+    }
+  }
+
   // Extract IELTS scores
   const ieltsMatch = message.match(/ielts[:\s]*(\d\.?\d?)[,\s]*(\d\.?\d?)?[,\s]*(\d\.?\d?)?[,\s]*(\d\.?\d?)?/i);
   if (ieltsMatch) {
@@ -1176,9 +1371,6 @@ function buildCRSExplanation(profile, crsResult) {
   // Add limiter info if available
   if (profile.primary_limiter) {
     explanation += `\n**Your primary limiting factor:** ${profile.primary_limiter}\n`;
-    if (profile.primary_limiter === "language") {
-      explanation += `Consider our Language Training (Evolve) module to improve your scores.\n`;
-    }
   }
 
   return explanation;
@@ -1342,6 +1534,18 @@ export async function handler(event) {
     }
 
     // ==============================================================================
+    // PHASE 2: Update funnel state
+    // ==============================================================================
+    if (user) {
+      updatedProfile.funnel_state = computeFunnelState(user, updatedProfile);
+      
+      // Track messages since diagnosis for soft gating
+      if (updatedProfile.funnel_state === "diagnosed" || updatedProfile.funnel_state === "considering") {
+        updatedProfile.messages_since_diagnosis = (updatedProfile.messages_since_diagnosis || 0) + 1;
+      }
+    }
+
+    // ==============================================================================
     // CHECK FOR CRS CALCULATION REQUEST FIRST (before FAQ)
     // ==============================================================================
     const wantsCRS = lowerMessage.includes("crs") || 
@@ -1366,7 +1570,19 @@ export async function handler(event) {
       await logActivity(user, "explore_crs_analysis", JSON.stringify(updatedProfile));
 
       const crsResult = estimateCRS(updatedProfile);
-      const explanation = buildCRSExplanation(updatedProfile, crsResult);
+      let explanation = buildCRSExplanation(updatedProfile, crsResult);
+
+      // ==============================================================================
+      // PHASE 2: Add tier recommendation after CRS calculation
+      // ==============================================================================
+      // This is the first "diagnosed" moment - show tier recommendation
+      const recommendation = mapLimiterToTier(updatedProfile.primary_limiter, updatedProfile);
+      updatedProfile.recommended_tier = recommendation.tier;
+      updatedProfile.funnel_state = "diagnosed";
+      updatedProfile.messages_since_diagnosis = 0; // Reset counter
+      
+      // Add tier recommendation to response
+      explanation += buildTierRecommendation(updatedProfile, crsResult);
 
       // Save profile updates
       await saveProfile(user, updatedProfile);
@@ -1383,7 +1599,23 @@ export async function handler(event) {
       if (user) {
         await logActivity(user, "explore_faq", message.substring(0, 100));
       }
-      return ok({ reply: faqResponse, userProfile: updatedProfile });
+      
+      // ==============================================================================
+      // PHASE 2: Check soft gating and add escalation prompt if needed
+      // ==============================================================================
+      let finalResponse = faqResponse;
+      if (user && updatedProfile.funnel_state) {
+        const gateStatus = checkGateStatus(updatedProfile, updatedProfile.messages_since_diagnosis || 0);
+        const escalationPrompt = generateEscalationPrompt(updatedProfile, gateStatus.promptLevel);
+        if (escalationPrompt) {
+          finalResponse += escalationPrompt;
+        }
+        
+        // Save updated message count
+        await saveProfile(user, updatedProfile);
+      }
+      
+      return ok({ reply: finalResponse, userProfile: updatedProfile });
     }
 
     // ==============================================================================
@@ -1406,12 +1638,11 @@ export async function handler(event) {
     // ==============================================================================
     // GENERAL AI RESPONSE
     // ==============================================================================
-    // ==============================================================================
     if (user) {
       await logActivity(user, "explore_message", message.substring(0, 100));
     }
 
-    const aiReply = await callOpenAI(message, history, updatedProfile);
+    let aiReply = await callOpenAI(message, history, updatedProfile);
 
     // Extract any new profile data from AI response context
     updatedProfile = extractProfileFromMessage(message, updatedProfile);
@@ -1420,6 +1651,16 @@ export async function handler(event) {
     if (user) {
       updatedProfile = updatePillars(updatedProfile);
       updatedProfile.primary_limiter = computeLimiter(updatedProfile);
+      updatedProfile.funnel_state = computeFunnelState(user, updatedProfile);
+      
+      // ==============================================================================
+      // PHASE 2: Check soft gating and add escalation prompt if needed
+      // ==============================================================================
+      const gateStatus = checkGateStatus(updatedProfile, updatedProfile.messages_since_diagnosis || 0);
+      const escalationPrompt = generateEscalationPrompt(updatedProfile, gateStatus.promptLevel);
+      if (escalationPrompt) {
+        aiReply += escalationPrompt;
+      }
       
       // Save profile updates
       await saveProfile(user, updatedProfile);
