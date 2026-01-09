@@ -1,5 +1,6 @@
 // stripe-webhook.js - Netlify Function
 // Handles Stripe webhook events for subscription management
+// Phase 2.5-2.6: Now syncs to BOTH user_memberships AND profiles tables
 
 const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
@@ -172,10 +173,15 @@ async function handleCheckoutComplete(session) {
   const expiresAt = new Date();
   expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
-  // Create or update memberships in Supabase
+  // Create or update memberships in Supabase (user_memberships table)
   for (const tier of uniqueTiers) {
     await upsertMembership(customerEmail, tier, session.id, expiresAt, stripeCustomerId);
   }
+
+  // ==============================================================================
+  // PHASE 2.5-2.6: Also update the profiles table
+  // ==============================================================================
+  await syncProfileTier(customerEmail, uniqueTiers, 'active');
 }
 
 async function handleSubscriptionUpdate(subscription) {
@@ -224,8 +230,18 @@ async function handleSubscriptionUpdate(subscription) {
     for (const tier of uniqueTiers) {
       await upsertMembership(customerEmail, tier, subscription.id, expiresAt, stripeCustomerId);
     }
+
+    // ==============================================================================
+    // PHASE 2.5-2.6: Also update the profiles table
+    // ==============================================================================
+    await syncProfileTier(customerEmail, uniqueTiers, 'active');
   } else {
     console.log(`Subscription status is ${subscription.status}, not granting access`);
+    
+    // If subscription is not active, mark profile as inactive
+    if (subscription.status === 'canceled' || subscription.status === 'unpaid' || subscription.status === 'past_due') {
+      await syncProfileTier(customerEmail, [], 'inactive');
+    }
   }
 }
 
@@ -241,7 +257,7 @@ async function handleSubscriptionCanceled(subscription) {
 
   const customerEmail = customer.email;
   
-  // Mark memberships as inactive
+  // Mark memberships as inactive in user_memberships
   const { error } = await supabase
     .from('user_memberships')
     .update({ 
@@ -256,6 +272,11 @@ async function handleSubscriptionCanceled(subscription) {
   } else {
     console.log(`Canceled memberships for ${customerEmail}`);
   }
+
+  // ==============================================================================
+  // PHASE 2.5-2.6: Also update the profiles table
+  // ==============================================================================
+  await syncProfileTier(customerEmail, [], 'canceled');
 }
 
 async function handleInvoicePaid(invoice) {
@@ -322,5 +343,96 @@ async function upsertMembership(email, tier, subscriptionId, expiresAt, stripeCu
     } else {
       console.log(`Created membership: ${email} -> ${tier}`);
     }
+  }
+}
+
+// ==============================================================================
+// PHASE 2.5-2.6: Sync tier info to profiles table
+// ==============================================================================
+
+/**
+ * Updates the profiles table with tier information
+ * This connects Stripe subscriptions to the funnel system
+ * 
+ * @param {string} email - Customer email
+ * @param {string[]} tiers - Array of tier names (e.g., ['evolve', 'execute'])
+ * @param {string} status - 'active', 'inactive', or 'canceled'
+ */
+async function syncProfileTier(email, tiers, status) {
+  const normalizedEmail = email.toLowerCase();
+  
+  console.log(`Syncing profile tier for ${normalizedEmail}: tiers=${tiers.join(',') || 'none'}, status=${status}`);
+
+  // Find the profile by email (profiles are linked to auth.users which have email)
+  // First, try to find user_id from auth metadata or existing profile
+  const { data: existingProfile, error: findError } = await supabase
+    .from('profiles')
+    .select('user_id, email')
+    .or(`email.eq.${normalizedEmail}`)
+    .maybeSingle();
+
+  // If no profile found by email column, try to find via auth.users
+  let userId = existingProfile?.user_id;
+  
+  if (!userId) {
+    // Look up user by email in auth.users (via service key)
+    const { data: authData } = await supabase.auth.admin.listUsers();
+    const authUser = authData?.users?.find(u => u.email?.toLowerCase() === normalizedEmail);
+    userId = authUser?.id;
+  }
+
+  if (!userId) {
+    console.log(`No profile found for email ${normalizedEmail} - user may not have logged in yet`);
+    // Store this info somewhere so it can be applied when they do log in
+    // For now, we'll just log it
+    return;
+  }
+
+  // Determine the primary tier (highest value tier)
+  // Priority: execute > elevate > evolve
+  let activeTier = null;
+  if (tiers.includes('execute')) {
+    activeTier = 'execute';
+  } else if (tiers.includes('elevate')) {
+    activeTier = 'elevate';
+  } else if (tiers.includes('evolve')) {
+    activeTier = 'evolve';
+  }
+
+  // Determine funnel state and tier status
+  let funnelState = 'diagnosed'; // Default if canceling
+  let tierStatus = status;
+  
+  if (status === 'active' && activeTier) {
+    funnelState = 'subscribed';
+    tierStatus = 'active';
+  } else if (status === 'canceled' || status === 'inactive') {
+    funnelState = 'considering'; // They had a subscription but it's no longer active
+    tierStatus = 'inactive';
+    activeTier = null; // Clear the active tier
+  }
+
+  // Update the profile
+  const updateData = {
+    active_tier: activeTier,
+    tier_status: tierStatus,
+    funnel_state: funnelState,
+    updated_at: new Date().toISOString(),
+  };
+
+  // If they have multiple tiers (bundle), store them all
+  if (tiers.length > 0) {
+    updateData.all_tiers = tiers.join(',');
+  }
+
+  const { error: updateError } = await supabase
+    .from('profiles')
+    .update(updateData)
+    .eq('user_id', userId);
+
+  if (updateError) {
+    console.error(`Error syncing profile tier for ${normalizedEmail}:`, updateError);
+  } else {
+    console.log(`Profile synced: ${normalizedEmail} -> active_tier=${activeTier}, funnel_state=${funnelState}`);
   }
 }
