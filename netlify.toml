@@ -1,9 +1,16 @@
 [build]
-  publish = "."
+  publish = "public"
   functions = "netlify/functions"
 
 [functions]
   node_bundler = "esbuild"
+
+# Serve static JS files directly
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=3600"
 
 # Stripe webhook route
 [[redirects]]
@@ -11,9 +18,3 @@
   to = "/.netlify/functions/stripe-webhook"
   status = 200
   force = true
-
-# WordPress fallback LAST
-[[redirects]]
-  from = "/*"
-  to = "/index.php"
-  status = 200
