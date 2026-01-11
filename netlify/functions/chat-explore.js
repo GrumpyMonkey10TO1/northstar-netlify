@@ -1,6 +1,7 @@
 // /netlify/functions/chat-explore.js
-// North Star Explore server function v8 - Phase 2: Funnel & Soft Gating
+// North Star Explore server function v9 - IMPROVED DIRECT ANSWERS
 // Phase 2 Complete: Funnel state tracking, tier recommendations, soft gates
+// v9 Updates: Better system prompt, more FAQ responses, direct answers
 
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
@@ -255,15 +256,6 @@ function mapLimiterToTier(limiter, profile) {
 
 /**
  * Step 2.3: Soft gating thresholds
- * 
- * Instead of hard blocks, we use "depth limits" - users can keep chatting,
- * but we periodically remind them about relevant paid features.
- * 
- * Thresholds:
- * - After CRS calculation: First soft prompt
- * - After 5 messages post-diagnosis: Second reminder
- * - After 10 messages post-diagnosis: Stronger suggestion
- * - Never fully blocked - just guided
  */
 function checkGateStatus(profile, messageCount) {
   const funnelState = profile.funnel_state;
@@ -291,9 +283,6 @@ function checkGateStatus(profile, messageCount) {
 
 /**
  * Step 2.4: Generate escalation prompts (soft, helpful tone)
- * 
- * These are appended to AI responses, not replacements.
- * The goal is to feel helpful, not pushy.
  */
 function generateEscalationPrompt(profile, promptLevel) {
   if (promptLevel === 0) return null;
@@ -323,27 +312,29 @@ function buildTierRecommendation(profile, crsResult) {
   message += `**${recommendation.reason}.**\n\n`;
   message += `${recommendation.pitch}\n\n`;
   
-  // Add tier-specific benefits
+  // Add tier-specific benefits - UPDATED PRICING
   if (recommendation.tier === "evolve") {
-    message += `**What's included in Evolve ($150 CAD/year):**\n`;
-    message += `• AI-powered IELTS & CELPIP practice tests\n`;
-    message += `• Real-time writing and speaking feedback\n`;
+    message += `**What's included in Evolve ($250 CAD/year):**\n`;
+    message += `• AI-powered IELTS & CELPIP Reading & Writing practice\n`;
+    message += `• Real-time scoring and detailed feedback\n`;
     message += `• Vocabulary tracking and personalized drills\n`;
     message += `• Progress tracking toward your target scores\n`;
+    message += `• Speaking & Listening packages available separately\n`;
   } else if (recommendation.tier === "elevate") {
-    message += `**What's included in Elevate ($250 CAD/year):**\n`;
+    message += `**What's included in Elevate ($350 CAD/year):**\n`;
     message += `• Comprehensive NCLEX question bank (400+ questions)\n`;
     message += `• Canadian nursing licensing guidance\n`;
     message += `• NNAS credential assessment support\n`;
     message += `• Provincial registration pathways\n`;
   } else {
-    message += `**What's included in Execute ($350 CAD/year):**\n`;
+    message += `**What's included in Execute ($450 CAD/year):**\n`;
     message += `• Step-by-step Express Entry guidance\n`;
     message += `• PNP selection and application support\n`;
     message += `• Document preparation checklists\n`;
     message += `• CRS optimization strategies\n`;
   }
   
+  message += `\nThese tools are available 24/7 - use them to work for you!\n`;
   message += `\nClick **💳 Subscribe** to get started, or continue exploring - I'm happy to answer more questions.`;
   
   return message;
@@ -402,7 +393,7 @@ function errorResponse(code, message) {
 }
 
 // ==============================================================================
-// FAQ RESPONSES
+// FAQ RESPONSES - EXPANDED WITH DIRECT ANSWERS
 // ==============================================================================
 
 function getFAQResponse(message) {
@@ -411,23 +402,28 @@ function getFAQResponse(message) {
   const faqs = {
     "express entry": {
       keywords: ["what is express entry", "explain express entry", "how express entry works", "express entry system"],
-      response: `Express Entry is Canada's flagship immigration system for skilled workers. It's an online application management system that ranks candidates based on their Comprehensive Ranking System (CRS) score.
+      response: `**Express Entry is Canada's main system for skilled worker immigration.**
 
-HOW IT WORKS
+**How it works in 5 steps:**
 
-1. You create an online profile with your qualifications
-2. The system calculates your CRS score (out of 1200 points)
-3. You enter a pool with other candidates
-4. IRCC conducts regular draws and invites top-scoring candidates
-5. If invited, you have 60 days to submit a complete application
+1. **Create a profile** - Enter your age, education, work experience, and language scores into the IRCC online system
 
-THREE PROGRAMS UNDER EXPRESS ENTRY
+2. **Get ranked** - You receive a CRS (Comprehensive Ranking System) score out of 1200 points
 
-• Federal Skilled Worker (FSW) - for skilled workers with foreign work experience
-• Canadian Experience Class (CEC) - for those with Canadian work experience
-• Federal Skilled Trades (FST) - for qualified tradespeople
+3. **Enter the pool** - Your profile competes with others in the Express Entry pool
 
-The minimum CRS score for invitations varies by draw, typically ranging from 450-550 points for general draws.`
+4. **Wait for draws** - IRCC holds draws every 2 weeks, inviting the highest-scoring candidates
+
+5. **Get invited** - If your CRS meets the cutoff, you get an ITA (Invitation to Apply) and have 60 days to submit your full PR application
+
+**The 3 Express Entry programs:**
+• Federal Skilled Worker (FSW) - For international workers
+• Canadian Experience Class (CEC) - For people with Canadian work experience  
+• Federal Skilled Trades (FST) - For skilled tradespeople
+
+**Recent draw cutoffs:** 470-520 points (varies by category)
+
+Would you like me to estimate your CRS score?`
     },
     "crs scoring": {
       keywords: ["crs score", "crs scoring", "how crs works", "comprehensive ranking", "crs points"],
@@ -458,151 +454,185 @@ WHAT SCORES ARE COMPETITIVE?
     },
     "ielts celpip": {
       keywords: ["ielts vs celpip", "ielts or celpip", "language test", "ielts celpip difference", "which test"],
-      response: `Both IELTS General Training and CELPIP General are accepted for Express Entry.
+      response: `**IELTS vs CELPIP Comparison:**
 
-IELTS GENERAL TRAINING
+**IELTS General Training**
+• International test, available worldwide
+• Paper or computer-based
+• Speaking: In-person with examiner
+• Scored in bands (0-9)
+• Results in 13 days (or 5-7 for computer)
+• Cost: ~$300-350 CAD
+• Accepted globally
 
-• International test, accepted worldwide
-• Paper-based or computer-based
-• Scored 1-9 in each skill
-• Speaking test with human examiner
-• Available in most countries
-
-CELPIP GENERAL
-
-• Canadian-developed test
+**CELPIP General**
+• Canadian test, mainly in Canada
 • Computer-based only
-• Scored 1-12 in each skill
-• Speaking test recorded on computer
-• Available mainly in Canada and some international locations
+• Speaking: To computer screen
+• Scored in levels (1-12)
+• Results in 4-5 days (fastest!)
+• Cost: ~$280-320 CAD
+• Only for Canadian immigration
 
-CLB CONVERSION
+**CLB Conversion:**
+| CLB | IELTS Band | CELPIP Level |
+|-----|------------|--------------|
+| 7 | 6.0 | 7 |
+| 8 | 6.5 | 8 |
+| 9 | 7.0 | 9 |
+| 10 | 7.5-8.0 | 10 |
 
-CLB 9 = IELTS 7.0 in all skills = CELPIP 9 in all skills
-CLB 7 = IELTS 6.0 in all skills = CELPIP 7 in all skills
+**Which should you choose?**
 
-For maximum CRS points, you need CLB 10+ (IELTS 7.5-8.0, CELPIP 10).`
+Choose **IELTS** if:
+• You're outside Canada
+• You want test accepted for other purposes
+• You prefer face-to-face speaking
+
+Choose **CELPIP** if:
+• You're in Canada
+• You're more comfortable with computers
+• You want faster results
+
+**Our Language Training module ($250/year) covers both formats with 66 Reading & Writing practice tests!**`
     },
     "eca": {
       keywords: ["what is eca", "educational credential", "credential assessment", "eca explained", "wes assessment"],
-      response: `An Educational Credential Assessment (ECA) verifies that your foreign education is equivalent to a Canadian credential.
+      response: `**Educational Credential Assessment (ECA):**
 
-WHY YOU NEED IT
+**What is it?**
+An official evaluation that confirms your foreign education is equivalent to a Canadian credential. Required for Express Entry.
 
-• Required for Express Entry points
-• Validates your education level for immigration
-• Different from professional licensing
+**Why it matters:**
+• Without ECA = 0 education points
+• With ECA = up to 150 CRS points
+• It's MANDATORY for FSW program
 
-DESIGNATED ORGANIZATIONS
+**Designated Organizations:**
+1. **WES (World Education Services)** - Most popular, fastest
+2. IQAS - Alberta based
+3. ICES - For international pharmacists
+4. MCC - For physicians
+5. CPA Canada - For accountants
 
-• WES (World Education Services) - most popular
-• IQAS (Alberta)
-• ICES, CES, PEBC (for pharmacists), MCC (for doctors)
+**WES Process:**
+1. Create WES account (~15 min)
+2. Request documents from your university
+3. Documents sent directly to WES (or through WES Gateway)
+4. WES evaluates and issues report
+5. Report valid for 5 years
 
-THE PROCESS
+**Timeline:** 4-8 weeks (can be faster with WES Gateway)
+**Cost:** $200-300 CAD
 
-1. Apply online with the organization
-2. Request transcripts from your institution
-3. Pay fees ($200-300 CAD typically)
-4. Wait for assessment (4-8 weeks usually)
-5. Receive ECA report
+**Pro tips:**
+• Start NOW - this is often the longest wait
+• Get transcripts AND degree evaluated
+• Use official document delivery, not self-mailed
+• Some countries have WES Gateway for faster processing
 
-VALIDITY
-
-ECAs are valid for 5 years from the date of issue for immigration purposes.`
+Have you started your ECA yet?`
     },
     "cec fsw fst": {
       keywords: ["cec fsw fst", "three programs", "express entry programs", "which program"],
-      response: `Express Entry has three immigration programs:
+      response: `**The 3 Express Entry Programs:**
 
-FEDERAL SKILLED WORKER (FSW)
-
-Requirements:
-• 1+ year continuous skilled work experience (NOC 0, A, or B)
-• Language: CLB 7 minimum
-• Education: High school minimum (ECA required)
-• Must score 67+ on FSW points grid
-
-Best for: Skilled workers outside Canada
-
-CANADIAN EXPERIENCE CLASS (CEC)
+**1. Federal Skilled Worker (FSW)**
+*For skilled workers outside Canada*
 
 Requirements:
-• 1+ year skilled Canadian work experience in last 3 years
-• Language: CLB 7 for NOC 0/A, CLB 5 for NOC B
+• 1+ year continuous skilled work (NOC TEER 0, 1, 2, or 3)
+• CLB 7 minimum in all abilities
+• Foreign education with ECA
+• Score 67+ on FSW points grid
+• Proof of funds
+
+Best for: International applicants with strong education and work experience
+
+**2. Canadian Experience Class (CEC)**
+*For people with Canadian work experience*
+
+Requirements:
+• 1+ year skilled work IN CANADA (last 3 years)
+• CLB 7 for NOC 0/A jobs, CLB 5 for NOC B jobs
 • No education requirement
+• No proof of funds required
 
-Best for: Those with Canadian work experience
+Best for: International students, work permit holders, anyone who worked in Canada
 
-FEDERAL SKILLED TRADES (FST)
+**3. Federal Skilled Trades (FST)**
+*For skilled tradespeople*
 
 Requirements:
 • 2+ years skilled trade experience
-• Job offer OR certificate of qualification
-• Language: CLB 5 speaking/listening, CLB 4 reading/writing
+• CLB 5 speaking/listening, CLB 4 reading/writing
+• Job offer OR trade certification from province
+• Trade must be in eligible list
 
-Best for: Qualified tradespeople (electricians, plumbers, etc.)`
+Best for: Electricians, plumbers, welders, mechanics, carpenters, etc.
+
+**Which program fits you?** It depends on where your work experience is and what industry you're in.`
     },
     "ita pr process": {
       keywords: ["ita", "invitation to apply", "pr process", "process stages", "after ita"],
-      response: `The Express Entry process has clear stages:
+      response: `**Express Entry Process: Step by Step**
 
-STAGE 1: PROFILE CREATION
+**Stage 1: ITA (Invitation to Apply)**
+• Your profile is in the pool
+• IRCC runs draws every ~2 weeks
+• If your CRS meets cutoff → You get ITA
+• ITA valid for 60 days
 
-• Create Express Entry profile online
-• Receive CRS score
-• Enter the candidate pool
+**Stage 2: Application Submission**
+• Complete all forms (IMM 0008, Schedule A, etc.)
+• Upload all documents
+• Pay processing fees ($1,365 + $515 RPRF)
+• Submit within 60 days of ITA
 
-STAGE 2: POOL RANKING
+**Stage 3: AOR (Acknowledgment of Receipt)**
+• IRCC confirms they received your application
+• Background checks begin
+• You get application number
 
-• Your profile is ranked against others
-• IRCC conducts draws every 2 weeks typically
-• If your score meets the cutoff, you receive an ITA
+**Stage 4: Medical Request (if not done)**
+• Complete medical exam with designated physician
+• Results sent directly to IRCC
+• Valid for 12 months
 
-STAGE 3: INVITATION TO APPLY (ITA)
+**Stage 5: COPR (Confirmation of Permanent Residence)**
+• Application approved!
+• You receive COPR letter
+• Valid for specific date (check expiry)
 
-• You have 60 days to submit complete application
-• Include all supporting documents
-• Pay processing fees ($1,365 for principal applicant)
+**Stage 6: Landing**
+• Enter Canada before COPR expires
+• Port of entry officer confirms landing
+• You become a Permanent Resident!
+• PR card mailed to Canadian address
 
-STAGE 4: APPLICATION REVIEW
+**Timeline:** 6-12 months from ITA to landing
 
-• IRCC reviews your application (6-8 months typically)
-• May request additional documents
-• Background and medical checks
-
-STAGE 5: CONFIRMATION OF PR (COPR)
-
-• If approved, receive COPR and entry visa
-• Land in Canada to activate PR status
-• Receive PR card by mail`
+Which stage are you at?`
     },
     "eligibility": {
       keywords: ["am i eligible", "eligible for express entry", "do i qualify", "check eligibility"],
-      response: `To be eligible for Express Entry, you need to meet minimum requirements for at least one program.
+      response: `**Express Entry Eligibility Checklist:**
 
-BASIC REQUIREMENTS FOR FSW
+You need ALL of these:
 
-✓ 1+ year skilled work experience (NOC TEER 0, 1, 2, or 3)
-✓ Language test results (CLB 7 minimum)
-✓ Educational Credential Assessment
-✓ Score 67+ on FSW selection factors
-✓ Proof of funds (unless working in Canada)
+✅ **Language Test** - IELTS General or CELPIP (minimum CLB 7 for FSW)
+✅ **Education** - At least high school (foreign credentials need ECA)
+✅ **Work Experience** - At least 1 year skilled work (NOC TEER 0, 1, 2, or 3)
+✅ **Proof of Funds** - ~$14,690 CAD for single applicant (unless you have a Canadian job offer)
 
-BASIC REQUIREMENTS FOR CEC
+**Quick eligibility test:**
+- Do you have 1+ years of skilled work? ✓/✗
+- Can you score CLB 7 (IELTS 6.0) in English? ✓/✗
+- Do you have post-secondary education? ✓/✗
 
-✓ 1+ year skilled Canadian work experience in last 3 years
-✓ Language test results (CLB 7 for TEER 0/1, CLB 5 for TEER 2/3)
-✓ Plan to live outside Quebec
+If yes to all three, you're likely eligible!
 
-DISQUALIFYING FACTORS
-
-✗ Criminal inadmissibility
-✗ Medical inadmissibility
-✗ Misrepresentation in previous applications
-✗ Previous removal order
-
-Would you like me to help you check your specific eligibility? Tell me about your education, work experience, and language test scores.`
+**What's YOUR situation?** Tell me your age, education, work experience, and language level, and I'll give you a specific assessment.`
     },
     "calculate crs": {
       keywords: ["how to calculate crs", "crs calculation explained", "crs formula"],
@@ -649,487 +679,467 @@ REQUIRED CHECKS
 
 If you have concerns about inadmissibility, I can explain options. What's your specific situation?`
     },
+    
+    // ============ NEW: DIRECT ANSWER FAQ RESPONSES ============
+    
     "consultant lawyer": {
-      keywords: ["consultant", "lawyer", "rcic", "do i need", "immigration help", "hire consultant"],
-      response: `You don't legally need a consultant or lawyer, but professional help can be valuable in complex cases.
+      keywords: ["consultant", "lawyer", "rcic", "do i need", "immigration help", "hire consultant", "consultant or lawyer"],
+      response: `**Do You Need Professional Help?**
 
-WHEN TO CONSIDER PROFESSIONAL HELP
+**You DON'T need a consultant if:**
+✅ Straightforward case (no refusals, simple work history)
+✅ You're organized and detail-oriented
+✅ You have time to research IRCC requirements
+✅ Single applicant, clear documentation
 
-• Previous refusals or inadmissibility issues
-• Complex family situations
-• Employer-sponsored applications
-• Appeals or humanitarian cases
-• You're unsure about your eligibility
+**You SHOULD consider professional help if:**
+⚠️ Previous visa refusals or inadmissibility issues
+⚠️ Complex work history across multiple countries
+⚠️ Criminal record or medical concerns
+⚠️ Employer-sponsored LMIA applications
+⚠️ Appeals or humanitarian cases
+⚠️ You're genuinely unsure about eligibility
 
-RCIC vs IMMIGRATION LAWYER
+**RCIC vs Immigration Lawyer:**
 
-RCIC (Regulated Canadian Immigration Consultant):
-• Licensed by College of Immigration Consultants
-• Can handle most immigration applications
-• Generally lower fees ($1,500-5,000)
+| Type | Cost | Can Do |
+|------|------|--------|
+| RCIC | $1,500-5,000 | Most PR applications |
+| Lawyer | $3,000-10,000+ | Court/appeals |
 
-Immigration Lawyer:
-• Member of provincial law society
-• Can represent in court/appeals
-• Generally higher fees ($3,000-10,000+)
+**How to verify:**
+• RCIC: Check cicc-ccic.ca registry
+• Lawyer: Check provincial law society
+• NEVER use unlicensed "ghost consultants"
 
-HOW TO VERIFY
-
-• Check CICC registry for RCICs
-• Check provincial law society for lawyers
-• Never use "ghost consultants" (unlicensed)
-
-Matin Immigration Services (RCIC #R712582) offers professional consultation if you need expert guidance on your case.`
+**Our approach at Matin Immigration Services:**
+We empower you with tools to do it yourself (90%+ of cases). For complex situations, we offer professional consultation under RCIC License R712582.`
     },
-    "low crs": {
-      keywords: ["crs too low", "low crs", "low score", "increase crs", "boost crs", "improve score"],
-      response: `A low CRS score isn't the end of your journey. Here are proven strategies:
+    "low crs options": {
+      keywords: ["crs too low", "low crs", "low score", "increase crs", "boost crs", "improve score", "my options", "what are my options"],
+      response: `**Your CRS is low? Here are your REAL options:**
 
-FASTEST WINS (can add 50-150 points)
+**FASTEST ways to boost CRS:**
 
-1. Improve language scores → Up to 40 extra points
-   Moving from CLB 8 to CLB 10 adds significant points
+1. **Improve IELTS/CELPIP** (+20-50 points)
+   - CLB 7 → CLB 9 can add 40+ points
+   - This is usually the easiest win
 
-2. Get a provincial nomination → 600 points
-   Some PNPs have lower requirements than Express Entry
+2. **Get a Provincial Nomination** (+600 points)
+   - Instant ITA guarantee
+   - Many provinces have streams for your NOC
 
-3. One year Canadian work/study → 15-30 points
-   Also opens CEC pathway
+3. **Improve spouse's language scores** (+10-30 points)
+   - Often overlooked but significant
 
-MEDIUM-TERM OPTIONS
+4. **Get Canadian work experience** (+50-80 points)
+   - Work permit + 1 year = major boost
 
-4. Additional education → 15-30 points
-   Canadian diploma or degree
+**IF your CRS is below 450:**
+→ Provincial Nominee Programs (PNP) are your best bet
+→ Some PNPs don't require job offers
+→ Ontario, BC, Alberta, Saskatchewan have active streams
 
-5. French language → 25-50 points
-   Even basic French helps
-
-6. Job offer (LMIA) → 50-200 points
-   Difficult but valuable
-
-ALTERNATIVE PATHWAYS
-
-• Atlantic Immigration Program
-• Rural and Northern Immigration Pilot
-• Provincial Nominee Programs (non-EE streams)
-• Start-up Visa (entrepreneurs)
-
-What's your current score and situation? I can suggest the best strategy for your case.`
+**What's your current CRS?** I can recommend specific strategies for your score range.`
     },
     "boost fast": {
-      keywords: ["boost fast", "quick points", "fast improvement", "50 points"],
-      response: `Here are the fastest ways to boost your CRS score:
+      keywords: ["boost fast", "quick points", "fast improvement", "50 points", "quickly improve"],
+      response: `**Fastest CRS Boosters (ranked by speed):**
 
-IMMEDIATE IMPACT
+**🚀 Quick wins (1-3 months):**
+1. **Retake IELTS/CELPIP** - Each CLB level = ~20-30 points
+   - Focus on your weakest skill
+   - CLB 7 → 9 can add 50+ points
 
-1. RETAKE LANGUAGE TEST
-   • CLB 9 to 10 = +20-40 points
-   • Focus on weakest skill
-   • Many improve 0.5-1.0 band with preparation
-   • Cost: ~$300-400
+2. **Get second language tested** - French adds 25-50 bonus points
+   - Even CLB 5 French helps!
 
-2. SECOND LANGUAGE (FRENCH)
-   • NCLC 7+ = 25 points (with strong English)
-   • NCLC 5 gives some points too
-   • TEF or TCF Canada accepted
+**📈 Medium-term (3-6 months):**
+3. **Provincial Nomination** - +600 points (game over, you get ITA)
+   - Apply to multiple provinces simultaneously
+   - Some have rapid processing (Ontario, BC Tech)
 
-WITHIN 3-6 MONTHS
+4. **Spouse strategy** - Exclude low-scoring spouse OR improve their scores
+   - Sometimes applying as single = higher score
 
-3. PROVINCIAL NOMINATION
-   • 600 points added to CRS
-   • Some PNPs have NOI streams
-   • Research BC, Ontario, Alberta, Saskatchewan PNPs
+**📊 Longer-term (6-12 months):**
+5. **Canadian education** - 1-year program adds 15-30 points
+6. **Canadian work experience** - Each year adds points
 
-4. GET ECA FOR ALL CREDENTIALS
-   • Each credential assessed separately
-   • Multiple degrees = higher education points
-
-WITHIN 1 YEAR
-
-5. CANADIAN EXPERIENCE
-   • Work permit → 1 year work → CEC eligible
-   • Study permit → Canadian credential + PGWP
-
-Which of these options would you like me to explain further?`
+**What's your biggest gap?** Tell me your profile and I'll pinpoint where you'll get the most points fastest.`
     },
     "common mistakes": {
       keywords: ["mistakes", "common mistakes", "avoid mistakes", "application errors", "kill applications"],
-      response: `These mistakes can seriously harm or destroy your application:
+      response: `**Top Mistakes That Kill Applications:**
 
-CRITICAL ERRORS
+**❌ Documentation Errors:**
+1. Work reference letters missing required details (duties, hours, dates)
+2. Using wrong NOC code for your job
+3. Not getting ALL foreign credentials assessed (ECA)
+4. Expired documents (IELTS only valid 2 years!)
 
-1. MISREPRESENTATION
-   • Even unintentional errors can be seen as misrepresentation
-   • 5-year ban from all Canadian immigration
-   • Always disclose everything, even unfavorable info
+**❌ Calculation Mistakes:**
+5. Including work experience that doesn't match NOC requirements
+6. Counting part-time work incorrectly
+7. Not understanding CLB conversion from IELTS bands
 
-2. INCOMPLETE WORK HISTORY
-   • Must list ALL jobs, including gaps
-   • Unexplained gaps raise red flags
-   • Keep reference letters from all employers
+**❌ Strategy Mistakes:**
+8. Waiting for "perfect" score instead of applying to PNP now
+9. Not applying to multiple PNPs simultaneously
+10. Ignoring French language bonus (easy 25-50 points!)
 
-3. EXPIRED DOCUMENTS
-   • Language tests valid 2 years
-   • ECA valid 5 years
-   • Police checks typically 1 year
-   • Medical exam valid 1 year
+**❌ Timing Mistakes:**
+11. Starting ECA too late (takes 4-8 weeks)
+12. Missing PNP intake windows
+13. Not having proof of funds ready in advance
 
-COMMON PROBLEMS
-
-4. Wrong NOC code selection
-5. Missing reference letter requirements
-6. Poor quality document scans
-7. Not updating profile changes
-8. Missing deadlines (60 days for ITA)
-
-PROCESS MISTAKES
-
-9. Applying without complete documents ready
-10. Not saving copies of everything submitted
-11. Using unregulated consultants
-12. Relying on forums instead of official sources
-
-Would you like me to explain any of these in more detail?`
+**The #1 mistake?** Waiting too long to act. Start your ECA and language test NOW, even if you're not ready to apply.`
     },
     "improve profile": {
       keywords: ["improve profile", "strengthen profile", "boost profile", "100 points"],
-      response: `Here's how others have significantly improved their profiles:
+      response: `**Profile Strengthening Strategies:**
 
-LANGUAGE IMPROVEMENT STORIES
+**Highest Impact Actions:**
 
-• Engineer improved IELTS from 7.0 to 8.0 = +30 points
-• Took 3 months of focused preparation
-• Used official practice tests and tutoring
+1. **Language (up to +50 points)**
+   → Retake IELTS targeting 8+ in each band
+   → Consider French (TEF/TCF) for 25-50 bonus points
+   → Our Language Training module has 66 practice tests
 
-PROVINCIAL NOMINATION SUCCESS
+2. **Education (up to +30 points)**
+   → Canadian degree/diploma adds extra points
+   → Get ECA for ALL foreign credentials
 
-• IT professional got Ontario nomination = +600 points
-• Applied through Human Capital Priorities stream
-• Total processing: 4 months
+3. **Provincial Nomination (+600 points)**
+   → Research which provinces want your NOC
+   → Apply to multiple streams simultaneously
+   → Our Immigration Pathway module tracks 80+ PNP streams
 
-CANADIAN EDUCATION PATHWAY
+4. **Canadian Experience (up to +80 points)**
+   → Work permit → Canadian job → CRS boost
+   → Even 1 year Canadian experience helps significantly
 
-• Completed 1-year diploma in Canada = +15-30 points
-• Also gained Canadian work experience through PGWP
-• Qualified for CEC instead of FSW
+**Your action plan depends on your current score:**
+• Below 450? → Focus on PNP
+• 450-480? → Boost language + try PNP
+• 480+? → Optimize and wait for draws
 
-STRATEGIC COMBINATIONS
-
-• French + English bilingual bonus = +50 points
-• Spouse improved scores = family points boost
-• Canadian work + education = maximum additional points
-
-YOUR PATH FORWARD
-
-1. Identify your biggest point gaps
-2. Focus on highest ROI improvements
-3. Consider timeline and investment
-4. Have backup pathways ready
-
-Tell me about your current profile and I'll suggest specific improvements.`
+What's your current profile? I'll prioritize your actions.`
     },
     "pnp": {
       keywords: ["pnp", "provincial nominee", "provincial nomination", "province"],
-      response: `Provincial Nominee Programs (PNPs) are powerful immigration pathways.
+      response: `**Provincial Nominee Programs (PNP) Explained:**
 
-HOW PNP WORKS
+**What is PNP?**
+Each Canadian province/territory can nominate immigrants who meet their specific needs. A nomination adds **600 CRS points** - essentially guaranteeing an ITA.
 
-• Each province has its own immigration programs
-• They nominate candidates who meet their needs
-• A nomination adds 600 CRS points (virtually guarantees ITA)
+**Two Types of PNP:**
 
-EXPRESS ENTRY-LINKED PNPs
+**1. Express Entry-linked (faster)**
+• You need an Express Entry profile first
+• Province "nominates" you in the EE pool
+• +600 points → instant ITA
+• Processing: 6-8 months total
 
-Ontario (OINP):
-• Human Capital Priorities - for high-scoring EE candidates
-• Skilled Trades - for trade workers
+**2. Non-Express Entry (standalone)**
+• Apply directly to province
+• Longer processing (12-18 months)
+• Good backup if CRS is very low
+
+**Popular PNP Streams (no job offer required):**
+
+**Ontario (OINP):**
+• Human Capital Priorities - High CRS candidates
 • French-Speaking Skilled Worker
+• Tech draws for specific NOCs
 
-British Columbia (BC PNP):
-• Skills Immigration - Express Entry stream
-• Tech stream - fast processing for tech workers
+**British Columbia (BC PNP):**
+• Skills Immigration - EE stream
+• Tech stream - 29 tech occupations
 
-Alberta (AINP):
+**Alberta (AINP):**
 • Alberta Express Entry stream
 • Alberta Opportunity Stream
 
-Saskatchewan (SINP):
+**Saskatchewan (SINP):**
 • Express Entry category
 • Occupation In-Demand
 
-NON-EXPRESS ENTRY PNPs
+**Strategy:** Apply to multiple provinces simultaneously! There's no rule against it.
 
-• Often have lower requirements
-• Longer processing times
-• Good backup options
-
-STRATEGY
-
-1. Create Express Entry profile first
-2. Indicate which provinces interest you
-3. Research specific PNP requirements
-4. Apply to relevant streams
-
-Which province interests you most?`
+Which province are you interested in?`
     },
     "job offer vs pnp": {
       keywords: ["job offer vs pnp", "job offer or pnp", "lmia or nomination", "which better"],
-      response: `Both job offers and PNPs can significantly boost your CRS, but they work differently.
+      response: `**Job Offer vs PNP: Which Is Better?**
 
-JOB OFFER (LMIA-SUPPORTED)
+**Short answer: PNP is usually better for most people.**
 
-Points: 50-200 CRS points
-• NOC 00 (senior management) = 200 points
-• Other NOC 0/A/B = 50 points
+**PNP Nomination: +600 CRS points**
+✅ Virtually guarantees ITA
+✅ Many streams don't require job offer
+✅ Can apply to multiple provinces simultaneously
+✅ Some process in weeks (BC Tech, Ontario)
 
-Pros:
-• Employment waiting for you
-• Income from day one
-• Employer support
+**Job Offer: +50-200 CRS points**
+✅ Adds points (50 standard, 200 with LMIA)
+⚠️ Many employers won't sponsor
+⚠️ LMIA process is expensive for employer
+⚠️ Job must match NOC requirements exactly
 
-Cons:
-• Requires employer to get LMIA (expensive, time-consuming)
-• Employer must prove no Canadians available
-• You're dependent on that employer
+**My recommendation:**
 
-PROVINCIAL NOMINATION
+**If your CRS is below 470:**
+→ Focus 100% on PNP - it's your fastest path
 
-Points: 600 CRS points
+**If your CRS is 470+:**
+→ You might get ITA without either
+→ PNP still gives you certainty
 
-Pros:
-• Virtually guarantees invitation
-• No employer dependency
-• More flexibility in job search
+**Best provinces for PNP (no job offer required):**
+• Ontario - Human Capital Priorities
+• BC - Skills Immigration
+• Alberta - Alberta Express Entry
+• Saskatchewan - Express Entry category
 
-Cons:
-• Must meet provincial requirements
-• Some streams are competitive
-• May require commitment to live in that province
+Which province interests you? I can explain their specific requirements.`
+    },
+    "documents needed": {
+      keywords: ["documents", "document checklist", "what documents", "need documents", "required documents"],
+      response: `**Express Entry Document Checklist:**
 
-RECOMMENDATION
+**REQUIRED for Everyone:**
+□ Valid passport (all pages)
+□ Language test results (IELTS General or CELPIP)
+□ Educational Credential Assessment (ECA) from WES, IQAS, etc.
+□ Proof of funds (bank statements, 6 months history)
+□ Work reference letters (detailed: duties, hours, salary, dates)
+□ Police certificates (from every country you lived 6+ months)
+□ Medical exam results (from designated panel physician)
+□ Digital photos (IRCC specifications)
 
-• PNP is usually more valuable (600 vs 50 points)
-• Job offer is good if employer is willing
-• Best case: Both (job offer can help PNP applications)
+**IF APPLICABLE:**
+□ Marriage certificate (if married)
+□ Spouse's documents (passport, language test, ECA)
+□ Dependent children's documents
+□ Divorce decree (if previously married)
+□ Job offer letter (if claiming points)
+□ Provincial nomination certificate (if nominated)
 
-What's your current situation? Do you have job offer prospects or provincial interest?`
+**Reference Letter Must Include:**
+• Company letterhead
+• Your job title and NOC code
+• Start and end dates
+• Hours per week
+• Salary
+• Detailed list of duties (matching NOC description)
+• Supervisor signature and contact info
+
+**Pro tip:** Start gathering documents NOW. ECA takes 4-8 weeks, police certificates vary by country.`
     },
     "timeline": {
       keywords: ["how long", "timeline", "processing time", "how fast", "when will i"],
-      response: `Here are typical timelines for Express Entry:
+      response: `**Express Entry Timeline:**
 
-PREPARATION PHASE (1-6 months)
+**Phase 1: Profile Preparation (1-3 months)**
+• ECA: 4-8 weeks
+• IELTS/CELPIP: Book 2-4 weeks ahead, results in 2 weeks
+• Gathering documents: 2-4 weeks
 
-• Language test: 2-4 weeks for results
-• ECA: 4-8 weeks (WES)
-• Police checks: varies by country (2-16 weeks)
-• Document gathering: 2-4 weeks
+**Phase 2: In the Pool (varies)**
+• Draws happen every 2 weeks
+• If your CRS meets cutoff → immediate ITA
+• If not → wait for category draws or improve score
 
-EXPRESS ENTRY POOL (varies)
+**Phase 3: After ITA (6-8 months)**
+• You have 60 days to submit complete application
+• IRCC processing: ~6 months (80% of applications)
+• Medical exam: valid for 12 months
+• Police certificates: valid for 12 months (some countries)
 
-• Profile creation: 1-2 hours
-• Time in pool: 1 week to 6+ months
-• Depends on your CRS score and draw patterns
+**Total Realistic Timeline:**
+• Best case: 8-10 months (high CRS, documents ready)
+• Average: 12-14 months
+• With PNP: Add 2-4 months for nomination process
 
-POST-ITA (6-8 months typically)
+**Current processing times (as of late 2025):**
+• FSW: ~6 months after AOR
+• CEC: ~4-5 months after AOR
+• PNP: ~6-8 months after AOR
 
-• Application preparation: 1-2 weeks
-• IRCC processing: 6-8 months (80% processed)
-• Medical exam: valid 1 year
-• Background check: included in processing
-
-TOTAL TIMELINE
-
-Fast scenario (high CRS): 8-12 months total
-Average scenario: 12-18 months total
-Complex cases: 18-24+ months
-
-CURRENT PROCESSING
-
-IRCC aims to process 80% of Express Entry applications within 6 months. Check IRCC website for current processing times.
-
-What stage are you at in your journey?`
+Want me to create a personalized timeline based on your situation?`
     },
     "costs": {
       keywords: ["cost", "costs", "how much", "total cost", "fees", "money", "expensive"],
-      response: `Here's a comprehensive cost breakdown for Express Entry:
+      response: `**Express Entry Cost Breakdown:**
 
-REQUIRED FEES (CAD)
+**Mandatory Fees (per person):**
+| Item | Cost (CAD) |
+|------|------------|
+| IELTS/CELPIP exam | $300-400 |
+| ECA (WES) | $200-300 |
+| Police certificates | $50-150 |
+| Medical exam | $200-450 |
+| Photos | $20-50 |
+| IRCC Processing fee | $1,365 |
+| Right of PR fee | $515 |
+| Biometrics | $85 |
 
-Application Processing:
-• Principal applicant: $1,365
-• Spouse/partner: $1,365
-• Dependent child: $230
+**Total mandatory: ~$2,700-3,300 per adult**
 
-Right of Permanent Residence:
-• Principal + spouse: $515 each
-• Children: $0
+**Proof of Funds Required (NOT a fee, but must have):**
+• Single: $14,690 CAD
+• 2 people: $18,288 CAD
+• 3 people: $22,483 CAD
+• 4 people: $27,297 CAD
 
-Biometrics:
-• Per person: $85
-
-PREPARATION COSTS
-
-Language Test:
-• IELTS: $300-350
-• CELPIP: $280-300
-
-Educational Credential Assessment:
-• WES: $220-300
-• Other organizations: similar
-
-Police Certificates:
-• Varies by country ($20-100 each)
-
-Medical Exam:
-• $200-450 depending on location
-
-TOTAL ESTIMATE
-
-Single applicant: $2,500-3,500 CAD
-Couple: $4,500-6,000 CAD
-Family of 4: $5,500-7,500 CAD
-
-PROOF OF FUNDS REQUIREMENT
-
-• Single: $14,690
-• Couple: $18,288
-• Family of 4: $27,514
-(Not a cost - just must prove you have it)
-
-OPTIONAL COSTS
-
+**Optional Costs:**
 • Immigration consultant: $1,500-5,000
-• Document translation: $50-100/document
-• Additional language tests: $300`
+• Test prep courses: $100-500
+• Document translation: $50-200
+
+**Family Budget Example:**
+Couple with 1 child = ~$8,000-10,000 in fees + ~$22,500 proof of funds
+
+**Our tools save you money:**
+• Language Training: $250/year (vs $500+ prep courses)
+• Immigration Pathway: $450/year (vs $2,000+ consultants)
+• These tools are available 24/7 to work for you!`
     },
-    "documents": {
-      keywords: ["documents", "document checklist", "what documents", "need documents", "required documents"],
-      response: `Here's your Express Entry document checklist:
-
-IDENTITY DOCUMENTS
-
-□ Valid passport (all pages)
-□ National ID card (if applicable)
-□ Birth certificate
-□ Marriage certificate (if applicable)
-□ Divorce/death certificates (if applicable)
-
-LANGUAGE PROOF
-
-□ IELTS or CELPIP test results
-□ TEF/TCF for French (if claiming)
-□ Must be less than 2 years old
-
-EDUCATION DOCUMENTS
-
-□ Educational Credential Assessment (ECA)
-□ Degrees/diplomas (originals and translations)
-□ Transcripts
-□ Professional licenses (if applicable)
-
-WORK EXPERIENCE DOCUMENTS
-
-□ Reference letters from each employer
-  - Must include: job title, duties, hours, salary, dates
-  - On company letterhead with contact info
-□ Employment contracts
-□ Pay stubs or tax documents
-
-POLICE CERTIFICATES
-
-□ From each country lived 6+ months since age 18
-□ Must be less than 1 year old typically
-
-PROOF OF FUNDS
-
-□ Bank statements (6 months)
-□ Investment statements
-□ Property valuations (if applicable)
-
-PHOTOS
-
-□ Passport-style photos meeting IRCC specs
-
-Need help with any specific document?`
-    },
+    
+    // ============ UPDATED PRICING & SERVICES ============
+    
     "pricing services": {
       keywords: ["pricing", "services", "your pricing", "matin services", "matin pricing"],
-      response: `Matin Immigration Services offers AI-powered planning and preparation.
+      response: `**Matin Immigration Services Pricing**
 
-CORE SUBSCRIPTIONS
-
-📚 Language Training (Evolve) - $150 CAD/year
-• IELTS and CELPIP preparation
-• AI-powered writing and reading tests
+**CORE SUBSCRIPTIONS**
+📚 Language Training (Evolve) - **$250 CAD/year**
+• 66 IELTS/CELPIP Reading & Writing practice tests
 • Real-time feedback and scoring
 • Vocabulary tracking and review
+• Speaking & Listening packages available separately - contact info@migratenorth.ca
 
-🩺 Licensing Support (Elevate) - $250 CAD/year
-• NCLEX preparation for nurses
+🩺 Licensing Support (Elevate) - **$350 CAD/year**
+• 400+ NCLEX practice questions
 • NNAS credential guidance
 • Provincial licensing pathways
-• Study plans and practice questions
+• Study plans and progress tracking
 
-🛫 Immigration Pathway (Execute) - $350 CAD/year
-• Express Entry guidance
+🛫 Immigration Pathway (Execute) - **$450 CAD/year**
+• Express Entry step-by-step guidance
 • CRS optimization strategies
 • Document preparation support
-• Application readiness audits
+• 80+ PNP stream tracking
 
-BUNDLE OFFERS
+**BUNDLE OFFERS**
+• Nurse Success Pack (Evolve + Elevate): $550/year - Save $50
+• Skilled Worker Pack (Evolve + Execute): $625/year - Save $75
+• Complete Migration Pack (Elevate + Execute): $725/year - Save $75
+• All Access Pack (All three): $900/year - Save $150
 
-• Nurse Success Pack (Evolve + Elevate): $350/year - Save $50
-• Skilled Worker Pack (Evolve + Execute): $425/year - Save $75
-• Complete Migration Pack (Elevate + Execute): $525/year - Save $75
-• All Access Pack (All three): $600/year - Save $150
-
-PROFESSIONAL SERVICES
-
+**PROFESSIONAL SERVICES**
 • Application Audit and Review: $300 CAD
 • Full Application Preparation: Starting at $2,000 CAD
-• Private Advisory Sessions: By appointment
+
+All platforms are available 24/7 - use them to work for you!
 
 Click 💳 Subscribe to get started, or contact info@migratenorth.ca`
     },
     "about matin": {
       keywords: ["about matin", "who are you", "matin immigration", "your company", "about company"],
-      response: `Matin Immigration Services is an AI-powered immigration education and planning platform.
+      response: `**Matin Immigration Services**
 
-WHO WE ARE
+We believe that with the right tools, you can do anything.
 
-Matin Immigration Services Inc. operates under RCIC License #R712582, issued by the College of Immigration and Citizenship Consultants of Canada.
+Our mission is to **empower you** on your immigration journey. We want to make this whole process feel easier - less overwhelming, more achievable.
 
-We help individuals understand Canadian immigration clearly, affordably, and independently.
+**Think of our platforms as your 24/7 support system.** These tools are here to work for YOU, whenever you need them.
 
-OUR PLATFORM - MIGRATE NORTH
+**WHO WE ARE**
+Matin Immigration Services Inc. operates under **RCIC License R712582**.
 
-🧭 Explore (FREE)
-Your starting point. Understand pathways, check eligibility, learn the system.
+**OUR PLATFORMS**
+📚 **Language Training (Evolve)** - $250 CAD/year
+   Reading & Writing practice on migratenorth.ca
+   Speaking & Listening packages available separately
 
-📚 Evolve - Language Training
-IELTS and CELPIP preparation with AI-powered practice and feedback.
+🩺 **Licensing Support (Elevate)** - $350 CAD/year
+   NCLEX preparation for nurses
 
-🩺 Elevate - Licensing Support
-For internationally educated nurses pursuing Canadian registration.
+🛫 **Immigration Pathway (Execute)** - $450 CAD/year
+   Express Entry & PNP guidance
 
-🛫 Execute - Immigration Pathway
-Step-by-step guidance through Express Entry and PNP applications.
+**OUR PHILOSOPHY**
+You are capable. You just need the right guidance and tools. We are here to help you succeed - available **24/7**, working around your schedule, at a fraction of traditional consulting costs.
 
-OUR APPROACH
+**Contact:** info@migratenorth.ca`
+    },
+    "language training": {
+      keywords: ["language training", "evolve", "ielts practice", "celpip practice", "what is evolve"],
+      response: `📚 **Language Training (Evolve)**
 
-• AI-assisted tools available 24/7
-• Structured learning paths
-• Affordable subscription pricing
-• Professional support when needed
+**What You Get on migratenorth.ca:**
+✓ 66 full-length Reading & Writing practice tests
+✓ Personalized study plans (30, 60, 90 days)
+✓ Real-time scoring and detailed feedback
+✓ Grammar and vocabulary drills
+✓ Progress tracking across sessions
 
-CONTACT
+**Speaking & Listening Training:**
+Matin Immigration Services offers separate instructor-led packages for Speaking and Listening preparation. Contact info@migratenorth.ca for pricing and availability.
 
-Email: info@migratenorth.ca
-Website: migratenorth.ca
-RCIC License: R712582
+**Who It's For:**
+Anyone preparing for Canadian immigration language requirements. Most Express Entry candidates need CLB 7+ (IELTS 6.0) to be competitive.
 
-How can we help with your immigration journey?`
+**Pricing:** $250 CAD/year
+
+These tools are available 24/7 - use them to work for you!
+
+Click 💳 Subscribe to get started.`
+    },
+    "licensing support": {
+      keywords: ["licensing support", "elevate", "nclex", "nursing", "what is elevate"],
+      response: `🩺 **Licensing Support (Elevate)**
+
+**What You Get:**
+✓ 400+ NCLEX practice questions (NGN format)
+✓ 30, 60, 90-day structured study plans
+✓ Clinical judgment and critical thinking modules
+✓ Provincial licensing pathway guidance
+✓ NNAS application support
+✓ Progress tracking and weak area identification
+
+**Who It's For:**
+Internationally Educated Nurses (IENs) seeking to practice in Canada. Covers the complete journey from credential assessment to provincial registration.
+
+**Pricing:** $350 CAD/year
+
+These tools are available 24/7 - use them to work for you!
+
+Click 💳 Subscribe to get started.`
+    },
+    "immigration pathway": {
+      keywords: ["immigration pathway", "execute", "immigration support", "what is execute"],
+      response: `🛫 **Immigration Pathway (Execute)**
+
+**What You Get:**
+✓ Personalized eligibility assessment
+✓ CRS score optimization strategies
+✓ Complete document checklists (FSW, CEC, PNP)
+✓ Express Entry profile builder
+✓ Provincial program matching (80+ streams tracked)
+✓ Application timeline management
+✓ Document review guidance
+
+**Who It's For:**
+Anyone ready to begin their Canadian immigration application. Whether you're exploring Express Entry, Provincial Nominee Programs, or need help organizing your submission.
+
+**Pricing:** $450 CAD/year
+
+These tools are available 24/7 - use them to work for you!
+
+Click 💳 Subscribe to get started.`
     },
     "strategy": {
       keywords: ["personalized strategy", "my strategy", "custom strategy", "immigration strategy"],
@@ -1234,11 +1244,10 @@ function estimateCRS(profile) {
     breakdown.push(`Work Experience (${workYrs} years): ${workPoints} points`);
   }
 
-  // Language points (simplified - using average of IELTS bands)
-  // Convert IELTS to CLB: 9.0=CLB10, 8.5=CLB10, 8.0=CLB9, 7.5=CLB9, 7.0=CLB8, 6.5=CLB8, 6.0=CLB7, 5.5=CLB6
+  // Language points
   const ieltsAvg = profile.ielts_average || profile.ieltsAverage;
   if (ieltsAvg) {
-    let clb = 4; // default minimum
+    let clb = 4;
     const ielts = ieltsAvg;
     if (ielts >= 8.5) clb = 10;
     else if (ielts >= 7.5) clb = 9;
@@ -1356,10 +1365,10 @@ function buildCRSExplanation(profile, crsResult) {
 
   // Add context about competitiveness
   if (crsResult.score < 450) {
-    explanation += `This score is below typical invitation cutoffs (450-500+). Consider:\n`;
-    explanation += `• Improving language scores (biggest impact)\n`;
-    explanation += `• Provincial Nominee Programs (+600 points)\n`;
-    explanation += `• Canadian education or work experience\n`;
+    explanation += `This score is below typical invitation cutoffs (450-500+). Your best options:\n`;
+    explanation += `• **Improve language scores** - biggest impact, fastest win\n`;
+    explanation += `• **Provincial Nominee Programs** - +600 points, guarantees ITA\n`;
+    explanation += `• **Canadian education or work experience** - opens more doors\n`;
   } else if (crsResult.score < 480) {
     explanation += `This score may be competitive for targeted draws. To improve:\n`;
     explanation += `• Boost language to CLB 10+ (+40 points possible)\n`;
@@ -1391,33 +1400,60 @@ function buildBothOptionsFollowUp(profile) {
 }
 
 // ==============================================================================
-// OPENAI CALL
+// OPENAI CALL - IMPROVED SYSTEM PROMPT FOR DIRECT ANSWERS
 // ==============================================================================
 
 async function callOpenAI(message, history, userProfile) {
-  const systemPrompt = `You are North Star GPS, an expert Canadian immigration assistant for Migrate North.
+  const systemPrompt = `You are North Star GPS, an expert Canadian immigration assistant for Migrate North by Matin Immigration Services (RCIC License R712582).
 
-Your role:
-- Help users understand Canadian immigration pathways
-- Explain Express Entry, PNPs, and requirements clearly
-- Estimate CRS scores when given profile information
-- Identify gaps and suggest improvements
-- Never provide legal advice or guarantees
+## YOUR CORE MISSION
+**DIRECTLY ANSWER THE QUESTION ASKED.** Do not give background information unless specifically requested. Get to the point immediately.
 
-User's known profile:
+## RESPONSE RULES
+
+1. **ANSWER FIRST** - Start with the direct answer to their question. Don't explain what something IS before answering what they ASKED.
+
+2. **BE SPECIFIC** - Use real numbers, timelines, and action items. No vague generalities.
+
+3. **ASSUME CONTEXT** - When they ask "what are my options?" they want OPTIONS, not definitions. When they ask "should I...?" they want a recommendation.
+
+4. **ACTION-ORIENTED** - Every response should include what they should DO next.
+
+## EXAMPLE OF WRONG vs RIGHT:
+
+WRONG (User asks "My CRS is low, what are my options?"):
+"The CRS is a point system that ranks candidates... [3 paragraphs of what CRS is]"
+
+RIGHT:
+"Your main options if CRS is low:
+1. IMPROVE LANGUAGE SCORES - Fastest boost, CLB 7→9 adds ~50 points
+2. GET PROVINCIAL NOMINATION - +600 points, guarantees ITA
+3. GET CANADIAN EXPERIENCE - Work permit → Canadian job → big CRS boost
+
+Which option fits your situation? Tell me your current CRS and I'll recommend the best strategy."
+
+## USER'S KNOWN PROFILE:
 ${JSON.stringify(userProfile, null, 2)}
 
-Guidelines:
-- Be warm and encouraging but realistic
-- Use clear structure in responses
-- When users share profile details, extract and remember them
-- If they ask about CRS, provide estimates based on what you know
-- Recommend relevant Migrate North services when appropriate:
-  - Evolve (Language Training) for low language scores
-  - Elevate (Licensing) for healthcare professionals
-  - Execute (Immigration) for application guidance
+## PRICING (use these exact figures):
+- Language Training (Evolve): $250 CAD/year - Reading & Writing practice
+- Licensing Support (Elevate): $350 CAD/year - NCLEX prep
+- Immigration Pathway (Execute): $450 CAD/year - Express Entry guidance
+- Speaking & Listening training: Contact info@migratenorth.ca for packages
 
-Keep responses concise but comprehensive. Use bullet points for lists.`;
+## TONE
+- Confident and direct
+- Like an experienced advisor who respects your time
+- Encouraging but honest
+- No fluff or filler phrases
+
+## NEVER DO
+- Don't start with "Great question!"
+- Don't explain what something IS when they asked what to DO
+- Don't give 5 paragraphs when 5 bullet points work better
+- Don't be vague - use specific numbers and timeframes
+
+When users share profile details, extract and remember them for personalized advice.`;
 
   const messages = [
     { role: "system", content: systemPrompt },
@@ -1575,11 +1611,10 @@ export async function handler(event) {
       // ==============================================================================
       // PHASE 2: Add tier recommendation after CRS calculation
       // ==============================================================================
-      // This is the first "diagnosed" moment - show tier recommendation
       const recommendation = mapLimiterToTier(updatedProfile.primary_limiter, updatedProfile);
       updatedProfile.recommended_tier = recommendation.tier;
       updatedProfile.funnel_state = "diagnosed";
-      updatedProfile.messages_since_diagnosis = 0; // Reset counter
+      updatedProfile.messages_since_diagnosis = 0;
       
       // Add tier recommendation to response
       explanation += buildTierRecommendation(updatedProfile, crsResult);
