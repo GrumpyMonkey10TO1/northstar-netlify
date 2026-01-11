@@ -1,5 +1,5 @@
 // =============================================================================
-// EVOLVE APP - Complete Chat Engine with Video/Image Support
+// EVOLVE APP - Complete Chat Engine with Reading Test Integration
 // =============================================================================
 
 (() => {
@@ -16,8 +16,7 @@
     TYPING_SPEED: 15,
     STORAGE_KEY: 'evolveMemory',
     NOTEBOOK_KEY: 'evolve_notebook',
-    // Optional intro video - set to null to disable, or use YouTube embed URL
-    INTRO_VIDEO: null // Example: 'https://www.youtube.com/embed/YOUR_VIDEO_ID'
+    INTRO_VIDEO: null
   };
 
   // =============================================================================
@@ -34,7 +33,6 @@
     wordCount: document.getElementById('word-count'),
     wordTarget: document.getElementById('word-target'),
     testLevelBadge: document.getElementById('test-level-badge'),
-    // Stats
     statsDropdown: document.getElementById('stats-dropdown'),
     statTests: document.getElementById('stat-tests'),
     statWriting: document.getElementById('stat-writing'),
@@ -47,14 +45,12 @@
     statVocabTotal: document.getElementById('stat-vocab-total'),
     statVocabDue: document.getElementById('stat-vocab-due'),
     statVocabMastered: document.getElementById('stat-vocab-mastered'),
-    // Buttons
     btnStats: document.getElementById('btn-stats'),
     btnDownload: document.getElementById('btn-download'),
     btnNotebook: document.getElementById('btn-notebook'),
     btnResources: document.getElementById('btn-resources'),
     btnReset: document.getElementById('btn-reset'),
     btnLogin: document.getElementById('btn-login'),
-    // Mobile
     mobileMenuBtn: document.getElementById('mobile-menu-btn'),
     mobileMenuDropdown: document.getElementById('mobile-menu-dropdown'),
     btnStatsMobile: document.getElementById('btn-stats-mobile'),
@@ -63,12 +59,10 @@
     btnResourcesMobile: document.getElementById('btn-resources-mobile'),
     btnResetMobile: document.getElementById('btn-reset-mobile'),
     btnLoginMobile: document.getElementById('btn-login-mobile'),
-    // Panels
     notebookPanel: document.getElementById('notebookPanel'),
     notebookArea: document.getElementById('notebookArea'),
     notebookClose: document.getElementById('notebookClose'),
     resourcesDropdown: document.getElementById('resourcesDropdown'),
-    // Login
     loginOverlay: document.getElementById('login-overlay'),
     loginEmail: document.getElementById('login-email'),
     loginSubmit: document.getElementById('login-submit'),
@@ -76,7 +70,6 @@
     loginClose: document.getElementById('login-close'),
     loggedInBar: document.getElementById('logged-in-bar'),
     loggedInEmail: document.getElementById('logged-in-email'),
-    // FAQ
     faqList: document.getElementById('faqList'),
     unlockEvolve: document.getElementById('unlock-evolve')
   };
@@ -95,6 +88,19 @@
     testInProgress: false,
     timerInterval: null,
     timeRemaining: 0
+  };
+
+  // =============================================================================
+  // READING TEST STATE
+  // =============================================================================
+  let readingTest = {
+    active: false,
+    testData: null,
+    currentPassage: 0,
+    currentQuestion: 0,
+    answers: {},
+    startTime: null,
+    testId: null
   };
 
   // =============================================================================
@@ -131,13 +137,11 @@
     const { typewriter = true, saveToHistory = true, isMedia = false, mediaType = null, mediaUrl = null } = options;
     
     if (role === 'user') {
-      // User messages - just a bubble, no avatar
       const bubble = document.createElement('div');
       bubble.className = 'bubble user';
       bubble.textContent = content.length > 500 ? content.substring(0, 500) + '...' : content;
       DOM.chatBody.appendChild(bubble);
     } else {
-      // Bot messages - avatar + bubble in a row
       const row = document.createElement('div');
       row.className = 'bot-row';
       
@@ -153,7 +157,6 @@
       DOM.chatBody.appendChild(row);
       
       if (isMedia && mediaType === 'video') {
-        // Video message
         bubble.innerHTML = `
           <div class="media-message">
             <div class="video-container" style="position:relative;width:100%;padding-bottom:56.25%;margin-bottom:10px;border-radius:8px;overflow:hidden;">
@@ -165,7 +168,6 @@
           </div>
         `;
       } else if (isMedia && mediaType === 'image') {
-        // Image message
         bubble.innerHTML = `
           <div class="media-message">
             <img src="${mediaUrl}" alt="Image" style="max-width:100%;border-radius:8px;margin-bottom:10px;">
@@ -173,10 +175,8 @@
           </div>
         `;
       } else if (typewriter && !state.isTyping) {
-        // Typewriter effect for text
         typeWriterEffect(content, bubble);
       } else {
-        // Instant text (format bold and newlines)
         bubble.innerHTML = formatText(content);
       }
     }
@@ -214,7 +214,6 @@
       scrollToBottom();
     };
     
-    // Remove old handler and add new one
     if (DOM.chatSkip) {
       DOM.chatSkip.removeEventListener('click', DOM.chatSkip._handler);
       DOM.chatSkip._handler = skipHandler;
@@ -224,7 +223,6 @@
     state.currentTypeInterval = setInterval(() => {
       if (index >= cleanText.length) {
         clearInterval(state.currentTypeInterval);
-        // Apply full formatting when done
         element.innerHTML = formatText(cleanText);
         state.isTyping = false;
         hideSkipButton();
@@ -297,7 +295,6 @@ What would you like to work on today?`;
     if (!DOM.chatBody) return;
     DOM.chatBody.innerHTML = '';
     
-    // If intro video is configured, show it first
     if (CONFIG.INTRO_VIDEO) {
       addMessage('bot', "Welcome to Evolve! Here's a quick introduction:", {
         typewriter: false,
@@ -307,12 +304,10 @@ What would you like to work on today?`;
         mediaUrl: CONFIG.INTRO_VIDEO
       });
       
-      // Then show text welcome after a delay
       setTimeout(() => {
         addMessage('bot', getWelcomeMessage(), { typewriter: true, saveToHistory: true });
       }, 500);
     } else {
-      // Just show text welcome
       setTimeout(() => {
         addMessage('bot', getWelcomeMessage(), { typewriter: true, saveToHistory: true });
       }, 300);
@@ -320,11 +315,19 @@ What would you like to work on today?`;
   }
 
   // =============================================================================
-  // SEND MESSAGE
+  // SEND MESSAGE - UPDATED TO HANDLE READING TESTS
   // =============================================================================
   async function handleSendMessage(text) {
     const message = text || (DOM.chatInput?.value.trim() || '');
     if (!message) return;
+    
+    // If reading test is active, handle as answer
+    if (readingTest.active) {
+      addMessage('user', message);
+      if (DOM.chatInput) DOM.chatInput.value = '';
+      handleReadingAnswer(message);
+      return;
+    }
     
     // Add user message
     addMessage('user', message);
@@ -367,6 +370,315 @@ What would you like to work on today?`;
   }
 
   // =============================================================================
+  // READING TEST FUNCTIONS
+  // =============================================================================
+  function startReadingTest(testId) {
+    // Check if READING_TESTS_FULL exists
+    if (typeof READING_TESTS_FULL === 'undefined') {
+      addMessage('bot', '❌ Reading tests data not loaded. Please refresh the page.');
+      return;
+    }
+    
+    // Find the test
+    const test = READING_TESTS_FULL.find(t => t.id === testId);
+    if (!test) {
+      addMessage('bot', `❌ Test ${testId} not found.`);
+      return;
+    }
+    
+    // Initialize reading test state
+    readingTest = {
+      active: true,
+      testData: test,
+      currentPassage: 0,
+      currentQuestion: 0,
+      answers: {},
+      startTime: Date.now(),
+      testId: testId
+    };
+    
+    // Show test intro
+    const intro = `📖 **READING TEST ${test.id}**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 Level: ${test.level}
+🎯 Band Target: ${test.bandTarget}
+⏱️ Time: ${test.timeMinutes} minutes
+📝 Questions: ${test.totalQuestions}
+
+This test has 3 passages. Read each passage carefully, then answer the questions.
+
+**Instructions:**
+• Type your answer and press Send
+• For MCQ: Type A, B, C, or D
+• For True/False/Not Given: Type True, False, or NG
+• For Yes/No/Not Given: Type Yes, No, or NG
+• For Short Answer: Type 1-3 words
+
+Ready? Let's begin!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+    
+    addMessage('bot', intro, { typewriter: false });
+    
+    // Show test info bar
+    if (DOM.testInfo) DOM.testInfo.classList.add('active');
+    if (DOM.testLevelBadge) DOM.testLevelBadge.textContent = test.level;
+    
+    // Start timer
+    startTimer(test.timeMinutes * 60);
+    
+    // Show first passage after delay
+    setTimeout(() => showPassage(), 1500);
+  }
+
+  function showPassage() {
+    const test = readingTest.testData;
+    const passage = test.passages[readingTest.currentPassage];
+    
+    const passageText = `📄 **PASSAGE ${readingTest.currentPassage + 1}: ${passage.title}**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${passage.text}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📝 Words: ~${passage.wordCount}
+
+Now answer the questions. Type your answer and press Send.`;
+    
+    addMessage('bot', passageText, { typewriter: false });
+    
+    // Reset question index for this passage
+    readingTest.currentQuestion = 0;
+    
+    // Show first question
+    setTimeout(() => showQuestion(), 1000);
+  }
+
+  function showQuestion() {
+    const passage = readingTest.testData.passages[readingTest.currentPassage];
+    const question = passage.questions[readingTest.currentQuestion];
+    
+    if (!question) {
+      // No more questions in this passage
+      nextPassage();
+      return;
+    }
+    
+    let qText = `**Question ${question.id}** (${question.type.toUpperCase()})\n\n${question.text}`;
+    
+    // Add options for MCQ
+    if (question.type === 'mcq' && question.options) {
+      qText += '\n\n' + question.options.join('\n');
+    }
+    
+    // Add answer hints
+    if (question.type === 'tfng') {
+      qText += '\n\n_Type: True, False, or Not Given_';
+    } else if (question.type === 'yng') {
+      qText += '\n\n_Type: Yes, No, or Not Given_';
+    } else if (question.type === 'mcq') {
+      qText += '\n\n_Type: A, B, C, or D_';
+    } else if (question.type === 'short' || question.type === 'summary' || question.type === 'matching') {
+      qText += '\n\n_Type your answer (1-3 words)_';
+    }
+    
+    addMessage('bot', qText, { typewriter: false });
+  }
+
+  function handleReadingAnswer(userAnswer) {
+    const passage = readingTest.testData.passages[readingTest.currentPassage];
+    const question = passage.questions[readingTest.currentQuestion];
+    
+    if (!question) return;
+    
+    // Store answer
+    readingTest.answers[question.id] = userAnswer.trim();
+    
+    // Check if correct
+    const isCorrect = checkAnswer(userAnswer, question);
+    
+    // Show feedback
+    if (isCorrect) {
+      addMessage('bot', '✅ Correct!', { typewriter: false });
+    } else {
+      addMessage('bot', `❌ The correct answer is: **${question.answer}**`, { typewriter: false });
+    }
+    
+    // Move to next question
+    readingTest.currentQuestion++;
+    
+    // Show next question after delay
+    setTimeout(() => showQuestion(), 800);
+  }
+
+  function checkAnswer(userAnswer, question) {
+    const ua = userAnswer.trim().toLowerCase();
+    const ca = question.answer.toLowerCase();
+    
+    // Exact match
+    if (ua === ca) return true;
+    
+    // MCQ - just check first letter
+    if (question.type === 'mcq') {
+      return ua.charAt(0) === ca.charAt(0);
+    }
+    
+    // TFNG/YNG - check variations
+    if (question.type === 'tfng' || question.type === 'yng') {
+      if (ca === 'true' && (ua === 't' || ua === 'true')) return true;
+      if (ca === 'false' && (ua === 'f' || ua === 'false')) return true;
+      if (ca === 'yes' && (ua === 'y' || ua === 'yes')) return true;
+      if (ca === 'no' && (ua === 'n' || ua === 'no')) return true;
+      if (ca === 'not given' && (ua === 'ng' || ua === 'not given' || ua === 'notgiven')) return true;
+    }
+    
+    // Short answer - partial match
+    if (question.type === 'short' || question.type === 'summary' || question.type === 'matching') {
+      // Remove articles and check if contains key words
+      const uaClean = ua.replace(/^(the|a|an)\s+/i, '');
+      const caClean = ca.replace(/^(the|a|an)\s+/i, '');
+      if (uaClean === caClean) return true;
+      if (caClean.includes(uaClean) || uaClean.includes(caClean)) return true;
+    }
+    
+    return false;
+  }
+
+  function nextPassage() {
+    readingTest.currentPassage++;
+    
+    if (readingTest.currentPassage >= readingTest.testData.passages.length) {
+      // Test complete
+      finishReadingTest();
+    } else {
+      addMessage('bot', `\n✨ Great work! Moving to Passage ${readingTest.currentPassage + 1}...\n`, { typewriter: false });
+      setTimeout(() => showPassage(), 1500);
+    }
+  }
+
+  function finishReadingTest() {
+    // Stop timer
+    if (state.timerInterval) {
+      clearInterval(state.timerInterval);
+      state.timerInterval = null;
+    }
+    
+    const test = readingTest.testData;
+    const elapsed = Math.round((Date.now() - readingTest.startTime) / 1000 / 60);
+    
+    // Calculate score
+    let correct = 0;
+    let total = 0;
+    
+    test.passages.forEach(p => {
+      p.questions.forEach(q => {
+        total++;
+        const userAns = readingTest.answers[q.id];
+        if (userAns && checkAnswer(userAns, q)) {
+          correct++;
+        }
+      });
+    });
+    
+    const percentage = Math.round((correct / total) * 100);
+    const band = getBandScore(percentage);
+    
+    const results = `🎉 **TEST COMPLETE!**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 **Results for ${test.id}**
+
+✅ Correct: ${correct}/${total}
+📈 Percentage: ${percentage}%
+🎯 Estimated Band: ${band}
+⏱️ Time: ${elapsed} minutes
+
+${getFeedback(percentage)}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Click another test to continue practicing!`;
+    
+    addMessage('bot', results, { typewriter: false });
+    
+    // Hide test info
+    if (DOM.testInfo) DOM.testInfo.classList.remove('active');
+    
+    // Reset state
+    readingTest.active = false;
+    
+    // Save completion
+    saveTestCompletion(test.id, percentage, band);
+  }
+
+  function getBandScore(percentage) {
+    if (percentage >= 90) return '9.0';
+    if (percentage >= 85) return '8.5';
+    if (percentage >= 80) return '8.0';
+    if (percentage >= 75) return '7.5';
+    if (percentage >= 70) return '7.0';
+    if (percentage >= 65) return '6.5';
+    if (percentage >= 60) return '6.0';
+    if (percentage >= 55) return '5.5';
+    if (percentage >= 50) return '5.0';
+    return '4.5';
+  }
+
+  function getFeedback(percentage) {
+    if (percentage >= 90) return '🌟 Outstanding! Expert-level comprehension.';
+    if (percentage >= 80) return '💪 Excellent! Very strong reading skills.';
+    if (percentage >= 70) return '👍 Good job! Keep practicing.';
+    if (percentage >= 60) return '📚 Decent effort! Work on scanning techniques.';
+    return '💡 Keep practicing! Read more academic texts.';
+  }
+
+  function saveTestCompletion(testId, percentage, band) {
+    try {
+      const key = 'evolve_test_results';
+      const results = JSON.parse(localStorage.getItem(key) || '{}');
+      results[testId] = { percentage, band, date: Date.now() };
+      localStorage.setItem(key, JSON.stringify(results));
+    } catch (e) {
+      console.error('Save error:', e);
+    }
+  }
+
+  function startTimer(seconds) {
+    state.timeRemaining = seconds;
+    updateTimerDisplay();
+    
+    if (state.timerInterval) clearInterval(state.timerInterval);
+    
+    state.timerInterval = setInterval(() => {
+      state.timeRemaining--;
+      updateTimerDisplay();
+      
+      if (state.timeRemaining <= 0) {
+        clearInterval(state.timerInterval);
+        if (readingTest.active) {
+          addMessage('bot', '⏰ Time is up! Submitting your answers...', { typewriter: false });
+          setTimeout(() => finishReadingTest(), 1000);
+        }
+      }
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    if (!DOM.timer) return;
+    const mins = Math.floor(state.timeRemaining / 60);
+    const secs = state.timeRemaining % 60;
+    DOM.timer.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+    
+    // Warning colors
+    if (state.timeRemaining <= 60) {
+      DOM.timer.style.color = '#e74c3c';
+    } else if (state.timeRemaining <= 300) {
+      DOM.timer.style.color = '#f39c12';
+    } else {
+      DOM.timer.style.color = '';
+    }
+  }
+
+  // =============================================================================
   // FAQ RESPONSES
   // =============================================================================
   const FAQ_RESPONSES = {
@@ -375,24 +687,18 @@ What would you like to work on today?`;
 Here's how it works:
 
 📚 STRUCTURED TESTS
-• 66 tests across Writing and Reading
-• Three difficulty levels: Foundation, Intermediate, Advanced
-• Micro drills for targeted skill practice
+• 33 Reading tests + 33 Writing tests
+• Four levels: Foundation, Intermediate, Advanced, Expert
+• Each test has real exam format and timing
 
 ⏱️ TIMED PRACTICE
 • Real exam conditions with countdown timers
-• Word count tracking for writing tasks
-• Immediate feedback on submissions
+• Immediate feedback on each question
+• Band score estimation
 
 📊 PROGRESS TRACKING
 • Track your scores over time
 • See your strengths and areas to improve
-• Build consistency with daily practice streaks
-
-🔄 REFINEMENT LOOP
-• Submit your response
-• Get detailed feedback
-• Refine and resubmit to improve
 
 Start with Foundation level and work your way up!`,
 
@@ -400,221 +706,15 @@ Start with Foundation level and work your way up!`,
 
 LEFT SIDE - Chat Interface:
 • Chat with me for guidance and feedback
-• Submit your test responses here
+• Answer test questions here
 • See your scores and improvement tips
 
 RIGHT SIDE - Training Menu:
 • Browse FAQ topics for tips
 • Open Writing or Reading practice folders
-• Track vocabulary and progress
+• Select tests by difficulty level
 
-TOP BAR - Quick Actions:
-• 📊 Stats - View your progress statistics
-• 📥 Download - Save your conversation
-• 📓 Notebook - Take personal notes
-• 🔗 Resources - Official IELTS/CELPIP links
-• ♻️ Reset - Start fresh
-• 🔐 Login - Access your subscription
-
-Get started by clicking a test from the Writing or Reading section!`,
-
-    "speed-tips": `Tips for Writing Faster:
-
-1. PLAN BEFORE YOU WRITE (2-3 minutes)
-   • Identify the question type
-   • Brainstorm 2-3 main ideas
-   • Outline your structure
-
-2. USE TEMPLATES
-   • Memorize introduction patterns
-   • Have transition phrases ready
-   • Know your conclusion format
-
-3. DON'T OVER-EDIT
-   • Write continuously
-   • Fix errors at the end
-   • Trust your first instinct
-
-4. PRACTICE TYPING
-   • Aim for 40+ WPM
-   • Use all fingers
-   • Practice daily
-
-5. TIME YOURSELF
-   • Set strict deadlines
-   • Track your pace
-   • Build speed gradually`,
-
-    "accuracy-tips": `Tips for Better Accuracy:
-
-1. READ THE QUESTION TWICE
-   • Underline key words
-   • Identify what's being asked
-   • Note any specific requirements
-
-2. CHECK SUBJECT-VERB AGREEMENT
-   • Singular subjects = singular verbs
-   • Watch for tricky plurals
-   • Be careful with collective nouns
-
-3. USE PUNCTUATION CORRECTLY
-   • Commas separate clauses
-   • Periods end complete thoughts
-   • Avoid comma splices
-
-4. PROOFREAD SYSTEMATICALLY
-   • Read aloud in your head
-   • Check one error type at a time
-   • Leave 2-3 minutes for review
-
-5. LEARN FROM MISTAKES
-   • Keep an error log
-   • Review common patterns
-   • Practice weak areas`,
-
-    "vocab-tips": `How to Learn New Words Effectively:
-
-1. CONTEXT IS KEY
-   • Learn words in sentences, not isolation
-   • Note how words are used in reading passages
-   • Practice using new words immediately
-
-2. USE SPACED REPETITION
-   • Review new words after 1 day
-   • Then after 3 days, 1 week, 2 weeks
-   • Focus on words you struggle with
-
-3. MAKE CONNECTIONS
-   • Link new words to words you know
-   • Create word families (noun, verb, adjective forms)
-   • Use mnemonics for difficult words
-
-4. ACTIVE PRACTICE
-   • Write sentences with new words
-   • Use them in speaking practice
-   • Quiz yourself regularly
-
-5. FOCUS ON HIGH-VALUE WORDS
-   • Academic Word List (AWL)
-   • Topic-specific vocabulary
-   • Transition words and phrases`,
-
-    "grammar-rules": `Essential Grammar Rules:
-
-1. SUBJECT-VERB AGREEMENT
-   • The dog runs (singular)
-   • The dogs run (plural)
-   • Everyone has (indefinite = singular)
-
-2. TENSE CONSISTENCY
-   • Stay in one tense unless time changes
-   • Past for completed actions
-   • Present for general truths
-
-3. ARTICLE USAGE
-   • "A" before consonant sounds
-   • "An" before vowel sounds
-   • "The" for specific/known items
-
-4. COMMA RULES
-   • After introductory phrases
-   • Before coordinating conjunctions (FANBOYS)
-   • In lists of 3+ items
-
-5. PRONOUN REFERENCE
-   • Pronouns must clearly refer to a noun
-   • Avoid vague "it" or "this"
-   • Match singular/plural`,
-
-    "common-mistakes": `Common Mistakes to Avoid:
-
-1. RUN-ON SENTENCES
-   ❌ I went to the store I bought milk
-   ✓ I went to the store, and I bought milk.
-
-2. COMMA SPLICES
-   ❌ She was tired, she went to bed.
-   ✓ She was tired, so she went to bed.
-
-3. WRONG WORD FORMS
-   ❌ The increase of pollution...
-   ✓ The increasing pollution...
-
-4. MISUSED WORDS
-   ❌ effect vs affect
-   ❌ their vs there vs they're
-   ❌ its vs it's
-
-5. REDUNDANCY
-   ❌ In my personal opinion...
-   ✓ In my opinion...
-
-6. VAGUE LANGUAGE
-   ❌ This is very important
-   ✓ This significantly impacts...`,
-
-    "essay-structure": `How to Structure an Essay:
-
-INTRODUCTION (2-3 sentences)
-• Hook or background statement
-• Paraphrase the question
-• State your thesis/position
-
-BODY PARAGRAPH 1
-• Topic sentence (main idea)
-• Explanation
-• Example or evidence
-• Link back to thesis
-
-BODY PARAGRAPH 2
-• Topic sentence (different main idea)
-• Explanation
-• Example or evidence
-• Link back to thesis
-
-CONCLUSION (2-3 sentences)
-• Restate thesis differently
-• Summarize main points
-• Final thought or recommendation
-
-TIPS:
-• Each paragraph = one main idea
-• Use transition words between paragraphs
-• Aim for 250-280 words for IELTS Task 2`,
-
-    "reading-analysis": `How to Analyze a Reading Passage:
-
-BEFORE READING
-• Skim headings and first sentences
-• Note the topic and structure
-• Check how many questions
-
-DURING READING
-• Read questions first
-• Scan for keywords
-• Don't read every word - skim efficiently
-
-QUESTION TYPES:
-
-Multiple Choice:
-• Eliminate wrong answers
-• Look for paraphrased language
-• Beware of "almost right" options
-
-True/False/Not Given:
-• TRUE = matches the passage
-• FALSE = contradicts the passage
-• NOT GIVEN = no information
-
-Matching:
-• Scan for names, dates, terms
-• Mark as you find them
-• Check all options
-
-Fill in the Blank:
-• Word limit matters
-• Grammar must fit
-• Copy spelling exactly`,
+Get started by clicking a test from the Reading section!`,
 
     "about": `About Evolve - Language Proficiency Training
 
@@ -627,115 +727,13 @@ A structured English training system designed specifically for:
 • Canadian immigration language requirements
 
 WHAT'S INCLUDED?
-• 66 structured tests (Writing & Reading)
-• Three difficulty levels
-• Micro drills for targeted practice
-• Vocabulary builder with spaced repetition
-• Progress tracking and analytics
+• 33 Reading tests (1,320 questions total)
+• 33 Writing tests
+• Four difficulty levels
 • AI-powered feedback and scoring
 
-WHO IS IT FOR?
-• Express Entry applicants needing CLB 7+
-• Provincial nominee candidates
-• Anyone preparing for IELTS or CELPIP
-
-PRICING
-$150 CAD per year - unlimited access
-
 Created by Matin Immigration Services Inc.
-RCIC License #R712582`,
-
-    "pricing": `Evolve Pricing & Access
-
-YEARLY SUBSCRIPTION: $150 CAD/year
-
-What's included:
-✓ 66 structured tests (Writing & Reading)
-✓ Foundation, Intermediate, and Advanced levels
-✓ Micro drills for grammar, vocabulary, and more
-✓ AI-powered feedback on every submission
-✓ Vocabulary builder with spaced repetition
-✓ Progress tracking and statistics
-✓ Unlimited practice sessions
-
-ADDITIONAL SERVICES:
-• Writing Review by Human Expert: $50 CAD
-• One-on-One Coaching Session: $75 CAD/hour
-
-To subscribe, click "Unlock Full Evolve Access" below or visit:
-https://migratenorth.ca/checkout/evolve
-
-All prices in Canadian dollars.
-Subscription renews annually.`,
-
-    "ielts-writing-scoring": `IELTS Writing Scoring Explained:
-
-Your writing is scored on 4 criteria (each worth 25%):
-
-1. TASK ACHIEVEMENT (Task 2) / TASK RESPONSE (Task 1)
-   Band 7+: Fully addresses all parts of the task
-   • Clear position throughout
-   • Relevant, extended ideas
-   • Well-developed arguments
-
-2. COHERENCE AND COHESION
-   Band 7+: Logically organized
-   • Clear progression throughout
-   • Effective use of cohesive devices
-   • Each paragraph has a clear central topic
-
-3. LEXICAL RESOURCE (Vocabulary)
-   Band 7+: Wide range of vocabulary
-   • Less common lexical items
-   • Awareness of style and collocation
-   • Occasional errors in word choice
-
-4. GRAMMATICAL RANGE AND ACCURACY
-   Band 7+: Variety of complex structures
-   • Frequent error-free sentences
-   • Good control of grammar
-   • Errors don't impede communication
-
-BAND SCORE GUIDE:
-• Band 9: Expert user
-• Band 8: Very good user
-• Band 7: Good user (CLB 9)
-• Band 6: Competent user (CLB 7)
-• Band 5: Modest user`,
-
-    "score-conversion": `IELTS/CELPIP to CLB Conversion:
-
-LISTENING:
-CLB 10+ = IELTS 8.5+ / CELPIP 12
-CLB 9 = IELTS 8.0 / CELPIP 10-11
-CLB 8 = IELTS 7.5 / CELPIP 9
-CLB 7 = IELTS 6.0-7.0 / CELPIP 7-8
-CLB 6 = IELTS 5.5 / CELPIP 6
-CLB 5 = IELTS 5.0 / CELPIP 5
-
-READING:
-CLB 10+ = IELTS 8.0+ / CELPIP 12
-CLB 9 = IELTS 7.0-7.5 / CELPIP 10-11
-CLB 8 = IELTS 6.5 / CELPIP 9
-CLB 7 = IELTS 6.0 / CELPIP 7-8
-CLB 6 = IELTS 5.0-5.5 / CELPIP 6
-
-WRITING:
-CLB 10+ = IELTS 7.5+ / CELPIP 12
-CLB 9 = IELTS 7.0 / CELPIP 10-11
-CLB 8 = IELTS 6.5 / CELPIP 9
-CLB 7 = IELTS 6.0 / CELPIP 7-8
-CLB 6 = IELTS 5.5 / CELPIP 6
-
-SPEAKING:
-CLB 10+ = IELTS 7.5+ / CELPIP 12
-CLB 9 = IELTS 7.0 / CELPIP 10-11
-CLB 8 = IELTS 6.5 / CELPIP 9
-CLB 7 = IELTS 6.0 / CELPIP 7-8
-
-For Express Entry:
-• Minimum CLB 7 for Federal Skilled Worker
-• CLB 9 across all 4 skills = maximum CRS points`
+RCIC License #R712582`
   };
 
   // =============================================================================
@@ -750,36 +748,14 @@ For Express Entry:
         if (response) {
           addMessage('bot', response);
         } else {
-          addMessage('bot', 'This feature is coming soon. Stay tuned!');
+          addMessage('bot', 'This feature is coming soon!');
         }
       });
     });
-    
-    // Action buttons
-    const actionButtons = document.querySelectorAll('.ns-btn[data-action]');
-    actionButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const action = btn.getAttribute('data-action');
-        handleAction(action);
-      });
-    });
-  }
-
-  function handleAction(action) {
-    switch(action) {
-      case 'vocab-drill':
-        addMessage('bot', 'Vocabulary drills are coming soon! This feature will help you learn academic vocabulary with spaced repetition.');
-        break;
-      case 'vocab-review':
-        addMessage('bot', 'Vocabulary review is coming soon! You\'ll be able to review words you\'ve learned and track mastery.');
-        break;
-      default:
-        addMessage('bot', 'This feature is coming soon!');
-    }
   }
 
   // =============================================================================
-  // FOLDER EXPANSION
+  // FOLDER EXPANSION & TEST BUTTONS
   // =============================================================================
   function setupFolders() {
     // Main folders
@@ -788,7 +764,6 @@ For Express Entry:
       header.addEventListener('click', () => {
         const folder = header.getAttribute('data-folder');
         const testList = document.getElementById(`${folder}-tests`);
-        
         header.classList.toggle('open');
         testList?.classList.toggle('open');
       });
@@ -800,7 +775,6 @@ For Express Entry:
       header.addEventListener('click', () => {
         const subfolder = header.getAttribute('data-subfolder');
         const subTestList = document.getElementById(`${subfolder}-tests`);
-        
         header.classList.toggle('open');
         subTestList?.classList.toggle('open');
       });
@@ -811,68 +785,55 @@ For Express Entry:
   }
 
   function generateTestButtons() {
-    // Writing tests
-    generateTestsForLevel('writing-foundation', 'Writing', 1, 11, 'Foundation');
-    generateTestsForLevel('writing-intermediate', 'Writing', 12, 22, 'Intermediate');
-    generateTestsForLevel('writing-advanced', 'Writing', 23, 33, 'Advanced');
+    // Reading tests - map to actual test IDs in reading_bank.js
+    generateReadingTests('reading-foundation', 1, 7, 'Foundation');      // R1-R7
+    generateReadingTests('reading-intermediate', 8, 13, 'Intermediate'); // R8-R13
+    generateReadingTests('reading-advanced', 14, 25, 'Advanced');        // R14-R25
+    generateReadingTests('reading-expert', 26, 33, 'Expert');            // R26-R33
     
-    // Reading tests
-    generateTestsForLevel('reading-foundation', 'Reading', 1, 11, 'Foundation');
-    generateTestsForLevel('reading-intermediate', 'Reading', 12, 22, 'Intermediate');
-    generateTestsForLevel('reading-advanced', 'Reading', 23, 33, 'Advanced');
-    
-    // Micro drills
-    generateMicroDrills('writing-micro');
-    generateMicroDrills('reading-micro');
+    // Writing tests (placeholder - these go to backend)
+    generateWritingTests('writing-foundation', 1, 11, 'Foundation');
+    generateWritingTests('writing-intermediate', 12, 22, 'Intermediate');
+    generateWritingTests('writing-advanced', 23, 33, 'Advanced');
   }
 
-  function generateTestsForLevel(containerId, type, start, end, level) {
+  function generateReadingTests(containerId, start, end, level) {
     const container = document.getElementById(`${containerId}-tests`);
     if (!container) return;
     
     for (let i = start; i <= end; i++) {
       const btn = document.createElement('button');
       btn.className = 'test-btn';
-      btn.textContent = `${type} Test ${i}`;
-      btn.addEventListener('click', () => startTest(type, i, level));
+      btn.textContent = `R${i}`;
+      btn.addEventListener('click', () => {
+        if (!state.hasAccess) {
+          addMessage('bot', `To access Reading Test R${i}, please login or unlock Evolve access.`);
+          return;
+        }
+        addMessage('user', `Start Reading Test R${i}`);
+        startReadingTest(`R${i}`);
+      });
       container.appendChild(btn);
     }
   }
 
-  function generateMicroDrills(containerId) {
+  function generateWritingTests(containerId, start, end, level) {
     const container = document.getElementById(`${containerId}-tests`);
     if (!container) return;
     
-    const drills = ['Grammar', 'Vocabulary', 'Cohesion', 'Summarization', 'Tone'];
-    drills.forEach(drill => {
+    for (let i = start; i <= end; i++) {
       const btn = document.createElement('button');
       btn.className = 'test-btn';
-      btn.textContent = `${drill} Drill`;
-      btn.addEventListener('click', () => startMicroDrill(drill));
+      btn.textContent = `W${i}`;
+      btn.addEventListener('click', () => {
+        if (!state.hasAccess) {
+          addMessage('bot', `To access Writing Test W${i}, please login or unlock Evolve access.`);
+          return;
+        }
+        addMessage('bot', `Writing Test W${i} (${level}) - This sends your writing to the AI for detailed feedback. Feature coming soon!`);
+      });
       container.appendChild(btn);
-    });
-  }
-
-  function startTest(type, number, level) {
-    if (!state.hasAccess) {
-      addMessage('bot', `To access ${type} Test ${number}, please login with your subscription email or unlock Evolve access.`);
-      return;
     }
-    
-    addMessage('bot', `Starting ${type} Test ${number} (${level} Level)...\n\nThis test will be timed. You'll have 20 minutes for Foundation, 30 minutes for Intermediate, and 40 minutes for Advanced.\n\nThe test prompt is loading...`);
-    
-    // Show test info bar
-    if (DOM.testInfo) DOM.testInfo.classList.add('active');
-    if (DOM.testLevelBadge) DOM.testLevelBadge.textContent = level;
-  }
-
-  function startMicroDrill(drillType) {
-    if (!state.hasAccess) {
-      addMessage('bot', `To access ${drillType} Drills, please login with your subscription email or unlock Evolve access.`);
-      return;
-    }
-    
-    addMessage('bot', `Starting ${drillType} Micro Drill...\n\nMicro drills are short, focused exercises to improve specific skills. You'll get immediate feedback after each response.`);
   }
 
   // =============================================================================
@@ -905,7 +866,6 @@ For Express Entry:
     DOM.btnNotebook?.addEventListener('click', toggleNotebook);
     DOM.notebookClose?.addEventListener('click', toggleNotebook);
     
-    // Load saved notebook content
     if (DOM.notebookArea) {
       DOM.notebookArea.value = localStorage.getItem(CONFIG.NOTEBOOK_KEY) || '';
       DOM.notebookArea.addEventListener('input', () => {
@@ -945,7 +905,6 @@ For Express Entry:
       DOM.mobileMenuDropdown?.classList.toggle('active');
     });
     
-    // Mobile button handlers
     DOM.btnStatsMobile?.addEventListener('click', () => {
       closeMobileMenu();
       DOM.statsDropdown?.classList.toggle('active');
@@ -971,7 +930,6 @@ For Express Entry:
       openLoginModal();
     });
     
-    // Close mobile menu when clicking outside
     document.addEventListener('click', (e) => {
       if (!e.target.closest('#session-controls-container')) {
         DOM.mobileMenuDropdown?.classList.remove('active');
@@ -989,7 +947,7 @@ For Express Entry:
       }
     });
     
-    // Word count for input
+    // Word count
     DOM.chatInput?.addEventListener('input', updateWordCount);
   }
 
@@ -1033,7 +991,10 @@ For Express Entry:
     localStorage.removeItem(CONFIG.STORAGE_KEY);
     hideSkipButton();
     if (state.currentTypeInterval) clearInterval(state.currentTypeInterval);
+    if (state.timerInterval) clearInterval(state.timerInterval);
     state.isTyping = false;
+    readingTest.active = false;
+    if (DOM.testInfo) DOM.testInfo.classList.remove('active');
     showWelcome();
     showToast('Chat reset!');
   }
@@ -1060,7 +1021,7 @@ For Express Entry:
   async function handleLogin() {
     const email = DOM.loginEmail?.value.trim();
     if (!email || !email.includes('@')) {
-      if (DOM.loginStatus) DOM.loginStatus.textContent = 'Please enter a valid email address.';
+      if (DOM.loginStatus) DOM.loginStatus.textContent = 'Please enter a valid email.';
       return;
     }
     
@@ -1085,22 +1046,18 @@ For Express Entry:
         DOM.loggedInBar?.classList.add('visible');
         if (DOM.loggedInEmail) DOM.loggedInEmail.textContent = email;
         
-        // Enable input
         if (DOM.chatInput) {
           DOM.chatInput.disabled = false;
-          DOM.chatInput.placeholder = 'Type your message or response...';
+          DOM.chatInput.placeholder = 'Type your answer...';
         }
         if (DOM.chatSend) DOM.chatSend.disabled = false;
-        if (DOM.chatRefine) DOM.chatRefine.disabled = false;
-        
-        // Update login button
         if (DOM.btnLogin) DOM.btnLogin.textContent = '✓ Logged In';
         
         setTimeout(closeLoginModal, 1000);
         
-        addMessage('bot', `Welcome back! You're logged in as ${email}.\n\nYou now have full access to all Evolve training features. Select a test from the menu to begin!`);
+        addMessage('bot', `Welcome back, ${email}!\n\nYou have full access. Select a Reading test from the menu to begin!`);
       } else {
-        if (DOM.loginStatus) DOM.loginStatus.textContent = 'No active subscription found. Click "Unlock Full Evolve Access" to subscribe.';
+        if (DOM.loginStatus) DOM.loginStatus.textContent = 'No subscription found. Click "Unlock Evolve Access" to subscribe.';
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -1131,7 +1088,6 @@ For Express Entry:
       const data = localStorage.getItem(CONFIG.STORAGE_KEY);
       if (data) {
         const parsed = JSON.parse(data);
-        // Only load if less than 7 days old
         if (Date.now() - parsed.timestamp < 7 * 24 * 60 * 60 * 1000) {
           state.history = parsed.history || [];
           state.userEmail = parsed.userEmail;
@@ -1147,6 +1103,7 @@ For Express Entry:
   // =============================================================================
   function init() {
     console.log('Evolve App initializing...');
+    console.log('Reading tests loaded:', typeof READING_TESTS_FULL !== 'undefined' ? READING_TESTS_FULL.length + ' tests' : 'NOT LOADED');
     
     loadFromStorage();
     setupUIControls();
@@ -1157,7 +1114,6 @@ For Express Entry:
     console.log('Evolve App ready!');
   }
 
-  // Start when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
