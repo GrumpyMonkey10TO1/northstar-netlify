@@ -337,10 +337,9 @@ Despite their limitations, early medical practitioners made genuine contribution
         ]
       }
     ]
-  }
-];
+  },
 
-// ============================================================
+  // ============================================================
   // R4 - FOUNDATION (Band 6.0-6.5)
   // ============================================================
   {
@@ -927,8 +926,8 @@ What seems clear is that passive adaptation will be insufficient. The scale and 
         ]
       }
     ]
-  },
-
+  }
+,
   // ============================================================
   // R9 - INTERMEDIATE (Band 7.0)
   // ============================================================
@@ -1040,8 +1039,8 @@ These technical solutions must be accompanied by attention to governance and equ
         ]
       }
     ]
-  },
-
+  }
+,
   // ============================================================
   // R10 - INTERMEDIATE (Band 7.0-7.5)
   // ============================================================
@@ -1152,7 +1151,6 @@ The future of water management will require integrated approaches that recognize
       }
     ]
   },
-
   // ============================================================
   // R11 - INTERMEDIATE (Band 7.5)
   // ============================================================
@@ -1265,7 +1263,6 @@ The trajectory of storage technology development will significantly influence th
       }
     ]
   },
-
   // ============================================================
   // R12 - INTERMEDIATE (Band 7.5)
   // ============================================================
@@ -1377,8 +1374,8 @@ Cities are also increasingly recognized as important for conservation itself. Ur
         ]
       }
     ]
-  },
-
+  }
+,
   // ============================================================
   // R13 - INTERMEDIATE (Band 7.5)
   // ============================================================
@@ -1492,8 +1489,8 @@ The relationship between social media and democracy continues to evolve as platf
         ]
       }
     ]
-  },
-
+  }
+,
   // ============================================================
   // R14 - ADVANCED (Band 8.0)
   // ============================================================
@@ -1508,100 +1505,100 @@ The relationship between social media and democracy continues to evolve as platf
         id: "P1",
         title: "Consciousness and the Mind-Body Problem",
         wordCount: 880,
-        text: `The nature of consciousness represents one of the most profound puzzles facing contemporary science and philosophy. How does subjective experience—the felt quality of seeing red, feeling pain, or tasting coffee—arise from the physical processes of the brain? This question, sometimes called the "hard problem" of consciousness, has resisted solution despite remarkable advances in neuroscience and continues to generate vigorous debate about the relationship between mind and matter.
+        text: `The nature of consciousness represents one of the most profound puzzles facing contemporary science and philosophy. How does subjective experience arise from the physical processes of the brain? Why does the sensation of seeing red feel a particular way, distinct from seeing blue or hearing a sound? These questions, which constitute what philosophers call the "mind-body problem," have generated centuries of debate and continue to resist definitive resolution despite remarkable advances in neuroscience.
 
-The philosophical tradition offers several approaches to the mind-body problem. Dualism, associated with René Descartes, holds that mind and body are fundamentally different substances—the mental is non-physical and cannot be reduced to brain processes. This view accords with intuition but faces the notorious problem of explaining how non-physical mind could interact with physical body. Materialism or physicalism, the dominant view in contemporary science, holds that mental states are identical to or constituted by physical brain states. Yet materialists struggle to explain why any physical process should give rise to subjective experience at all.
+Dualist approaches, historically dominant in Western philosophy, posit that mind and body are fundamentally distinct substances. René Descartes famously argued that the mind, being non-physical and indivisible, differs categorically from the extended, divisible matter of the body. This position appeals to intuitions about the apparent irreducibility of mental experience to physical description, yet it faces the persistent challenge of explaining how non-physical mind could interact with physical brain—the so-called interaction problem that troubled Descartes himself.
 
-Neuroscience has mapped correlations between brain activity and conscious experience in increasing detail. Specific neural patterns accompany specific experiences—particular regions activate when subjects see faces, feel emotions, or recall memories. Disorders of consciousness following brain damage reveal which neural systems are necessary for awareness. Yet correlation is not explanation, and the mechanisms by which neural activity produces consciousness remain elusive. We lack a theory that would allow us to predict which physical systems are conscious and what their experiences are like.
+Materialist or physicalist positions maintain that consciousness is ultimately physical, arising from or being identical to brain processes. Identity theory proposes that mental states simply are brain states, while functionalism suggests that mental states are defined by their causal roles rather than their physical substrate. These approaches align with scientific methodology and have gained adherents as neuroscience has revealed increasingly detailed correlations between brain activity and mental states. Yet critics argue that no amount of physical description explains why there is subjective experience at all.
 
-Several theoretical frameworks attempt to bridge this explanatory gap. Integrated Information Theory proposes that consciousness corresponds to integrated information processing—the capacity of a system to represent information that is both differentiated and unified. Global Workspace Theory suggests that consciousness arises when information is broadcast widely across the brain, making it available to multiple specialized systems simultaneously. Higher-Order Theories hold that consciousness requires representations of one's own mental states. Each framework captures aspects of conscious experience but none has achieved consensus acceptance.
+The philosopher David Chalmers has influentially distinguished between "easy problems" and the "hard problem" of consciousness. Easy problems—explaining cognitive functions like attention, memory, and verbal report—may be difficult in practice but present no fundamental conceptual obstacle. The hard problem asks why these functions are accompanied by subjective experience. Chalmers argues that physical explanations leave this question untouched, suggesting that consciousness may be a fundamental feature of reality not reducible to physical processes.
 
-The question of animal consciousness illustrates the empirical challenges. Non-human animals cannot report their experiences verbally, forcing researchers to infer consciousness from behavior and neural similarities to humans. Most scientists accept that mammals and birds have some form of conscious experience, though its character may differ substantially from human consciousness. Whether consciousness extends to fish, insects, or other organisms remains deeply uncertain. Similar questions arise for artificial systems: could appropriately programmed computers be conscious, and how would we know?
+Neuroscience has made remarkable progress in correlating conscious states with brain activity. Studies of patients with brain damage reveal which regions are necessary for various aspects of consciousness. Neuroimaging allows researchers to identify neural correlates of conscious perception. Theories like Global Workspace Theory and Integrated Information Theory attempt to explain consciousness in terms of specific patterns of neural activity or information processing. Yet whether these approaches genuinely explain consciousness or merely describe its physical correlates remains disputed.
 
-Altered states of consciousness provide additional evidence about consciousness's nature and neural basis. Anesthesia can reversibly eliminate consciousness while preserving other brain functions, revealing something about the necessary conditions for awareness. Psychedelic drugs produce dramatic alterations in experience that correlate with specific changes in neural activity. Meditation practices can modify consciousness in ways that practitioners describe as profound. These phenomena offer windows into consciousness's variability and its relationship to brain states.
+Questions about consciousness extend to practical and ethical domains. If consciousness arises from certain patterns of information processing, might artificial systems achieve consciousness? What moral status would such systems possess? How should we assess consciousness in non-human animals or in humans with severe brain damage? The answers to these questions depend partly on theoretical understanding of consciousness that we do not yet possess.
 
-The implications of solving or failing to solve the consciousness problem extend beyond philosophy and science. Questions about the moral status of fetuses, patients in vegetative states, animals, and potentially artificial intelligences depend partly on assessments of their consciousness. The possibility that consciousness might have been different or might be fundamentally inexplicable challenges assumptions about scientific explanation. Whether or not the hard problem admits of solution, engaging with it illuminates the remarkable nature of the minds we possess.`,
+The persistence of the mind-body problem reflects deep tensions between subjective experience and objective description, between first-person perspective and third-person science. Some philosophers argue that these tensions reveal limitations in our conceptual frameworks rather than properties of reality. Others suggest that consciousness may require fundamentally new scientific paradigms or even transcend scientific explanation altogether. The debate continues, driven by both philosophical analysis and empirical discovery, toward resolution that remains elusive.`,
         questions: [
-          { id: 1, type: "heading", paragraph: "A", text: "Choose the correct heading for paragraph 1", options: ["i. The hard problem introduced", "ii. Dualist philosophy", "iii. Neural correlates", "iv. Altered states"], answer: "i" },
-          { id: 2, type: "heading", paragraph: "B", text: "Choose the correct heading for paragraph 2", options: ["i. Neuroscience methods", "ii. Traditional philosophical approaches", "iii. Theoretical frameworks", "iv. Animal consciousness"], answer: "ii" },
-          { id: 3, type: "heading", paragraph: "C", text: "Choose the correct heading for paragraph 3", options: ["i. Neuroscience findings and limitations", "ii. Artificial consciousness", "iii. Meditation effects", "iv. Moral implications"], answer: "i" },
-          { id: 4, type: "heading", paragraph: "D", text: "Choose the correct heading for paragraph 4", options: ["i. Animal studies", "ii. Consciousness theories", "iii. Anesthesia research", "iv. Philosophical history"], answer: "ii" },
-          { id: 5, type: "tfng", text: "The hard problem of consciousness has been definitively solved.", answer: "False" },
-          { id: 6, type: "tfng", text: "Dualism holds that mind and body are the same substance.", answer: "False" },
-          { id: 7, type: "tfng", text: "Neural correlations fully explain how consciousness arises.", answer: "False" },
-          { id: 8, type: "tfng", text: "Most scientists accept that mammals have some conscious experience.", answer: "True" },
-          { id: 9, type: "tfng", text: "Anesthesia can reversibly eliminate consciousness.", answer: "True" },
-          { id: 10, type: "short", text: "Who is dualism associated with? (FULL NAME)", answer: "René Descartes" },
-          { id: 11, type: "short", text: "What theory proposes consciousness is integrated information? (ABBREVIATION)", answer: "IIT" },
-          { id: 12, type: "short", text: "What can non-human animals not do regarding their experiences? (ONE WORD)", answer: "report" },
-          { id: 13, type: "short", text: "What drugs produce dramatic alterations in experience? (ONE WORD)", answer: "psychedelic" }
+          { id: 1, type: "heading", paragraph: "A", text: "Choose the correct heading for paragraph 1", options: ["i. The enduring mystery of consciousness", "ii. Neuroscience solutions", "iii. Dualist philosophy", "iv. Practical applications"], answer: "i" },
+          { id: 2, type: "heading", paragraph: "B", text: "Choose the correct heading for paragraph 2", options: ["i. Materialist perspectives", "ii. Dualist mind-body distinction", "iii. The hard problem", "iv. Neural correlates"], answer: "ii" },
+          { id: 3, type: "heading", paragraph: "C", text: "Choose the correct heading for paragraph 3", options: ["i. Physical approaches to consciousness", "ii. Ethical implications", "iii. Descartes' argument", "iv. Scientific limitations"], answer: "i" },
+          { id: 4, type: "heading", paragraph: "D", text: "Choose the correct heading for paragraph 4", options: ["i. Brain damage studies", "ii. Chalmers' distinction of problems", "iii. Artificial consciousness", "iv. Information theory"], answer: "ii" },
+          { id: 5, type: "tfng", text: "Descartes believed mind and body are the same substance.", answer: "False" },
+          { id: 6, type: "tfng", text: "Functionalism defines mental states by their causal roles.", answer: "True" },
+          { id: 7, type: "tfng", text: "The hard problem concerns cognitive functions like memory.", answer: "False" },
+          { id: 8, type: "tfng", text: "Neuroscience has definitively solved the mind-body problem.", answer: "False" },
+          { id: 9, type: "tfng", text: "Some philosophers believe consciousness may transcend scientific explanation.", answer: "True" },
+          { id: 10, type: "short", text: "Who distinguished between easy and hard problems of consciousness? (ONE NAME)", answer: "Chalmers" },
+          { id: 11, type: "short", text: "What problem did dualism face regarding mind-body interaction? (TWO WORDS)", answer: "interaction problem" },
+          { id: 12, type: "short", text: "What theory proposes mental states are brain states? (TWO WORDS)", answer: "identity theory" },
+          { id: 13, type: "short", text: "What type of theory attempts to explain consciousness through information processing? (ABBREVIATION)", answer: "IIT" }
         ]
       },
       {
         id: "P2",
         title: "International Trade and Global Governance",
         wordCount: 850,
-        text: `The international trading system that emerged after World War II has profoundly shaped global economic development, creating institutional frameworks that govern how nations exchange goods, services, and capital. This system has enabled unprecedented expansion of trade and contributed to remarkable economic growth, while also generating tensions and inequalities that challenge its legitimacy and sustainability. Understanding both the achievements and the limitations of global trade governance illuminates debates about economic globalization and its future trajectory.
+        text: `The international trading system that emerged after World War II has profoundly shaped global economic development. Institutions like the General Agreement on Tariffs and Trade (GATT) and its successor, the World Trade Organization (WTO), established rules governing trade among nations, reducing barriers and facilitating the dramatic expansion of international commerce. This system has lifted hundreds of millions from poverty while also generating significant controversies about its costs and benefits.
 
-The General Agreement on Tariffs and Trade, established in 1947 and later succeeded by the World Trade Organization, provided the institutional foundation for trade liberalization. Through successive negotiating rounds, member countries agreed to reduce tariffs and other barriers, expanding market access and stimulating trade growth. The principle of most-favored-nation treatment prevented discrimination among trading partners, while national treatment required equal treatment of domestic and foreign goods within national markets. These rules constrained protectionism and created predictability that facilitated international commerce.
+The post-war trading order rested on several key principles. Most-favored-nation treatment required countries to extend trade concessions made to any partner to all WTO members, preventing discriminatory arrangements. National treatment demanded that imported goods receive treatment no less favorable than domestic products once they enter a market. These principles, along with successive rounds of tariff reductions, created a more open and predictable trading environment that enabled unprecedented growth in trade volumes.
 
-Trade expansion delivered substantial benefits but distributed them unevenly. Developing countries that integrated successfully into global value chains experienced rapid industrialization and poverty reduction. China's export-led growth, lifting hundreds of millions from poverty, represents the most dramatic example. However, other developing countries remained marginalized, unable to compete in global markets dominated by established industrial powers. Within countries, trade created winners and losers—import-competing industries and their workers suffered while export sectors and consumers benefited.
+Developing countries initially viewed the trading system with suspicion, seeing it as designed to benefit wealthy nations. Over time, however, many developing countries embraced trade liberalization as a development strategy. China's integration into the global trading system following its WTO accession in 2001 represents perhaps the most dramatic example: the country's export-oriented growth lifted hundreds of millions from poverty and transformed China into the world's second-largest economy.
 
-The consensus supporting trade liberalization has eroded in recent decades. Workers in developed countries who lost jobs to import competition grew skeptical of trade's benefits. Concerns about labor standards, environmental protection, and regulatory autonomy in trade agreements generated opposition from civil society groups. The financial crisis of 2008 and its aftermath intensified protectionist pressures as countries sought to preserve domestic employment. Rising geopolitical tensions between major trading powers have further strained the multilateral trading system.
+Critics have challenged the trading system from multiple directions. Labor advocates argue that trade with low-wage countries depresses wages and destroys jobs in wealthy nations, while environmental advocates contend that trade rules constrain national environmental policies and promote a "race to the bottom" in standards. Responses to these criticisms have included labor and environmental provisions in trade agreements, though their effectiveness remains debated.
 
-Regional and bilateral trade agreements have proliferated as multilateral negotiations have stalled. These preferential arrangements create trade among members while potentially diverting trade from non-members. The complexity of overlapping agreements—sometimes called the "spaghetti bowl" of preferential trade—creates compliance challenges and may fragment rather than integrate the global economy. Whether regional agreements serve as building blocks or stumbling blocks toward global integration remains debated.
+The rise of global value chains has complicated traditional understandings of trade. Products are now manufactured across multiple countries, with components crossing borders repeatedly before final assembly. This integration has deepened interdependence but also concentrated gains in certain locations while leaving others behind. Service trade and digital commerce have grown in importance, requiring new rules that existing frameworks only partially address.
 
-Trade governance increasingly extends beyond traditional border measures to address domestic regulations affecting trade. Agreements covering services, intellectual property, investment, and regulatory coherence reach deep into national policy space. This expansion raises questions about democratic accountability when international commitments constrain domestic policy choices. The tension between trade liberalization and policy autonomy has become a central challenge for trade governance.
+Recent years have seen mounting challenges to the trading order. Trade tensions between the United States and China have disrupted the system, with tariffs and restrictions proliferating. The WTO's dispute settlement mechanism has been hobbled by the blocking of new appointments to its appellate body. Countries increasingly invoke national security exceptions to justify trade restrictions, raising questions about the enforceability of trade commitments.
 
-The future of global trade governance faces fundamental uncertainties. Climate change requires trade rules compatible with decarbonization efforts, raising questions about carbon border adjustments and green industrial policy. Digital trade demands governance frameworks for cross-border data flows, electronic commerce, and emerging technologies. Geopolitical competition between major powers may fragment the trading system into rival blocs. Whether multilateral institutions can adapt to these challenges or whether trade governance will become increasingly fragmented remains to be seen.`,
+The future of the trading system remains uncertain. Some advocate for deepening integration through new agreements addressing issues like digital trade and climate. Others call for fundamental reform to address concerns about inequality and sovereignty. Still others predict fragmentation into competing blocs. Whatever emerges will shape global economic development for decades to come.`,
         questions: [
-          { id: 14, type: "yng", text: "GATT was established before World War II ended.", answer: "No" },
-          { id: 15, type: "yng", text: "Trade expansion benefited all countries equally.", answer: "No" },
-          { id: 16, type: "yng", text: "China's growth lifted hundreds of millions from poverty.", answer: "Yes" },
-          { id: 17, type: "yng", text: "Support for trade liberalization has strengthened recently.", answer: "No" },
-          { id: 18, type: "yng", text: "Trade governance now reaches into domestic policy areas.", answer: "Yes" },
+          { id: 14, type: "yng", text: "Trade expansion benefited all countries equally.", answer: "No" },
+          { id: 15, type: "yng", text: "China's WTO accession in 2001 contributed to poverty reduction.", answer: "Yes" },
+          { id: 16, type: "yng", text: "All developing countries initially welcomed the trading system.", answer: "No" },
+          { id: 17, type: "yng", text: "Service trade has grown in importance.", answer: "Yes" },
+          { id: 18, type: "yng", text: "The WTO appellate body is functioning normally.", answer: "No" },
           { id: 19, type: "mcq", text: "What did most-favored-nation treatment prevent?", options: ["A. Trade growth", "B. Discrimination among partners", "C. Market access", "D. Tariff reduction"], answer: "B" },
-          { id: 20, type: "mcq", text: "What is the 'spaghetti bowl' in trade?", options: ["A. Food trade", "B. Complex overlapping agreements", "C. Simple tariffs", "D. Single market"], answer: "B" },
-          { id: 21, type: "mcq", text: "What intensified protectionist pressures?", options: ["A. Trade growth", "B. 2008 financial crisis", "C. Reduced tariffs", "D. Successful integration"], answer: "B" },
-          { id: 22, type: "mcq", text: "What does climate change require of trade rules?", options: ["A. Ignore environment", "B. Compatibility with decarbonization", "C. Increased emissions", "D. Less regulation"], answer: "B" },
-          { id: 23, type: "summary", text: "Complete: National treatment requires equal treatment of domestic and ________ goods.", answer: "foreign" },
-          { id: 24, type: "summary", text: "Complete: Workers in developed countries who lost jobs grew ________ of trade.", answer: "skeptical" },
-          { id: 25, type: "summary", text: "Complete: Regional agreements may ________ rather than integrate the economy.", answer: "fragment" },
-          { id: 26, type: "summary", text: "Complete: Carbon ________ adjustments are discussed for climate-compatible trade.", answer: "border" }
+          { id: 20, type: "mcq", text: "What do labor advocates argue about trade?", options: ["A. It increases wages", "B. It depresses wages in wealthy nations", "C. It has no effect", "D. It helps all workers"], answer: "B" },
+          { id: 21, type: "mcq", text: "What has complicated traditional trade understandings?", options: ["A. Global value chains", "B. Fixed borders", "C. Single-country manufacturing", "D. Reduced commerce"], answer: "A" },
+          { id: 22, type: "mcq", text: "What has hobbled the WTO dispute mechanism?", options: ["A. Too many cases", "B. Blocking of appellate appointments", "C. Excessive funding", "D. Universal agreement"], answer: "B" },
+          { id: 23, type: "summary", text: "Complete: National treatment requires imports receive treatment no less ________ than domestic products.", answer: "favorable" },
+          { id: 24, type: "summary", text: "Complete: China became the world's ________-largest economy.", answer: "second" },
+          { id: 25, type: "summary", text: "Complete: Countries invoke ________ security exceptions to justify restrictions.", answer: "national" },
+          { id: 26, type: "summary", text: "Complete: Some predict fragmentation into competing ________.", answer: "blocs" }
         ]
       },
       {
         id: "P3",
         title: "Gene Editing and Bioethics",
         wordCount: 870,
-        text: `The development of CRISPR-Cas9 and related gene editing technologies has created unprecedented capabilities to modify the genetic material of living organisms with precision, efficiency, and accessibility far exceeding previous methods. These technologies offer remarkable potential for treating genetic diseases, improving agricultural productivity, and controlling disease vectors, while also raising profound ethical questions about altering the fundamental code of life. Navigating these possibilities and concerns requires careful consideration of both the science and the values at stake.
+        text: `The development of CRISPR-Cas9 and related gene editing technologies has created unprecedented capabilities to modify the genetic material of organisms, including humans. These tools enable precise alterations to DNA sequences with efficiency and accuracy that previous technologies could not achieve. The implications range from treating genetic diseases to potentially enhancing human capabilities, raising profound ethical questions that societies are only beginning to address.
 
-Gene editing works by introducing targeted changes to DNA sequences. The CRISPR system, adapted from bacterial immune defenses, uses guide RNA molecules to direct a cutting enzyme to specific genomic locations, where modifications can be made through cellular repair mechanisms. Compared to earlier gene editing tools, CRISPR is faster, cheaper, more accurate, and more accessible, enabling research applications across numerous laboratories and organisms. This democratization of gene editing capability amplifies both its promise and its risks.
+CRISPR systems were adapted from bacterial immune defenses against viruses. The technology uses guide RNA sequences to target specific DNA locations, where the Cas9 enzyme cuts the genetic material. Cellular repair mechanisms then either disrupt the targeted gene or incorporate new genetic sequences. This approach has revolutionized research by making genetic modification faster, cheaper, and more accessible than previous methods like zinc finger nucleases.
 
-Therapeutic applications offer the most compelling case for gene editing. Genetic diseases caused by specific mutations—sickle cell disease, certain cancers, inherited blindness—might be treated by correcting the underlying genetic defect. Clinical trials have demonstrated promising results for some conditions, with patients achieving sustained remission from previously incurable diseases. Somatic cell editing, which modifies genes in specific tissues without affecting future generations, raises fewer ethical concerns than germline editing but still requires careful attention to safety and informed consent.
+Therapeutic applications of gene editing offer hope for treating previously incurable genetic diseases. Clinical trials are exploring treatments for sickle cell disease, beta-thalassemia, and certain forms of blindness. Somatic gene therapy—modifying cells in a patient's body—is generally considered ethically analogous to other medical treatments, though questions remain about long-term effects and equitable access.
 
-Germline editing—modifications to eggs, sperm, or embryos that would be inherited by future generations—presents far more profound implications. In 2018, a Chinese scientist announced the birth of twin girls whose genomes had been edited to confer HIV resistance, provoking widespread condemnation from the scientific community. The announcement violated established ethical guidelines, raised safety concerns about unknown long-term effects, and forced confrontation with questions about human enhancement that many researchers had considered premature.
+Germline editing—modifications to reproductive cells or embryos that would be inherited by future generations—raises more fundamental concerns. A Chinese researcher's announcement in 2018 that he had created the first gene-edited babies, twin girls with modifications intended to confer HIV resistance, prompted widespread condemnation. The research violated international guidelines, the claimed benefits were questionable, and the long-term effects on the children remain unknown.
 
-The prospect of editing human embryos forces engagement with fundamental questions about human nature and enhancement. Should genetic modifications be limited to treating disease, or might they extend to enhancing traits like intelligence, athleticism, or longevity? Where does the line between therapy and enhancement fall, and who decides? If enhancement becomes possible and accessible only to the wealthy, might genetic modification exacerbate existing social inequalities? These questions lack easy answers and require deliberation extending beyond scientific expertise.
+Enhancement applications extend beyond therapy to potentially improving normal human capabilities. Genetic modifications might enhance intelligence, physical performance, or disease resistance. Critics argue that such enhancements would exacerbate inequality if available only to the wealthy, raise concerns about consent for future generations, and may reduce human diversity. Distinguishing enhancement from therapy proves difficult in practice—is correcting a genetic variant that increases disease risk treatment or enhancement?
 
-Agricultural applications of gene editing present different considerations. Editing crop genomes to improve yield, disease resistance, or nutritional content could contribute to food security under climate change pressures. Gene drives—systems that spread genetic modifications through wild populations—offer potential tools for controlling disease-carrying mosquitoes or invasive species but raise concerns about ecological risks and the permanence of environmental modification. Regulatory frameworks developed for earlier transgenic technologies may not be well-suited to gene-edited organisms.
+Governance frameworks for gene editing vary widely across countries. Some nations prohibit germline editing entirely, while others permit research under strict oversight. International scientific bodies have called for moratoriums on clinical germline editing until safety and ethical issues are resolved. However, the technology's accessibility means that enforcement remains challenging.
 
-Governance of gene editing technologies requires balancing innovation with precaution. International scientific organizations have called for moratoria on clinical germline editing until safety is established and societal consensus achieved. National regulations vary considerably, with some jurisdictions permitting research that others prohibit. The global nature of science and the portability of gene editing capabilities make purely national governance inadequate. Yet achieving international agreement on technologies with such varied implications remains deeply challenging.`,
+The debate over gene editing reflects broader tensions about humanity's relationship with its biological nature. Some view genetic modification as an extension of medicine's traditional mission to reduce suffering and enhance wellbeing. Others see it as a dangerous transgression of natural limits, risking unforeseen consequences and fundamental changes to human identity. These perspectives may be irreconcilable, requiring societies to navigate profound disagreements while the technology continues to advance.`,
         questions: [
           { id: 27, type: "tfng", text: "CRISPR is slower and more expensive than previous methods.", answer: "False" },
           { id: 28, type: "tfng", text: "The CRISPR system was adapted from bacterial immune defenses.", answer: "True" },
-          { id: 29, type: "tfng", text: "Somatic cell editing affects future generations.", answer: "False" },
-          { id: 30, type: "tfng", text: "The 2018 gene-edited twins announcement was widely praised.", answer: "False" },
-          { id: 31, type: "tfng", text: "National regulations for gene editing are uniform worldwide.", answer: "False" },
-          { id: 32, type: "matching", text: "Modifications inherited by future generations", answer: "germline editing" },
-          { id: 33, type: "matching", text: "Systems that spread modifications through wild populations", answer: "gene drives" },
-          { id: 34, type: "matching", text: "Directs cutting enzyme to specific locations", answer: "guide RNA" },
-          { id: 35, type: "mcq", text: "What does democratization of gene editing amplify?", options: ["A. Only promise", "B. Only risks", "C. Both promise and risks", "D. Neither"], answer: "C" },
-          { id: 36, type: "mcq", text: "What did the 2018 announcement violate?", options: ["A. Patent laws", "B. Ethical guidelines", "C. Trade agreements", "D. Immigration rules"], answer: "B" },
-          { id: 37, type: "mcq", text: "What might genetic enhancement exacerbate?", options: ["A. Disease treatment", "B. Scientific research", "C. Social inequalities", "D. International cooperation"], answer: "C" },
-          { id: 38, type: "mcq", text: "What have international organizations called for?", options: ["A. Immediate clinical use", "B. Moratoria on germline editing", "C. No regulation", "D. Unlimited research"], answer: "B" },
-          { id: 39, type: "short", text: "What disease did the 2018 twins receive resistance to? (ABBREVIATION)", answer: "HIV" },
-          { id: 40, type: "short", text: "What could gene drives help control? (ONE WORD)", answer: "mosquitoes" }
+          { id: 29, type: "tfng", text: "The 2018 gene-edited babies case was widely praised.", answer: "False" },
+          { id: 30, type: "tfng", text: "Distinguishing enhancement from therapy is straightforward.", answer: "False" },
+          { id: 31, type: "tfng", text: "All countries have identical gene editing regulations.", answer: "False" },
+          { id: 32, type: "matching", text: "Modifies cells without affecting inherited genes", answer: "somatic therapy" },
+          { id: 33, type: "matching", text: "Changes reproductive cells or embryos", answer: "germline editing" },
+          { id: 34, type: "matching", text: "Enables precise genome modification", answer: "CRISPR-Cas9" },
+          { id: 35, type: "mcq", text: "What disease did the 2018 gene-edited twins receive resistance to?", options: ["A. Cancer", "B. Diabetes", "C. HIV", "D. Alzheimer's"], answer: "C" },
+          { id: 36, type: "mcq", text: "What concern exists about genetic enhancement?", options: ["A. Too cheap", "B. Could increase inequality", "C. Too simple", "D. Universally accessible"], answer: "B" },
+          { id: 37, type: "mcq", text: "What have international scientific bodies called for?", options: ["A. Immediate clinical use", "B. Moratoriums on germline editing", "C. No regulation", "D. Mandatory enhancement"], answer: "B" },
+          { id: 38, type: "mcq", text: "What makes enforcement of gene editing rules challenging?", options: ["A. Lack of interest", "B. Technology's accessibility", "C. Universal agreement", "D. High costs"], answer: "B" },
+          { id: 39, type: "short", text: "What enzyme cuts DNA in CRISPR systems? (ONE WORD)", answer: "Cas9" },
+          { id: 40, type: "short", text: "What type of editing creates inheritable modifications? (ONE WORD)", answer: "germline" }
         ]
       }
     ]
@@ -1619,102 +1616,102 @@ Governance of gene editing technologies requires balancing innovation with preca
     passages: [
       {
         id: "P1",
-        title: "Quantum Computing and Its Implications",
-        wordCount: 870,
-        text: `Quantum computing represents a fundamentally different approach to information processing that exploits the strange properties of quantum mechanics to perform calculations impossible for classical computers. After decades of theoretical development and experimental progress, quantum computers have begun demonstrating capabilities that exceed what conventional machines can achieve, heralding a technological transition with profound implications for cryptography, drug discovery, materials science, and artificial intelligence.
+        title: "Quantum Computing: Principles and Prospects",
+        wordCount: 880,
+        text: `Quantum computing represents a fundamentally different approach to information processing that exploits phenomena from quantum mechanics to perform calculations impossible or impractical for classical computers. While still in early stages of development, quantum computing has attracted enormous scientific and commercial interest for its potential to revolutionize cryptography, drug discovery, materials science, optimization, and artificial intelligence. Understanding quantum computing requires grappling with counterintuitive principles that challenge classical intuitions about information and computation.
 
-Classical computers process information in binary digits or bits, each existing in a definite state of either zero or one. Quantum computers instead use quantum bits or qubits, which can exist in superpositions of both states simultaneously until measured. This property allows quantum computers to explore many computational paths in parallel, providing exponential speedup for certain types of problems. Additionally, quantum entanglement creates correlations between qubits that have no classical analog, enabling further computational advantages.
+Classical computers process information as bits—binary digits that are definitively either zero or one. Quantum computers instead use quantum bits, or qubits, which can exist in superposition—simultaneously representing both zero and one until measured. This superposition enables quantum computers to explore multiple computational pathways simultaneously rather than sequentially, providing exponential speedup for certain problems. When multiple qubits are entangled—correlated in ways that classical physics cannot explain—operations on one qubit instantaneously affect others regardless of physical separation.
 
-The theoretical power of quantum computing was established decades ago, but building practical quantum computers has required overcoming formidable engineering challenges. Qubits are extraordinarily fragile, easily disrupted by environmental noise that causes decoherence and computational errors. Maintaining quantum states requires extreme conditions—temperatures near absolute zero for some technologies—and sophisticated error correction schemes that demand many physical qubits for each logical qubit used in computation. Despite these difficulties, recent years have seen remarkable progress toward fault-tolerant quantum systems.
+Quantum algorithms exploit these properties to achieve computational advantages. Shor's algorithm, developed by mathematician Peter Shor in 1994, demonstrated that a sufficiently powerful quantum computer could factor large numbers exponentially faster than any known classical algorithm. Since the security of widely used encryption systems depends on the difficulty of factoring large numbers, this discovery prompted both concern about cryptographic vulnerability and excitement about quantum computing's potential. Grover's algorithm provides quadratic speedup for unstructured search problems, with applications ranging from database search to optimization.
 
-In 2019, Google announced that its quantum processor had achieved "quantum supremacy"—performing a calculation that would take classical supercomputers thousands of years in just minutes. While the specific task was artificial, designed to showcase quantum advantage rather than solve a practical problem, the milestone demonstrated that quantum computers could exceed classical capabilities. Subsequent achievements by multiple research groups and companies have extended quantum advantage to additional domains.
+Building practical quantum computers faces formidable engineering challenges. Qubits are extraordinarily fragile, losing their quantum properties through interaction with their environment—a process called decoherence. Maintaining qubits in coherent states requires extreme isolation, typically achieved through cooling to temperatures near absolute zero or using other sophisticated techniques. Error rates remain high compared to classical computers, necessitating error correction schemes that require many physical qubits per logical qubit. Current systems have achieved tens to hundreds of qubits, far short of the thousands or millions needed for many practical applications.
 
-The implications for cryptography are particularly significant. Much current encryption relies on the difficulty of factoring large numbers—a task that classical computers find intractable for sufficiently large numbers but that quantum computers could potentially solve efficiently using Shor's algorithm. This possibility threatens the security of communications, financial transactions, and government secrets protected by existing cryptographic systems. The development of quantum-resistant encryption has become an urgent priority, with new standards emerging to protect against future quantum attacks.
+Different physical implementations of qubits are being pursued. Superconducting circuits, used by IBM and Google, employ electrical circuits cooled to millikelvin temperatures. Trapped ions, pursued by IonQ and Honeywell, use electromagnetic fields to suspend charged atoms whose quantum states serve as qubits. Photonic approaches encode information in light particles, potentially enabling room-temperature operation. Each approach has distinct advantages and challenges; which will prove most practical for scaled-up quantum computing remains uncertain.
 
-Beyond cryptography, quantum computing promises advances in simulation and optimization. Simulating quantum systems—the behavior of molecules, materials, and chemical reactions—is naturally suited to quantum computers, potentially accelerating drug discovery and materials design. Optimization problems across logistics, finance, and machine learning might benefit from quantum approaches. However, identifying which problems quantum computers will actually solve better than classical alternatives remains an active area of research.
+Near-term applications focus on problems where even imperfect quantum computers may provide advantages. Quantum simulation of molecular systems could accelerate drug discovery and materials development by modeling quantum phenomena that classical computers struggle to represent. Quantum machine learning may enhance pattern recognition in certain domains. Quantum optimization might improve logistics, financial modeling, and resource allocation. However, claims about quantum advantage require careful scrutiny, as classical algorithms continue to improve and the boundary between quantum and classical capabilities remains contested.
 
-The race to develop practical quantum computing has intensified, with governments and corporations investing billions. Different technological approaches—superconducting circuits, trapped ions, photonic systems—compete for dominance. Questions remain about which problems will yield to quantum solutions, when genuinely useful applications will emerge, and whether classical algorithms might narrow the gap for some tasks. Yet the trajectory of progress suggests that quantum computing will eventually transform computation in ways comparable to the transition from mechanical to electronic computing.`,
+The quantum computing industry has attracted substantial investment from technology companies, governments, and venture capital. Projections of market size vary enormously, reflecting uncertainty about when and for what problems quantum computers will provide practical value. Workforce development, standardization, and integration with classical computing infrastructure present additional challenges. Whether quantum computing fulfills its transformative promise depends on continued scientific progress and engineering innovation over the coming decades.`,
         questions: [
-          { id: 1, type: "heading", paragraph: "A", text: "Choose the correct heading for paragraph 1", options: ["i. Introduction to quantum computing", "ii. Cryptographic threats", "iii. Engineering challenges", "iv. Google's achievement"], answer: "i" },
-          { id: 2, type: "heading", paragraph: "B", text: "Choose the correct heading for paragraph 2", options: ["i. How classical and quantum computing differ", "ii. Error correction methods", "iii. Simulation applications", "iv. Investment trends"], answer: "i" },
-          { id: 3, type: "heading", paragraph: "C", text: "Choose the correct heading for paragraph 3", options: ["i. Cryptographic implications", "ii. Technical obstacles to quantum computing", "iii. Supremacy demonstrations", "iv. Drug discovery"], answer: "ii" },
-          { id: 4, type: "heading", paragraph: "D", text: "Choose the correct heading for paragraph 4", options: ["i. Materials science", "ii. Quantum supremacy achieved", "iii. Government investment", "iv. Optimization problems"], answer: "ii" },
-          { id: 5, type: "tfng", text: "Qubits can exist in only one state at a time.", answer: "False" },
-          { id: 6, type: "tfng", text: "Qubits are easily disrupted by environmental noise.", answer: "True" },
-          { id: 7, type: "tfng", text: "Google's quantum supremacy task solved a practical real-world problem.", answer: "False" },
-          { id: 8, type: "tfng", text: "Current encryption could be threatened by quantum computers.", answer: "True" },
-          { id: 9, type: "tfng", text: "All problems will benefit from quantum computing solutions.", answer: "False" },
-          { id: 10, type: "short", text: "What can qubits exist in simultaneously? (ONE WORD)", answer: "superpositions" },
-          { id: 11, type: "short", text: "What algorithm could break current encryption? (TWO WORDS)", answer: "Shor's algorithm" },
-          { id: 12, type: "short", text: "What year did Google announce quantum supremacy?", answer: "2019" },
-          { id: 13, type: "short", text: "What type of encryption is being developed against quantum attacks? (TWO WORDS)", answer: "quantum-resistant" }
+          { id: 1, type: "heading", paragraph: "A", text: "Choose the correct heading for paragraph 1", options: ["i. Introduction to quantum computing", "ii. Engineering challenges", "iii. Commercial investment", "iv. Classical bit processing"], answer: "i" },
+          { id: 2, type: "heading", paragraph: "B", text: "Choose the correct heading for paragraph 2", options: ["i. Qubits and superposition", "ii. Shor's algorithm", "iii. Error correction", "iv. Physical implementations"], answer: "i" },
+          { id: 3, type: "heading", paragraph: "C", text: "Choose the correct heading for paragraph 3", options: ["i. Decoherence problems", "ii. Quantum algorithms and their advantages", "iii. Near-term applications", "iv. Market projections"], answer: "ii" },
+          { id: 4, type: "heading", paragraph: "D", text: "Choose the correct heading for paragraph 4", options: ["i. Investment trends", "ii. Engineering challenges for quantum computers", "iii. Algorithm development", "iv. Workforce development"], answer: "ii" },
+          { id: 5, type: "tfng", text: "Classical bits can exist in superposition.", answer: "False" },
+          { id: 6, type: "tfng", text: "Shor's algorithm was developed in 1994.", answer: "True" },
+          { id: 7, type: "tfng", text: "Current quantum computers have millions of qubits.", answer: "False" },
+          { id: 8, type: "tfng", text: "Superconducting qubits operate at room temperature.", answer: "False" },
+          { id: 9, type: "tfng", text: "The boundary between quantum and classical capabilities is clearly established.", answer: "False" },
+          { id: 10, type: "short", text: "What process causes qubits to lose their quantum properties? (ONE WORD)", answer: "decoherence" },
+          { id: 11, type: "short", text: "What algorithm provides quadratic speedup for search? (ONE NAME)", answer: "Grover's" },
+          { id: 12, type: "short", text: "What type of circuits does IBM use for qubits? (ONE WORD)", answer: "superconducting" },
+          { id: 13, type: "short", text: "What simulation could accelerate drug discovery? (ONE WORD)", answer: "molecular" }
         ]
       },
       {
         id: "P2",
         title: "Migration and Identity in the Modern World",
         wordCount: 840,
-        text: `Human migration has shaped societies throughout history, but contemporary migration occurs at unprecedented scale and complexity. Over 280 million people currently live outside their country of birth, and countless more move within national borders. These movements reshape both sending and receiving communities, challenging conventional notions of identity, belonging, and citizenship while creating both opportunities and tensions that define the modern global experience.
+        text: `Human migration has shaped societies throughout history, but contemporary migration patterns present distinctive challenges and opportunities. Globalization has intensified movements of people across borders even as many nations have tightened immigration controls. The resulting tensions between migration pressures and restrictive policies have become central to political debates worldwide, raising fundamental questions about identity, belonging, and the boundaries of political community.
 
-The drivers of migration are varied and interconnected. Economic disparities pull workers toward higher wages and opportunities unavailable at home. Political instability and persecution generate refugees fleeing violence and oppression. Environmental changes, including climate-related disasters and long-term degradation, are displacing growing numbers. Family reunification remains a major category as established migrants bring relatives to join them. These diverse motivations produce equally diverse populations of migrants with different legal statuses, resources, and prospects.
+Migration flows today are more diverse than ever. Economic migrants seek better opportunities in wealthier countries. Refugees flee persecution, conflict, and increasingly, environmental degradation. Students pursue education abroad, sometimes remaining permanently. Highly skilled professionals circulate within global labor markets. These varied motivations produce different legal statuses, from documented permanent residents to undocumented migrants living in legal precarity.
 
-Receiving societies respond to migration with varied and often ambivalent policies. Labor markets depend on migrant workers for both skilled and essential low-wage positions that native workers cannot or will not fill. Yet political discourse frequently portrays migration as threatening—to employment, public services, national identity, or security. This tension between economic dependence and political resistance shapes immigration policy, often producing contradictory approaches that regulate entry tightly while tolerating irregular status for workers already present.
+Host societies experience migration differently depending on their histories, institutions, and current conditions. Traditional immigration countries like the United States, Canada, and Australia have developed frameworks for incorporating newcomers, though these frameworks remain contested. European countries that long considered themselves ethnically homogeneous have struggled with the cultural diversity that migration brings. Rapid demographic change can provoke backlash even as economies depend on immigrant labor.
 
-For migrants themselves, the experience involves profound negotiation of identity and belonging. Maintaining connections to home while integrating into new communities requires navigating between cultures, languages, and expectations. Second generations face particular complexity, raised between their parents' heritage and the societies where they grow up. Transnational identities increasingly characterize migrant communities, with technology enabling ongoing connection across distances that previously severed ties more completely.
+Migrants themselves navigate complex identity negotiations. They maintain connections to home countries while adapting to host societies, often developing transnational identities that span borders. Second-generation immigrants may face particular challenges, caught between their parents' culture and the society in which they were raised. Integration outcomes vary enormously, shaped by policies, economic conditions, discrimination, and individual circumstances.
 
-The impacts on sending communities are equally significant though often overlooked. Remittances—money sent home by migrants—exceed foreign aid in many developing countries, providing crucial household income and foreign exchange. Yet migration also creates brain drain as educated and ambitious individuals leave, depleting communities of talent and leadership. Families are separated for extended periods, with social costs that economic measures miss. The dynamics between migration's costs and benefits for sending regions remain contested.
+Debates about migration often conflate distinct issues. Border control concerns how many and which migrants to admit. Integration policies address how admitted migrants become part of society. Naturalization determines the path to citizenship. Each raises different questions and involves different tradeoffs, yet political discourse frequently treats migration as a single issue to be either welcomed or opposed.
 
-Integration outcomes vary considerably depending on policy approaches, economic conditions, and social attitudes. Some societies have achieved relatively successful incorporation of diverse migrant populations, while others exhibit persistent segregation, discrimination, and social tension. Evidence suggests that integration is facilitated by language acquisition, educational opportunity, labor market access, and social contact with native populations, but outcomes depend on both migrant characteristics and receiving society responses.
+Economic analyses of migration have generally found positive effects on receiving countries, though gains are unevenly distributed. Migrants often complement rather than compete with native workers, filling positions at the top and bottom of skill distributions. They start businesses, pay taxes, and contribute to innovation. However, rapid migration can strain public services and housing in receiving areas, creating real costs for some communities even as aggregate effects remain positive.
 
-Climate change will likely increase migration pressures as rising seas, intensifying droughts, and extreme weather events render some regions less habitable. This prospective "climate migration" raises questions about legal frameworks designed for political rather than environmental displacement, about equitable distribution of climate refugees, and about the adequacy of existing institutions to manage movements of potentially unprecedented scale. How societies navigate these challenges will shape global politics and human welfare for generations.`,
+The politics of migration have shifted dramatically in recent years. Anti-immigration movements have gained strength across Europe and North America, contributing to Brexit, the election of restrictionist governments, and heated debates over refugee policy. These movements draw on concerns about cultural change, economic competition, and security, though evidence on these concerns varies. Meanwhile, demographic aging in wealthy countries creates ongoing demand for immigrant workers to support pension systems and care for elderly populations. Reconciling these competing pressures remains one of the central political challenges of our era.`,
         questions: [
-          { id: 14, type: "yng", text: "Over 280 million people live outside their country of birth.", answer: "Yes" },
-          { id: 15, type: "yng", text: "Political discourse always welcomes migration positively.", answer: "No" },
-          { id: 16, type: "yng", text: "Remittances exceed foreign aid in many developing countries.", answer: "Yes" },
-          { id: 17, type: "yng", text: "Integration outcomes are uniform across all societies.", answer: "No" },
-          { id: 18, type: "yng", text: "Climate change may increase future migration.", answer: "Yes" },
-          { id: 19, type: "mcq", text: "What creates refugees according to the passage?", options: ["A. Economic opportunity only", "B. Family reunification", "C. Political instability and persecution", "D. Technology advancement"], answer: "C" },
-          { id: 20, type: "mcq", text: "What do second generations navigate between?", options: ["A. Two countries only", "B. Parents' heritage and host society", "C. Economic systems", "D. Legal frameworks"], answer: "B" },
-          { id: 21, type: "mcq", text: "What does brain drain deplete?", options: ["A. Remittances", "B. Foreign aid", "C. Talent and leadership", "D. Immigration policy"], answer: "C" },
-          { id: 22, type: "mcq", text: "What facilitates integration according to the passage?", options: ["A. Isolation", "B. Language acquisition", "C. Avoiding contact", "D. Maintaining separation"], answer: "B" },
-          { id: 23, type: "summary", text: "Complete: Economic ________ pull workers toward higher wages.", answer: "disparities" },
-          { id: 24, type: "summary", text: "Complete: Technology enables ongoing ________ across distances.", answer: "connection" },
-          { id: 25, type: "summary", text: "Complete: Climate ________ raises questions about legal frameworks.", answer: "migration" },
-          { id: 26, type: "summary", text: "Complete: Transnational ________ increasingly characterize migrant communities.", answer: "identities" }
+          { id: 14, type: "yng", text: "Contemporary migration patterns are identical to historical ones.", answer: "No" },
+          { id: 15, type: "yng", text: "Second-generation immigrants face identity challenges.", answer: "Yes" },
+          { id: 16, type: "yng", text: "Economic analyses generally find migration has negative effects.", answer: "No" },
+          { id: 17, type: "yng", text: "Anti-immigration movements have strengthened in recent years.", answer: "Yes" },
+          { id: 18, type: "yng", text: "Demographic aging reduces demand for immigrant workers.", answer: "No" },
+          { id: 19, type: "mcq", text: "What do migrants develop spanning borders?", options: ["A. Single identities", "B. Transnational identities", "C. No identity", "D. Fixed identity"], answer: "B" },
+          { id: 20, type: "mcq", text: "What do migrants often do rather than compete with native workers?", options: ["A. Leave", "B. Complement them", "C. Replace them", "D. Ignore them"], answer: "B" },
+          { id: 21, type: "mcq", text: "What has contributed to Brexit?", options: ["A. Pro-immigration movements", "B. Anti-immigration movements", "C. Economic growth", "D. Climate change"], answer: "B" },
+          { id: 22, type: "mcq", text: "What creates demand for immigrant workers?", options: ["A. Youth bulge", "B. Demographic aging", "C. Unemployment", "D. Automation"], answer: "B" },
+          { id: 23, type: "summary", text: "Complete: Migrants in legal ________ lack proper documentation.", answer: "precarity" },
+          { id: 24, type: "summary", text: "Complete: Traditional immigration countries have developed ________ for incorporation.", answer: "frameworks" },
+          { id: 25, type: "summary", text: "Complete: Rapid migration can strain public ________ and housing.", answer: "services" },
+          { id: 26, type: "summary", text: "Complete: Reconciling migration pressures is a central political ________.", answer: "challenge" }
         ]
       },
       {
         id: "P3",
         title: "Antibiotic Resistance: A Global Health Crisis",
         wordCount: 860,
-        text: `The effectiveness of antibiotics—the wonder drugs that transformed medicine in the twentieth century—is diminishing as bacteria evolve resistance to these critical medicines. Antimicrobial resistance threatens to return healthcare to a pre-antibiotic era in which common infections could become untreatable and routine surgeries unacceptably dangerous. The World Health Organization has identified antimicrobial resistance as one of the greatest threats to global health, food security, and development, requiring urgent coordinated action across sectors and borders.
+        text: `The effectiveness of antibiotics—one of the greatest medical advances of the twentieth century—is diminishing as bacteria evolve resistance to these life-saving drugs. Antibiotic resistance represents a growing global health crisis that threatens to return medicine to a pre-antibiotic era when common infections could be fatal. Understanding how resistance develops and spreads is essential for developing effective responses.
 
-The biology of resistance is straightforward: bacteria that survive antibiotic exposure pass their resistant traits to offspring, and through horizontal gene transfer, even to unrelated bacteria. Antibiotics kill susceptible bacteria but leave resistant ones to multiply, with each exposure accelerating selection for resistance. This evolution is inevitable over time, but human practices have dramatically accelerated the process. Overuse and misuse of antibiotics in human medicine, combined with massive agricultural application, have created evolutionary pressure that is producing resistance faster than new antibiotics are being developed.
+Resistance arises through evolution. Random genetic mutations occasionally produce bacteria less susceptible to antibiotics. When antibiotics are present, resistant bacteria survive while susceptible ones die, allowing resistant strains to proliferate. Bacteria can also acquire resistance genes from other bacteria through horizontal gene transfer. These evolutionary processes are natural and inevitable, but human practices have dramatically accelerated resistance development.
 
-In human medicine, antibiotics are frequently prescribed unnecessarily or inappropriately. Viral infections, against which antibiotics have no effect, are often treated with antibiotics due to diagnostic uncertainty or patient expectations. Courses are sometimes not completed, allowing partially resistant bacteria to survive. In many countries, antibiotics remain available without prescription, facilitating self-medication and inappropriate use. Healthcare-associated infections increasingly involve resistant organisms, creating cycles of escalating treatment and resistance.
+Antibiotic overuse provides the primary driver of resistance. Antibiotics are frequently prescribed unnecessarily—for viral infections they cannot treat, for minor bacterial infections that would resolve without treatment, and as precautionary measures when diagnosis is uncertain. Agricultural use of antibiotics in livestock production, often for growth promotion rather than treatment, adds enormous volumes of these drugs to the environment. Each unnecessary exposure provides opportunities for resistance to develop.
 
-Agricultural use may exceed human medical use in many countries. Antibiotics are administered to food animals not only to treat disease but also to promote growth and prevent illness in crowded conditions. This practice provides immediate economic benefits to producers but contributes to the emergence and spread of resistance. Resistant bacteria can transfer from animals to humans through food, direct contact, and environmental pathways. Regulations restricting agricultural antibiotic use have been implemented in some jurisdictions but face industry opposition and enforcement challenges.
+The economics of antibiotic development compound the problem. Unlike drugs for chronic conditions that patients take indefinitely, antibiotics are used for short courses. New antibiotics are typically reserved for resistant infections, limiting sales. These factors make antibiotic development commercially unattractive despite urgent medical need. Many major pharmaceutical companies have exited the field, and the pipeline of new antibiotics has slowed to a trickle just as resistance has intensified.
 
-The pipeline of new antibiotics has dwindled as pharmaceutical companies have reduced investment in this area. Antibiotic development is commercially unattractive: new antibiotics should be reserved to delay resistance development, limiting sales volume; treatment courses are short, limiting revenue per patient; and resistance eventually emerges regardless of stewardship, shortening the period of market advantage. These economic disincentives have produced innovation gaps that leave clinicians without effective options for some infections.
+Resistance now affects multiple classes of antibiotics across numerous bacterial species. Some infections resist all available treatments, leaving clinicians with no effective options. Routine surgeries, cancer chemotherapy, and organ transplantation all depend on effective antibiotics to prevent and treat infections. A post-antibiotic future would see these interventions become far more dangerous.
 
-Alternative approaches are being explored. Bacteriophages—viruses that infect bacteria—offer potential therapy that could evolve alongside bacterial resistance. Vaccines can prevent infections that would otherwise require antibiotic treatment. Rapid diagnostics could reduce unnecessary prescriptions by quickly distinguishing bacterial from viral infections. None of these approaches offers a complete solution, but together they might help preserve antibiotic effectiveness.
+Addressing antibiotic resistance requires action on multiple fronts. Stewardship programs aim to reduce unnecessary antibiotic use in healthcare settings. Regulations have begun limiting agricultural antibiotic use in some countries. Improved diagnostics could enable more targeted prescribing by quickly identifying which infections require antibiotics and which antibiotics will be effective. Novel economic models are being explored to incentivize antibiotic development despite limited market returns.
 
-Addressing antimicrobial resistance requires action across multiple domains. Stewardship programs can reduce inappropriate antibiotic use in healthcare. Regulatory changes can limit agricultural use. Economic incentives can stimulate antibiotic development. Surveillance systems can track resistance patterns. International cooperation is essential given that bacteria cross borders freely. The coordination challenges are formidable, but the consequences of inaction—millions of deaths from untreatable infections—make response imperative.`,
+International coordination remains essential but nascent. Resistant bacteria cross borders easily, so national efforts alone prove insufficient. The World Health Organization has developed global action plans, but implementation varies widely. Surveillance systems to track resistance patterns need strengthening. Whether humanity can mount an effective response before resistance eliminates antibiotic effectiveness remains one of the defining health challenges of our era.`,
         questions: [
-          { id: 27, type: "tfng", text: "Antibiotic resistance is a natural evolutionary process.", answer: "True" },
-          { id: 28, type: "tfng", text: "Antibiotics are effective against viral infections.", answer: "False" },
-          { id: 29, type: "tfng", text: "Agricultural antibiotic use may exceed human medical use.", answer: "True" },
-          { id: 30, type: "tfng", text: "Pharmaceutical companies have increased antibiotic investment.", answer: "False" },
-          { id: 31, type: "tfng", text: "Bacteriophages could potentially evolve alongside bacterial resistance.", answer: "True" },
-          { id: 32, type: "matching", text: "Transfer resistant traits to unrelated bacteria", answer: "horizontal gene transfer" },
-          { id: 33, type: "matching", text: "Viruses that infect bacteria", answer: "bacteriophages" },
-          { id: 34, type: "matching", text: "Programs to reduce inappropriate antibiotic use", answer: "stewardship programs" },
-          { id: 35, type: "mcq", text: "Why is antibiotic development commercially unattractive?", options: ["A. High demand", "B. Long treatment courses", "C. Limited sales volume", "D. No resistance emerges"], answer: "C" },
-          { id: 36, type: "mcq", text: "How can resistant bacteria transfer from animals to humans?", options: ["A. Only through food", "B. Through food, contact, and environment", "C. They cannot transfer", "D. Only through air"], answer: "B" },
-          { id: 37, type: "mcq", text: "What could rapid diagnostics reduce?", options: ["A. All prescriptions", "B. Unnecessary prescriptions", "C. Doctor visits", "D. Hospital capacity"], answer: "B" },
-          { id: 38, type: "mcq", text: "What makes international cooperation essential?", options: ["A. Economic benefits", "B. Bacteria cross borders", "C. Political pressure", "D. Market advantages"], answer: "B" },
-          { id: 39, type: "short", text: "What does WHO identify antimicrobial resistance as? (TWO WORDS)", answer: "greatest threats" },
-          { id: 40, type: "short", text: "What can prevent infections requiring antibiotics? (ONE WORD)", answer: "vaccines" }
+          { id: 27, type: "tfng", text: "Antibiotic resistance is a new phenomenon.", answer: "False" },
+          { id: 28, type: "tfng", text: "Bacteria can acquire resistance through horizontal gene transfer.", answer: "True" },
+          { id: 29, type: "tfng", text: "Pharmaceutical companies are investing heavily in antibiotic development.", answer: "False" },
+          { id: 30, type: "tfng", text: "Some infections now resist all available treatments.", answer: "True" },
+          { id: 31, type: "tfng", text: "International coordination on resistance is well-established.", answer: "False" },
+          { id: 32, type: "matching", text: "Programs to reduce unnecessary antibiotic use", answer: "stewardship" },
+          { id: 33, type: "matching", text: "Tools to identify infections and effective antibiotics", answer: "diagnostics" },
+          { id: 34, type: "matching", text: "Organization developing global action plans", answer: "WHO" },
+          { id: 35, type: "mcq", text: "What is the primary driver of antibiotic resistance?", options: ["A. Proper diagnosis", "B. Antibiotic overuse", "C. Infection control", "D. International coordination"], answer: "B" },
+          { id: 36, type: "mcq", text: "Why have pharmaceutical companies exited antibiotic research?", options: ["A. Antibiotics are too profitable", "B. Development is too easy", "C. Economic incentives are misaligned", "D. Resistance is not a concern"], answer: "C" },
+          { id: 37, type: "mcq", text: "What do rapid diagnostic tools enable?", options: ["A. More broad-spectrum use", "B. Targeted treatment", "C. Increased resistance", "D. Agricultural applications"], answer: "B" },
+          { id: 38, type: "mcq", text: "What would a post-antibiotic era involve?", options: ["A. Safer surgeries", "B. Fewer infections", "C. Common infections becoming dangerous", "D. Better pharmaceuticals"], answer: "C" },
+          { id: 39, type: "short", text: "What provides opportunities for resistance to develop? (TWO WORDS)", answer: "unnecessary exposure" },
+          { id: 40, type: "short", text: "What type of programs limit unnecessary antibiotic use? (ONE WORD)", answer: "stewardship" }
         ]
       }
     ]
@@ -1734,100 +1731,100 @@ Addressing antimicrobial resistance requires action across multiple domains. Ste
         id: "P1",
         title: "Behavioral Economics and Public Policy",
         wordCount: 870,
-        text: `Behavioral economics has emerged as a powerful framework for understanding human decision-making and designing more effective public policies. By incorporating insights from psychology about how people actually behave—rather than how rational economic models assume they should behave—behavioral economics has revealed systematic patterns in human judgment that create both vulnerabilities and opportunities for policy intervention. The application of these insights, sometimes called "nudging," has spread across governments worldwide while also generating controversy about paternalism and manipulation.
+        text: `Behavioral economics has emerged as a powerful framework for understanding human decision-making and has increasingly influenced public policy design. By documenting systematic departures from the rational actor model that dominated traditional economics, behavioral research has revealed how cognitive biases, social influences, and choice architecture shape decisions in ways that have profound policy implications.
 
-Traditional economics assumed that individuals make decisions by rationally evaluating all available information and selecting options that maximize their expected utility. This framework proved useful for many purposes but failed to explain numerous observed behaviors: why people persistently save too little for retirement despite intending to save more; why they choose immediate gratification over larger delayed rewards; why their decisions are influenced by how options are presented even when the underlying choices are identical. Behavioral economics addresses these anomalies by incorporating psychological realism into economic models.
+Traditional economic theory assumed that individuals are rational maximizers who carefully weigh costs and benefits to make optimal choices. Behavioral economists, drawing on psychology research, have demonstrated that actual human decision-making departs from this ideal in predictable ways. People discount the future too steeply, favoring immediate gratification over long-term welfare. They exhibit loss aversion, weighing losses more heavily than equivalent gains. They rely on mental shortcuts—heuristics—that usually serve well but sometimes produce systematic errors.
 
-Several key concepts characterize behavioral economic analysis. Loss aversion describes the tendency to feel losses more acutely than equivalent gains, leading to risk-seeking behavior to avoid losses and risk-averse behavior to secure gains. Present bias refers to the disproportionate weight given to immediate outcomes relative to future ones, explaining failures of self-control. Anchoring effects show that initial information, even when arbitrary, influences subsequent judgments. Default effects demonstrate that people tend to accept whatever option requires no active choice.
+These insights have transformed thinking about public policy. Rather than assuming that information provision or incentive adjustment will automatically produce optimal behavior, policymakers have begun designing interventions that account for how people actually decide. Small changes to choice environments—"nudges"—can influence decisions without restricting options or significantly changing economic incentives.
 
-The policy implications of these insights have been substantial. Automatic enrollment in retirement savings plans, with the option to opt out rather than requiring active opt-in, dramatically increases participation rates by exploiting default effects. Energy bills that compare household usage to neighbors leverage social norms and loss aversion to encourage conservation. Simplified enrollment processes for government benefits reduce barriers created by complexity and procrastination. These interventions often achieve policy goals at minimal cost compared to traditional regulatory or incentive-based approaches.
+Retirement savings provides a canonical example. When enrollment in workplace retirement plans requires active choice, participation rates remain suboptimal despite tax advantages. Switching to automatic enrollment, where employees are enrolled by default but can opt out, dramatically increases participation without limiting choice. This simple change to the default option has improved retirement security for millions while respecting individual autonomy.
 
-The "nudge" approach advocates preserving freedom of choice while designing choice environments that make beneficial decisions easier. A cafeteria that places healthy foods at eye level while keeping less healthy options available does not restrict choice but does influence it. Critics argue that this distinction is less clear than proponents suggest—all choice environments shape decisions, and labeling some arrangements as "neutral" while others are "nudges" may be arbitrary. More fundamental objections question whether governments should manipulate citizen choices even toward beneficial ends.
+Other applications abound. Placing healthier foods at eye level in cafeterias increases their selection. Sending text message reminders improves medication adherence. Simplifying college financial aid applications increases enrollment. Energy bills showing consumption relative to neighbors motivate conservation. These interventions work by making desired behaviors easier, more salient, or more socially normal rather than by changing underlying preferences or providing new information.
 
-The effectiveness of behavioral interventions varies across contexts and populations. Effects demonstrated in laboratory studies do not always replicate in field settings. Interventions that work initially may fade as novelty wears off or as people develop countermeasures. Cultural differences influence which psychological mechanisms operate and how strongly. What works in one policy domain may not transfer to others. These limitations counsel humility about behavioral approaches while not negating their genuine contributions.
+Critics have raised important concerns. Nudges can feel manipulative, exploiting cognitive limitations rather than addressing them through education. The assumption that experts know what choices people should make raises paternalism concerns. Emphasizing individual choice architecture may divert attention from structural factors affecting outcomes. Evidence from small-scale experiments does not always translate to larger populations or different contexts.
 
-Behavioral economics has also influenced thinking about regulation and consumer protection. Disclosure requirements have been reconsidered in light of evidence that complex information often fails to inform decisions effectively. Default rules in contracts and financial products have attracted attention given their powerful effects. The intersection of behavioral insights with digital technology raises new questions as platforms optimize for engagement using techniques that may exploit psychological vulnerabilities.`,
+These criticisms have merit but do not invalidate the behavioral approach. Rigorous evaluation of interventions addresses concerns about effectiveness. Transparency about nudges and their purposes can mitigate manipulation worries. Behavioral insights can complement rather than substitute for structural reforms. The empirical orientation of behavioral economics—testing what works rather than assuming rationality—represents a valuable contribution to evidence-based policy.`,
         questions: [
-          { id: 1, type: "heading", paragraph: "A", text: "Choose the correct heading for paragraph 1", options: ["i. Introduction to behavioral economics", "ii. Loss aversion explained", "iii. Nudge controversies", "iv. Digital platforms"], answer: "i" },
-          { id: 2, type: "heading", paragraph: "B", text: "Choose the correct heading for paragraph 2", options: ["i. Policy applications", "ii. Limitations of traditional economics", "iii. Default effects", "iv. Cultural differences"], answer: "ii" },
-          { id: 3, type: "heading", paragraph: "C", text: "Choose the correct heading for paragraph 3", options: ["i. Key behavioral economics concepts", "ii. Retirement savings", "iii. Energy conservation", "iv. Consumer protection"], answer: "i" },
-          { id: 4, type: "heading", paragraph: "D", text: "Choose the correct heading for paragraph 4", options: ["i. Behavioral policy applications", "ii. Philosophical objections", "iii. Laboratory studies", "iv. Financial regulation"], answer: "i" },
-          { id: 5, type: "tfng", text: "Traditional economics assumed fully rational decision-making.", answer: "True" },
-          { id: 6, type: "tfng", text: "Loss aversion makes people feel gains more acutely than losses.", answer: "False" },
-          { id: 7, type: "tfng", text: "Automatic enrollment increases retirement savings participation.", answer: "True" },
-          { id: 8, type: "tfng", text: "All behavioral interventions work equally across all contexts.", answer: "False" },
-          { id: 9, type: "tfng", text: "Digital platforms may exploit psychological vulnerabilities.", answer: "True" },
-          { id: 10, type: "short", text: "What bias explains failures of self-control? (TWO WORDS)", answer: "present bias" },
-          { id: 11, type: "short", text: "What do energy bills compare household usage to? (ONE WORD)", answer: "neighbors" },
-          { id: 12, type: "short", text: "What approach preserves freedom of choice while shaping decisions? (ONE WORD)", answer: "nudge" },
-          { id: 13, type: "short", text: "What type of requirements have been reconsidered for effectiveness? (ONE WORD)", answer: "disclosure" }
+          { id: 1, type: "tfng", text: "Traditional economics assumed rational decision-making.", answer: "True" },
+          { id: 2, type: "tfng", text: "People naturally prioritize long-term over short-term benefits.", answer: "False" },
+          { id: 3, type: "tfng", text: "Automatic enrollment in retirement plans decreases participation.", answer: "False" },
+          { id: 4, type: "tfng", text: "Nudges restrict individual choice.", answer: "False" },
+          { id: 5, type: "tfng", text: "Critics have no valid concerns about behavioral approaches.", answer: "False" },
+          { id: 6, type: "short", text: "What do people weigh more heavily than equivalent gains? (ONE WORD)", answer: "losses" },
+          { id: 7, type: "short", text: "What simple changes to choice environments are called? (ONE WORD)", answer: "nudges" },
+          { id: 8, type: "short", text: "What shows consumption relative to neighbors? (TWO WORDS)", answer: "energy bills" },
+          { id: 9, type: "mcq", text: "What does loss aversion mean?", options: ["A. Preferring gains", "B. Weighing losses more than gains", "C. Ignoring losses", "D. Equal treatment"], answer: "B" },
+          { id: 10, type: "mcq", text: "What dramatically increases retirement plan participation?", options: ["A. Higher salaries", "B. Automatic enrollment", "C. Less education", "D. Fewer options"], answer: "B" },
+          { id: 11, type: "mcq", text: "What concern do critics raise about nudges?", options: ["A. Too expensive", "B. Manipulation and paternalism", "C. Too complex", "D. Ineffective"], answer: "B" },
+          { id: 12, type: "mcq", text: "What approach does behavioral economics represent?", options: ["A. Assuming rationality", "B. Evidence-based testing", "C. Ignoring psychology", "D. Pure theory"], answer: "B" },
+          { id: 13, type: "summary", text: "Complete: Mental shortcuts that usually serve well are called ________.", answer: "heuristics" }
         ]
       },
       {
         id: "P2",
         title: "Plastic Pollution and Ocean Health",
         wordCount: 850,
-        text: `Plastic debris has accumulated in the world's oceans to an extent that constitutes a global environmental crisis. From visible garbage patches to microscopic particles pervading marine food webs, plastic pollution threatens marine life, ecosystem health, and potentially human wellbeing. Understanding the sources, transport, and impacts of marine plastic pollution is essential for developing effective responses to this rapidly growing problem.
+        text: `Plastic debris has accumulated in the world's oceans to an extent that would have seemed unimaginable when plastic production began ramping up in the mid-twentieth century. An estimated 8 million metric tons of plastic enter the oceans annually, joining the 150 million tons already there. This pollution poses threats to marine life, potentially to human health, and represents a visible symbol of unsustainable consumption patterns.
 
-The scale of plastic pollution is staggering. Global plastic production has increased from approximately two million tonnes annually in 1950 to over 400 million tonnes today, with only a small fraction recycled and much eventually reaching the ocean. Rivers carry plastic waste from land to sea, with Asian rivers contributing disproportionately due to waste management gaps in rapidly developing regions. Fishing and shipping industries contribute directly through lost or discarded gear and cargo. Once in the ocean, plastics persist for decades to centuries, accumulating in quantities that increase annually.
+Plastics persist in the environment for centuries because most cannot be broken down by biological processes. They fragment into ever-smaller pieces but do not disappear. Microplastics—particles smaller than five millimeters—have been found in virtually every marine environment studied, from surface waters to deep-sea sediments, from coastal areas to remote Arctic ice. These particles accumulate in food chains as animals ingest them and are themselves consumed.
 
-Plastic impacts marine life through multiple pathways. Entanglement in debris injures and kills seabirds, marine mammals, and sea turtles. Ingestion of plastic items, mistaken for food, can cause starvation by filling stomachs with indigestible material or introduce toxic substances into organisms. Ghost fishing by abandoned nets continues catching marine life indefinitely. These direct effects are increasingly documented as plastic encounters more frequently occur throughout ocean ecosystems.
+Marine animals suffer from plastic pollution in multiple ways. Larger debris entangles animals, causing injury, drowning, or starvation. Ingested plastics can block digestive systems, reducing feeding and causing malnutrition. Microplastics and associated chemical contaminants may harm organisms through toxic effects, though research on these impacts remains ongoing. Coral reefs, already stressed by warming and acidification, face additional pressure from plastic pollution.
 
-Microplastics—fragments smaller than five millimeters—present less visible but potentially more pervasive threats. Larger plastic items fragment through weathering but do not mineralize, producing ever-smaller particles that spread throughout water columns and sediments. Microplastics have been found in species from plankton to whales, in deep-sea environments, and in polar regions remote from human habitation. The ecological and health implications of this ubiquitous contamination remain under investigation, with concerns about physical harm, chemical transfer, and food web effects.
+The sources of ocean plastic are diverse. Land-based sources dominate, with plastic waste reaching oceans through rivers, storm drains, and coastal disposal. Single-use plastics—bottles, bags, food packaging—comprise a significant portion of marine debris. Fishing gear, lost or abandoned at sea, creates particularly hazardous debris that continues "ghost fishing" indefinitely. Different sources require different interventions.
 
-The chemical dimensions of plastic pollution add complexity. Plastics contain additives—plasticizers, flame retardants, stabilizers—that can leach into surrounding water and organisms. Additionally, plastics absorb hydrophobic pollutants already present in seawater, potentially concentrating and transporting contaminants. Whether these chemical effects produce significant biological impacts depends on exposure levels, bioavailability, and organism susceptibility—parameters that vary across species and environments and remain incompletely understood.
+Addressing plastic pollution involves action at every stage of the plastic life cycle. Upstream measures reduce plastic production and use through bans on certain products, taxes, and design requirements for durability and recyclability. Midstream improvements to waste management systems prevent plastics from reaching waterways, particularly important in developing countries where waste infrastructure is often inadequate. Downstream cleanup efforts remove plastics already in the environment, though the scale of the problem makes cleanup alone insufficient.
 
-Addressing plastic pollution requires intervention across the material lifecycle. Reducing plastic production and consumption addresses the problem at its source but confronts entrenched economic interests and consumer habits. Improving waste management, particularly in regions with inadequate systems, can prevent leakage to waterways. Cleanup efforts remove existing debris but cannot match the pace of new input and may cause collateral damage to marine life. Each approach faces practical limitations that prevent any single solution from sufficing.
+Technological solutions attract attention but face limitations. Biodegradable plastics may reduce persistence but require specific conditions to decompose and do not address marine pollution if they enter oceans before degrading. Recycling rates remain low for most plastics, and recycling is often actually downcycling into lower-value materials. Novel technologies for plastic-eating enzymes or ocean cleanup devices remain experimental.
 
-Extended producer responsibility, which makes manufacturers accountable for end-of-life management of their products, has gained traction as a policy framework. International negotiations toward a global plastics treaty have commenced, aiming to establish binding commitments that individual national actions cannot achieve. Meanwhile, research continues into biodegradable alternatives, enhanced recycling technologies, and methods for removing microplastics from water. The challenge of marine plastic pollution illustrates both the environmental consequences of material choices and the difficulties of addressing problems that span jurisdictions and generations.`,
+Ultimately, addressing plastic pollution requires fundamental changes to production and consumption patterns. The convenience that makes single-use plastics attractive also makes them environmentally costly. Whether societies can transition to more sustainable material use while meeting human needs remains an open question with significant implications for ocean health.`,
         questions: [
-          { id: 14, type: "yng", text: "Most plastic produced globally is recycled.", answer: "No" },
-          { id: 15, type: "yng", text: "Asian rivers contribute disproportionately to ocean plastic.", answer: "Yes" },
-          { id: 16, type: "yng", text: "Microplastics have been found in polar regions.", answer: "Yes" },
-          { id: 17, type: "yng", text: "Cleanup efforts can match the pace of new plastic input.", answer: "No" },
-          { id: 18, type: "yng", text: "International negotiations for a plastics treaty have begun.", answer: "Yes" },
-          { id: 19, type: "mcq", text: "How much plastic is produced annually today?", options: ["A. 2 million tonnes", "B. 100 million tonnes", "C. Over 400 million tonnes", "D. 1 billion tonnes"], answer: "C" },
-          { id: 20, type: "mcq", text: "What continues catching marine life indefinitely?", options: ["A. Microplastics", "B. Ghost fishing", "C. River pollution", "D. Chemical leaching"], answer: "B" },
-          { id: 21, type: "mcq", text: "What size defines microplastics?", options: ["A. Smaller than 1mm", "B. Smaller than 5mm", "C. Smaller than 10mm", "D. Smaller than 1cm"], answer: "B" },
-          { id: 22, type: "mcq", text: "What does extended producer responsibility make manufacturers do?", options: ["A. Reduce prices", "B. Account for end-of-life management", "C. Increase production", "D. Avoid recycling"], answer: "B" },
-          { id: 23, type: "summary", text: "Complete: Plastics persist for decades to ________ in the ocean.", answer: "centuries" },
-          { id: 24, type: "summary", text: "Complete: Ingestion can cause ________ by filling stomachs with plastic.", answer: "starvation" },
-          { id: 25, type: "summary", text: "Complete: Plastics can ________ hydrophobic pollutants from seawater.", answer: "absorb" },
-          { id: 26, type: "summary", text: "Complete: Reducing plastic production confronts entrenched economic ________.", answer: "interests" }
+          { id: 14, type: "yng", text: "Plastics biodegrade quickly in the ocean.", answer: "No" },
+          { id: 15, type: "yng", text: "Microplastics have been found in Arctic ice.", answer: "Yes" },
+          { id: 16, type: "yng", text: "All marine plastic comes from ships.", answer: "No" },
+          { id: 17, type: "yng", text: "Ghost fishing refers to abandoned fishing gear.", answer: "Yes" },
+          { id: 18, type: "yng", text: "Biodegradable plastics solve the marine pollution problem.", answer: "No" },
+          { id: 19, type: "mcq", text: "How much plastic enters oceans annually?", options: ["A. 1 million tons", "B. 8 million tons", "C. 50 million tons", "D. 150 million tons"], answer: "B" },
+          { id: 20, type: "mcq", text: "What are particles smaller than five millimeters called?", options: ["A. Nanoplastics", "B. Microplastics", "C. Megaplastics", "D. Bioplastics"], answer: "B" },
+          { id: 21, type: "mcq", text: "What do upstream measures focus on?", options: ["A. Ocean cleanup", "B. Reducing production and use", "C. Improving recycling", "D. Ghost fishing"], answer: "B" },
+          { id: 22, type: "mcq", text: "What is recycling often actually called?", options: ["A. Upcycling", "B. Downcycling", "C. Supercycling", "D. Megacycling"], answer: "B" },
+          { id: 23, type: "summary", text: "Complete: Larger debris ________ animals, causing injury.", answer: "entangles" },
+          { id: 24, type: "summary", text: "Complete: Single-use plastics comprise a significant portion of marine ________.", answer: "debris" },
+          { id: 25, type: "summary", text: "Complete: ________ improvements prevent plastics from reaching waterways.", answer: "midstream" },
+          { id: 26, type: "summary", text: "Complete: Novel technologies for plastic-eating enzymes remain ________.", answer: "experimental" }
         ]
       },
       {
         id: "P3",
         title: "The Psychology of Expertise",
         wordCount: 860,
-        text: `What distinguishes experts from novices in complex domains—chess, medicine, music, athletics—has long fascinated psychologists seeking to understand skilled performance and how it develops. Research into expertise has revealed both the remarkable capabilities that extensive practice produces and the limitations and vulnerabilities that persist even among the highly skilled. These findings have implications for education, training, and assessment across professional and artistic fields.
+        text: `What distinguishes experts from novices in complex domains? Research on expertise has revealed that exceptional performance stems not from innate talent alone but from accumulated knowledge structures that enable rapid pattern recognition and efficient problem-solving. Understanding expertise has implications for education, training, and the appropriate role of expert judgment in decision-making.
 
-The classic finding in expertise research concerns the role of domain-specific knowledge organized in meaningful patterns. Chess masters can glance at board positions from actual games and reproduce them accurately, but perform no better than novices with randomly arranged pieces. This suggests that expertise involves not superior memory in general but memory for meaningful configurations within the domain. Experts see patterns where novices see individual elements, enabling rapid recognition and response that appears almost intuitive.
+Studies of chess masters provided early insights into expertise. Contrary to expectations that masters process more possibilities through superior calculation, research showed they consider fewer moves but better ones. Masters recognize board positions as meaningful patterns learned through extensive experience, enabling them to perceive strategic possibilities that novices miss entirely. This pattern recognition operates rapidly and often unconsciously.
 
-The acquisition of expertise typically requires extended practice, famously quantified in the "ten-thousand-hour rule" popularized from studies of musicians and athletes. However, subsequent research has complicated this picture. Practice quantity alone does not guarantee expertise; practice quality matters greatly. "Deliberate practice"—focused effort on improving specific weaknesses with immediate feedback—produces better results than mere repetition. Additionally, individual differences in aptitude and learning rate mean that the same practice investment yields different outcomes across individuals.
+Similar findings emerged across diverse domains. Expert radiologists recognize tumors that residents overlook. Expert firefighters sense when buildings are about to collapse. Expert physicists categorize problems by underlying principles while novices focus on surface features. In each case, expertise involves extensive domain-specific knowledge organized in ways that support rapid pattern recognition and appropriate response.
 
-The knowledge structures that enable expert performance also create characteristic limitations. Experts can become trapped by familiar patterns, failing to notice when situations deviate from expectations. Automation of skilled responses—essential for fluent performance—can prevent the flexible analysis that novel problems require. Overconfidence in domain judgment may extend inappropriately to areas beyond actual expertise. These vulnerabilities help explain why experts sometimes fail spectacularly at tasks within their nominal domain.
+The development of expertise requires sustained deliberate practice—activities specifically designed to improve performance through focused effort on challenging tasks, immediate feedback, and repetition. Simple experience does not suffice; many people with decades in a field plateau at mediocre performance because they do not engage in deliberate practice. The widely cited figure of 10,000 hours for expertise development reflects average requirements, with substantial individual variation.
 
-Transfer of expertise across domains proves more limited than intuition might suggest. Skills developed in one context often fail to generalize to others, even when they appear related. Chess masters do not become better logical reasoners generally; medical experts in one specialty may struggle with problems in another. This specificity of expertise challenges educational approaches that emphasize general thinking skills over domain-specific knowledge, though some higher-level metacognitive abilities may transfer more broadly.
+Expert judgment, while often impressive, has important limitations. Pattern recognition can misfire when situations depart from familiar types. Experts may express excessive confidence in judgments based on experience without recognizing the boundaries of their competence. In domains with poor feedback—where outcomes depend on factors beyond expert control or manifest only after long delays—experience may not produce genuine expertise at all.
 
-Assessment of expertise raises methodological challenges. Credentials and experience correlate imperfectly with actual performance, yet direct performance assessment is often impractical or impossible. In fields where feedback is delayed, ambiguous, or absent—like medicine or economic forecasting—expertise may fail to develop despite lengthy experience because learning from outcomes is impaired. Distinguishing genuine expertise from confident presentation requires careful evaluation that simple markers of credentials or experience cannot provide.
+These findings have implications for the weight accorded expert opinion. In domains with clear feedback and learnable regularities, expert judgment deserves considerable deference. Medical diagnosis of common conditions, weather forecasting over short horizons, and chess evaluation represent such domains. In more uncertain domains—long-term economic or political forecasting, for instance—expert predictions often perform no better than simple baselines or informed non-experts.
 
-The development of artificial intelligence has created new perspectives on expertise. In some domains, AI systems now match or exceed human expert performance, raising questions about the future value of human expertise and how humans and machines might complement each other. The study of expertise thus connects fundamental questions about human cognition with practical issues of education, professional development, and the changing nature of skilled work in an automated world.`,
+The research on expertise suggests that developing genuine expertise requires not just accumulating experience but structuring that experience to support learning. Deliberate practice, appropriate feedback, and awareness of the boundaries of competence distinguish domains where expertise develops from those where it remains elusive. These insights apply both to individuals seeking to develop expertise and to organizations designing training programs.`,
         questions: [
-          { id: 27, type: "tfng", text: "Chess masters perform better with randomly arranged pieces than novices.", answer: "False" },
-          { id: 28, type: "tfng", text: "Practice quantity alone guarantees the development of expertise.", answer: "False" },
-          { id: 29, type: "tfng", text: "Deliberate practice involves focused effort on specific weaknesses.", answer: "True" },
-          { id: 30, type: "tfng", text: "Expertise transfers easily across all related domains.", answer: "False" },
-          { id: 31, type: "tfng", text: "AI systems now match human performance in some domains.", answer: "True" },
-          { id: 32, type: "matching", text: "Focused practice with immediate feedback", answer: "deliberate practice" },
-          { id: 33, type: "matching", text: "Failing to notice deviations from expectations", answer: "pattern trapping" },
-          { id: 34, type: "matching", text: "Skills often fail to generalize to other contexts", answer: "transfer limitation" },
-          { id: 35, type: "mcq", text: "What do experts see that novices see as individual elements?", options: ["A. Random information", "B. Patterns", "C. Simple facts", "D. General knowledge"], answer: "B" },
-          { id: 36, type: "mcq", text: "What prevents flexible analysis in experts?", options: ["A. Lack of knowledge", "B. Automation of responses", "C. Too much feedback", "D. Limited practice"], answer: "B" },
-          { id: 37, type: "mcq", text: "In which fields may expertise fail to develop despite experience?", options: ["A. Fields with immediate feedback", "B. Fields with delayed or absent feedback", "C. Simple domains", "D. Physical skills only"], answer: "B" },
-          { id: 38, type: "mcq", text: "What do credentials correlate imperfectly with?", options: ["A. Education level", "B. Actual performance", "C. Practice hours", "D. Domain knowledge"], answer: "B" },
-          { id: 39, type: "short", text: "How many hours of practice does the famous rule specify? (HYPHENATED)", answer: "ten-thousand" },
-          { id: 40, type: "short", text: "What type of abilities may transfer more broadly? (ONE WORD)", answer: "metacognitive" }
+          { id: 27, type: "tfng", text: "Chess masters calculate more moves than novices.", answer: "False" },
+          { id: 28, type: "tfng", text: "Pattern recognition in experts often operates unconsciously.", answer: "True" },
+          { id: 29, type: "tfng", text: "Simple experience always produces expertise.", answer: "False" },
+          { id: 30, type: "tfng", text: "Experts never express excessive confidence.", answer: "False" },
+          { id: 31, type: "tfng", text: "All domains equally support expertise development.", answer: "False" },
+          { id: 32, type: "matching", text: "Activities designed to improve performance through focused effort", answer: "deliberate practice" },
+          { id: 33, type: "matching", text: "Ability to recognize meaningful configurations from experience", answer: "pattern recognition" },
+          { id: 34, type: "matching", text: "Domains with poor feedback where expertise may not develop", answer: "uncertain domains" },
+          { id: 35, type: "mcq", text: "What do expert physicists categorize problems by?", options: ["A. Surface features", "B. Underlying principles", "C. Problem length", "D. Difficulty level"], answer: "B" },
+          { id: 36, type: "mcq", text: "What figure is cited for expertise development hours?", options: ["A. 1,000", "B. 5,000", "C. 10,000", "D. 100,000"], answer: "C" },
+          { id: 37, type: "mcq", text: "In what type of domains do expert predictions perform no better than baselines?", options: ["A. Chess", "B. Weather forecasting", "C. Long-term forecasting", "D. Medical diagnosis"], answer: "C" },
+          { id: 38, type: "mcq", text: "What distinguishes expertise development?", options: ["A. Natural talent only", "B. Deliberate practice and feedback", "C. Age", "D. Random experience"], answer: "B" },
+          { id: 39, type: "short", text: "What do experts recognize that novices miss? (ONE WORD)", answer: "patterns" },
+          { id: 40, type: "short", text: "What happens to many people after decades in a field? (ONE WORD)", answer: "plateau" }
         ]
       }
     ]
@@ -1847,104 +1844,100 @@ The development of artificial intelligence has created new perspectives on exper
         id: "P1",
         title: "The Philosophy of Time",
         wordCount: 880,
-        text: `Time is among the most familiar yet most puzzling features of human experience. We measure it, manage it, and mark its passage, yet philosophers and physicists continue to debate whether time flows, whether the future is determined, and whether time itself is fundamental to reality or emerges from more basic physical processes. These questions, at the intersection of philosophy, physics, and psychology, illuminate the deep conceptual challenges that time presents.
+        text: `Time is among the most familiar yet most puzzling features of human experience. We seem to move through time, experiencing past, present, and future. Yet physics describes time as a dimension similar to space, with no privileged "now" or direction of flow. These tensions between subjective experience and scientific description have generated rich philosophical debate about the nature of time and our place within it.
 
-Our ordinary experience of time involves a sense of flow from past through present toward future, with the present moment possessing a special reality that past and future lack. We remember the past but not the future; we can influence future events but not past ones. This asymmetry seems built into the fabric of experience, giving time a direction that space lacks. The "arrow of time" feels as real and fundamental as time itself.
+The A-theory of time, also known as presentism, holds that only the present moment exists. The past has ceased to exist; the future has not yet come into being. Time genuinely flows from past to future, and our experience of temporal passage reflects a real feature of reality. This view accords with common intuitions but faces challenges from physics, where the relativity of simultaneity seems to undermine any privileged present.
 
-However, the equations of fundamental physics contain no inherent time direction. The laws governing particle interactions work equally well forward or backward in time. The statistical mechanics underlying thermodynamics explains the arrow of time through entropy increase, but this explanation remains controversial—why did entropy start low enough to increase? Cosmological explanations pointing to boundary conditions at the Big Bang push the question back but do not resolve it. The direction of time, so vivid in experience, remains puzzling in physical terms.
+The B-theory of time, or eternalism, treats past, present, and future as equally real. All moments exist; they simply stand in different temporal relations to each other. What we experience as the flow of time is an illusion produced by our psychological relation to different time slices of reality. This view aligns better with physics but seems to deny the fundamental reality of temporal experience.
 
-Philosophical disputes about time center on its ontological status—what aspects of time truly exist. Presentism holds that only the present moment exists; past and future are not real in the same sense. Eternalism contends that all times exist equally, with past, present, and future representing different locations in a four-dimensional block universe rather than different modes of being. Growing block theory proposes that the past and present exist but the future does not, with reality accumulating as time passes.
+The direction of time presents additional puzzles. The laws of physics are largely time-symmetric—they work equally well forwards or backwards. Yet we experience time as having a clear direction. Eggs break but do not unbreak; we remember the past but not the future. The arrow of time is usually explained through thermodynamics: entropy increases toward the future, giving time its directionality. But why entropy should increase—why the universe started in a low-entropy state—remains mysterious.
 
-These positions connect to debates about free will and determinism. If the future already exists in some sense, can our choices genuinely affect what happens? Block universe interpretations suggest that our sense of open possibilities may be illusory, though defenders argue that reality can be determined without being deterministic. The relationship between time's metaphysics and human agency remains philosophically contested.
+Personal identity through time raises related questions. What makes you the same person as the child in old photographs? Psychological continuity, bodily continuity, and narrative identity have all been proposed as criteria. Yet each faces counterexamples. Science fiction scenarios of teleportation, mind uploading, or gradual replacement of neurons probe our intuitions about personal persistence without providing definitive answers.
 
-The psychology of time perception adds further complexity. Subjective experience of duration varies with attention, emotion, and memory. Time seems to speed up with age and slow down in emergencies. These variations reveal that our sense of time is a construction of the mind rather than a direct perception of an external flow. Whether this construction corresponds to any objective temporal reality or creates an illusion of passage remains debated.
+Free will and determinism connect to temporal philosophy. If the future is already fixed—whether by physical determinism or by existing eternally alongside past and present—can we genuinely make choices? Some argue that determinism is compatible with meaningful agency; others that genuine freedom requires an open future. These debates have implications for moral responsibility and how we should live.
 
-Quantum mechanics and general relativity further complicate the picture. Quantum entanglement exhibits correlations across space that seem to transcend normal temporal ordering. General relativity reveals that time passes differently depending on gravity and velocity, making simultaneity relative rather than absolute. Efforts to unify quantum mechanics and gravity may require reconceptualizing time fundamentally—perhaps treating it as emergent from more basic structures rather than fundamental itself.
-
-These investigations matter beyond academic philosophy. Our temporal experience shapes planning, memory, regret, anticipation, and much of what makes life meaningful. Understanding time better—whether through physics, philosophy, or psychology—illuminates the human condition even if complete answers remain elusive.`,
+Time perception varies across cultures and individuals. Some languages organize temporal reference differently than others, potentially affecting how speakers conceptualize time. Psychological experiments reveal distortions in time perception under various conditions. The phenomenology of time—how we experience duration, anticipation, and memory—remains partly independent of metaphysical questions about time's nature.`,
         questions: [
-          { id: 1, type: "heading", paragraph: "A", text: "Choose the correct heading for paragraph 1", options: ["i. Introduction to time's puzzles", "ii. Psychological perception", "iii. Quantum mechanics", "iv. Free will debates"], answer: "i" },
-          { id: 2, type: "heading", paragraph: "B", text: "Choose the correct heading for paragraph 2", options: ["i. Physics equations", "ii. Experience of temporal flow", "iii. Eternalism explained", "iv. Brain construction"], answer: "ii" },
-          { id: 3, type: "heading", paragraph: "C", text: "Choose the correct heading for paragraph 3", options: ["i. The physics of time's direction", "ii. Memory formation", "iii. Free will", "iv. Quantum time"], answer: "i" },
-          { id: 4, type: "heading", paragraph: "D", text: "Choose the correct heading for paragraph 4", options: ["i. Psychological time", "ii. Competing theories of time's existence", "iii. General relativity", "iv. Agency questions"], answer: "ii" },
-          { id: 5, type: "tfng", text: "Physical laws work equally well forward and backward in time.", answer: "True" },
-          { id: 6, type: "tfng", text: "Presentism holds that past, present, and future all equally exist.", answer: "False" },
-          { id: 7, type: "tfng", text: "Subjective time experience varies with emotion and attention.", answer: "True" },
-          { id: 8, type: "tfng", text: "General relativity shows time passes the same everywhere.", answer: "False" },
-          { id: 9, type: "tfng", text: "Complete answers about time have been achieved.", answer: "False" },
-          { id: 10, type: "short", text: "What phrase describes the direction of time? (THREE WORDS)", answer: "arrow of time" },
-          { id: 11, type: "short", text: "What theory holds only the present exists? (ONE WORD)", answer: "presentism" },
-          { id: 12, type: "short", text: "What increases according to thermodynamics? (ONE WORD)", answer: "entropy" },
-          { id: 13, type: "short", text: "What type of correlations does quantum entanglement exhibit? (ONE WORD)", answer: "correlations" }
+          { id: 1, type: "tfng", text: "Presentism holds that past and future exist equally with present.", answer: "False" },
+          { id: 2, type: "tfng", text: "Physics describes time as similar to a spatial dimension.", answer: "True" },
+          { id: 3, type: "tfng", text: "The B-theory treats the flow of time as genuine.", answer: "False" },
+          { id: 4, type: "tfng", text: "The laws of physics are largely time-symmetric.", answer: "True" },
+          { id: 5, type: "tfng", text: "Personal identity through time has been definitively solved.", answer: "False" },
+          { id: 6, type: "short", text: "What theory is also known as presentism? (ONE LETTER)", answer: "A" },
+          { id: 7, type: "short", text: "What explains the arrow of time through entropy? (ONE WORD)", answer: "thermodynamics" },
+          { id: 8, type: "short", text: "What type of continuity is proposed as a criterion for identity? (ONE WORD)", answer: "psychological" },
+          { id: 9, type: "mcq", text: "What does eternalism treat as equally real?", options: ["A. Only present", "B. Past, present, and future", "C. Only future", "D. Nothing"], answer: "B" },
+          { id: 10, type: "mcq", text: "What gives time its directionality according to the passage?", options: ["A. Consciousness", "B. Entropy increase", "C. Memory", "D. Physics laws"], answer: "B" },
+          { id: 11, type: "mcq", text: "What do science fiction scenarios probe about identity?", options: ["A. Physical strength", "B. Personal persistence intuitions", "C. Time travel", "D. Language"], answer: "B" },
+          { id: 12, type: "mcq", text: "What connection does free will have to time?", options: ["A. None", "B. Whether future is fixed", "C. Memory only", "D. Language only"], answer: "B" },
+          { id: 13, type: "summary", text: "Complete: Time perception varies across ________ and individuals.", answer: "cultures" }
         ]
       },
       {
         id: "P2",
         title: "Rewilding and Conservation Strategy",
         wordCount: 850,
-        text: `Rewilding has emerged as a provocative and contested approach to conservation that challenges traditional practices focused on preserving existing ecosystems in their current states. Instead of maintaining nature as we find it, rewilding advocates propose restoring ecological processes—particularly those involving large animals—that have been lost or diminished through human activity. This approach has generated enthusiasm for its ambitious vision while also provoking criticism about feasibility, safety, and appropriate human relationships with nature.
+        text: `Rewilding has emerged as a provocative approach to conservation that challenges traditional models focused on preserving existing ecosystems in static states. By reintroducing large animals, removing human management, and allowing natural processes to shape landscapes, rewilding proponents argue that ecosystems can recover functionality and resilience that intensive management cannot achieve. The approach has generated both enthusiasm and controversy within conservation circles.
 
-The conceptual foundations of rewilding rest on evidence that ecosystems shaped by large animals differ substantially from those without them. Large herbivores and carnivores exert "top-down" influences that cascade through food webs, affecting vegetation, smaller animals, and even physical landscape features. The reintroduction of wolves to Yellowstone National Park, for example, is credited with triggering changes that rippled through the ecosystem—from elk behavior to vegetation patterns to stream morphology. Rewilding aims to restore such ecological dynamics where they have been lost.
+Traditional conservation often sought to maintain ecosystems as they existed at some baseline date, typically before significant human impact. This approach required intensive management to prevent change: culling herbivore populations, controlling vegetation, removing invasive species, and maintaining the conditions that particular species required. Critics argue this model is both expensive and ultimately futile, fighting against natural dynamism rather than working with it.
 
-Rewilding proposals vary considerably in ambition. At one end, projects focus on restoring locally extirpated species to areas where they recently occurred—wolves to Scotland, beavers to English rivers. More ambitious visions propose introducing functional analogs of extinct megafauna—using Asian elephants to replicate ecological functions of mammoths in northern landscapes, or introducing African lions to substitute for extinct American lions. These "Pleistocene rewilding" proposals have attracted both fascination and fierce criticism.
+Rewilding instead emphasizes natural processes over target species or ecosystems. Large herbivores like deer, bison, and wild horses shape vegetation through grazing, creating diverse habitats. Predators like wolves control herbivore populations and alter their behavior, triggering cascading effects through food webs. Flooding, fire, and other disturbances create habitat heterogeneity. By restoring these processes, rewilding aims to produce self-sustaining ecosystems that require minimal ongoing management.
 
-Practical challenges are substantial. Large predators require extensive territories and inevitably come into conflict with human activities, particularly livestock agriculture. Public acceptance varies enormously—wolves generate both enthusiasm and hostility depending on stakeholder perspectives. Ecosystems have changed since large animals disappeared, and reintroductions may not recreate historical conditions. The unpredictability of ecological responses makes outcomes uncertain, raising questions about whether rewilding experiments might cause unforeseen harms.
+The reintroduction of wolves to Yellowstone National Park in 1995 became an iconic rewilding example. Wolves reduced elk populations and changed elk behavior, allowing vegetation to recover along streams. This supported beaver populations, whose dams further altered hydrology. Songbird populations increased. Even river channels changed course as vegetation stabilized banks. This "trophic cascade" demonstrated how apex predators could reshape entire landscapes.
 
-The relationship between rewilding and rural communities requires careful attention. Rewilding projects have sometimes been perceived as elite impositions that disregard local livelihoods and land use traditions. Agricultural communities bear disproportionate costs from wildlife conflicts while conservation benefits accrue more broadly. Successful rewilding likely requires genuine engagement with affected communities, compensation mechanisms for losses, and attention to how conservation relates to rural economies and cultures.
+Yet rewilding raises difficult questions. What baseline should restoration aim for? Ecosystems before European colonization? Before any human presence? Before the Pleistocene extinctions? Different baselines imply different approaches. The proposal to introduce elephants and lions to North America as proxies for extinct megafauna illustrates how rewilding can push conventional conservation boundaries.
 
-Critics raise philosophical objections as well as practical ones. The aspiration to restore "wild" nature may romanticize a past that never existed in the idealized form imagined. Human influences on landscapes extend back millennia; distinguishing "natural" from "anthropogenic" states proves difficult. Some argue that embracing novel ecosystems adapted to current conditions represents a more realistic and perhaps more ethical approach than attempting to recreate past states that may be unachievable and whose value is assumed rather than demonstrated.
+Conflicts with human interests present practical challenges. Predators attack livestock and occasionally people. Large herbivores damage crops and compete with cattle. Reduced human management means accepting that species may decline locally even as broader ecosystem function improves. These tradeoffs are particularly contentious in densely populated regions where wild land comes at opportunity cost.
 
-Despite these challenges, rewilding has energized conservation discourse and generated projects that are testing its premises. The outcomes of ongoing initiatives will provide evidence about what rewilding can realistically achieve, what limitations it faces, and how it might complement rather than replace other conservation approaches.`,
+Rewilding's relationship to climate change adds further complexity. Natural processes that rewilding promotes may look different under future climate conditions. Ecosystems may need to shift northward or to higher elevations. The appropriate level of intervention remains contested.`,
         questions: [
-          { id: 14, type: "yng", text: "Traditional conservation focuses on preserving current ecosystem states.", answer: "Yes" },
-          { id: 15, type: "yng", text: "Large animals have minimal effects on ecosystems.", answer: "No" },
-          { id: 16, type: "yng", text: "Pleistocene rewilding proposes using analogs of extinct animals.", answer: "Yes" },
-          { id: 17, type: "yng", text: "Public acceptance of predator reintroduction is uniform.", answer: "No" },
-          { id: 18, type: "yng", text: "Human influence on landscapes extends back millennia.", answer: "Yes" },
-          { id: 19, type: "mcq", text: "What did wolf reintroduction to Yellowstone reportedly trigger?", options: ["A. No changes", "B. Cascade effects through ecosystem", "C. Increased elk populations", "D. Simplified food webs"], answer: "B" },
-          { id: 20, type: "mcq", text: "What do large predators inevitably come into conflict with?", options: ["A. Other predators only", "B. Human activities", "C. Climate change", "D. Conservation goals"], answer: "B" },
-          { id: 21, type: "mcq", text: "What have rewilding projects sometimes been perceived as?", options: ["A. Community initiatives", "B. Economic opportunities", "C. Elite impositions", "D. Scientific experiments"], answer: "C" },
-          { id: 22, type: "mcq", text: "What do critics suggest about 'wild' nature?", options: ["A. It is easily restored", "B. It may romanticize an idealized past", "C. It always existed", "D. It requires no human intervention"], answer: "B" },
-          { id: 23, type: "summary", text: "Complete: Large animals exert 'top-down' influences through food ________.", answer: "webs" },
-          { id: 24, type: "summary", text: "Complete: Agricultural communities bear disproportionate ________ from wildlife conflicts.", answer: "costs" },
-          { id: 25, type: "summary", text: "Complete: Novel ecosystems are adapted to ________ conditions.", answer: "current" },
-          { id: 26, type: "summary", text: "Complete: Rewilding has ________ conservation discourse.", answer: "energized" }
+          { id: 14, type: "yng", text: "Traditional conservation emphasizes allowing change.", answer: "No" },
+          { id: 15, type: "yng", text: "Wolves were reintroduced to Yellowstone in 1995.", answer: "Yes" },
+          { id: 16, type: "yng", text: "Rewilding creates no conflicts with human interests.", answer: "No" },
+          { id: 17, type: "yng", text: "Predators can trigger cascading ecosystem effects.", answer: "Yes" },
+          { id: 18, type: "yng", text: "There is consensus on which baseline rewilding should target.", answer: "No" },
+          { id: 19, type: "mcq", text: "What does rewilding emphasize over target species?", options: ["A. Human management", "B. Natural processes", "C. Static preservation", "D. Invasive species"], answer: "B" },
+          { id: 20, type: "mcq", text: "What did wolf reintroduction allow to recover?", options: ["A. Wolf populations only", "B. Vegetation along streams", "C. Human settlements", "D. Mining operations"], answer: "B" },
+          { id: 21, type: "mcq", text: "What do large herbivores shape through grazing?", options: ["A. Climate", "B. Vegetation and habitats", "C. Rivers only", "D. Nothing"], answer: "B" },
+          { id: 22, type: "mcq", text: "What does rewilding accept about local species?", options: ["A. They always increase", "B. They may decline locally", "C. They never change", "D. They become extinct"], answer: "B" },
+          { id: 23, type: "summary", text: "Complete: Traditional conservation required ________ management.", answer: "intensive" },
+          { id: 24, type: "summary", text: "Complete: Rewilding aims to produce ________-sustaining ecosystems.", answer: "self" },
+          { id: 25, type: "summary", text: "Complete: Apex predators can reshape entire ________.", answer: "landscapes" },
+          { id: 26, type: "summary", text: "Complete: Ecosystems may need to shift under future ________ conditions.", answer: "climate" }
         ]
       },
       {
         id: "P3",
         title: "Artificial General Intelligence: Possibilities and Risks",
         wordCount: 870,
-        text: `The prospect of artificial general intelligence—AI systems that match or exceed human cognitive capabilities across all domains—has moved from science fiction speculation toward serious research programs and policy concerns. While current AI excels at narrow tasks, general intelligence that could flexibly address any intellectual challenge remains elusive. The path to AGI, its likely characteristics, and its implications for humanity are subjects of intense debate among researchers, philosophers, and policymakers wrestling with possibly the most consequential technology humanity might develop.
+        text: `The prospect of artificial general intelligence—AI systems matching or exceeding human cognitive capabilities across all domains—has moved from science fiction speculation to serious research and policy discussion. While current AI systems excel at specific tasks, they lack the flexible, transferable intelligence that humans possess. Whether AGI is achievable, when it might arrive, and what it would mean for humanity are questions of profound importance.
 
-Current AI systems, despite impressive capabilities, operate within narrow domains defined by their training. A chess-playing AI cannot compose music; a language model cannot navigate physical environments. Human intelligence, by contrast, exhibits remarkable flexibility—the same mind that masters language also reasons about mathematics, navigates social relationships, and solves novel problems never previously encountered. Achieving this generality in artificial systems presents challenges that incremental improvements to current approaches may or may not overcome.
+Current AI operates within narrow domains. Systems that master chess, translate languages, or recognize images cannot transfer these capabilities to other tasks without substantial retraining. They lack common sense, causal understanding, and the ability to generalize from limited experience. The gap between narrow AI and human-level general intelligence remains vast, and some researchers doubt it can be bridged through current approaches.
 
-Researchers disagree about how far we are from AGI and what approaches might achieve it. Some anticipate transformative progress within decades through scaling current methods—larger neural networks trained on more data with more computation. Others believe fundamental conceptual breakthroughs are required that no one can currently envision. The uncertainty itself is significant: if transformative AI is coming, humanity should prepare; but preparing for something whose timing and characteristics remain unknown presents obvious difficulties.
+Others argue that AGI is achievable and perhaps imminent. Scaling up existing deep learning approaches, combined with architectural innovations, might produce emergent general capabilities. Large language models already display surprising versatility, suggesting that intelligence may emerge from scale. Predictions about AGI timeline vary enormously, from decades to centuries, reflecting genuine uncertainty about what is required.
 
-The potential benefits of AGI are immense. Intelligence is fundamentally useful—it enables solving problems, achieving goals, and understanding phenomena. Artificial intelligence that matched human capabilities while operating at computational speeds could accelerate scientific discovery, solve coordination problems, and create abundance that improves human welfare. These possibilities inspire much AGI research and investment.
+The potential benefits of AGI are immense. Systems with human-level intelligence could accelerate scientific discovery, solve complex problems from climate change to disease, and increase productivity enough to eliminate material scarcity. They could serve as tireless assistants, educators, and companions. The positive scenarios imagine AGI as humanity's greatest achievement, opening possibilities currently beyond imagination.
 
-However, the risks have attracted increasing attention. An AGI system with goals misaligned with human values could pursue those goals in ways harmful to humanity, potentially catastrophically so if the system possesses superior capabilities. The "alignment problem"—ensuring AI systems pursue objectives that humans actually want—may be substantially harder than achieving AGI capabilities themselves. We do not currently know how to specify human values precisely enough to encode them in AI systems or how to verify that systems possess the values we intend.
+The potential risks are equally profound. Systems more intelligent than humans might pursue goals misaligned with human values, potentially with catastrophic consequences. Even well-intentioned AGI could produce harms through unintended effects of its optimization processes. Control and alignment—ensuring that AGI systems remain beneficial and under human direction—present formidable technical challenges that may not have satisfactory solutions.
 
-Even well-aligned AGI raises governance challenges. Concentration of such powerful capabilities could enable unprecedented control over society. Competition among developers might create pressures to deploy systems before safety is adequately assured. The global nature of AI development complicates national regulation. International coordination on AI governance remains nascent despite growing recognition of its importance.
+Economic disruption represents a more immediate concern. AGI that can perform any cognitive task would displace virtually all human labor, potentially faster than societies can adapt. While previous technological revolutions created new jobs as they destroyed old ones, AGI's ability to perform any cognitive work might break this pattern. Mass unemployment, extreme inequality, and social instability could result.
 
-Some researchers advocate slowing or pausing certain AGI research until safety challenges are better understood. Others argue that competitive dynamics make such coordination infeasible and that safety research must proceed alongside capability development. The difficulty of these governance questions matches the technical challenges—perhaps exceeding them—as humanity confronts a technology that could transform civilization in ways both wonderful and terrible.
-
-Whether AGI arrives in decades or centuries, and whether it proves beneficial or catastrophic, may depend on decisions made today about research priorities, safety investments, and governance frameworks. The stakes could not be higher, yet the uncertainty surrounding nearly every relevant question makes wise action exceptionally difficult.`,
+International coordination on AGI development remains nascent despite growing recognition of its importance. Competitive pressures push toward rapid development, potentially sacrificing safety for speed. Governance mechanisms that could ensure AGI benefits humanity broadly while managing risks are underdeveloped. How societies navigate the coming era of increasingly capable AI systems may prove the defining challenge of the century.`,
         questions: [
-          { id: 27, type: "tfng", text: "Current AI systems operate flexibly across all domains.", answer: "False" },
-          { id: 28, type: "tfng", text: "Researchers agree on when AGI will be achieved.", answer: "False" },
-          { id: 29, type: "tfng", text: "The alignment problem concerns ensuring AI pursues human-compatible goals.", answer: "True" },
-          { id: 30, type: "tfng", text: "International coordination on AI governance is well-established.", answer: "False" },
-          { id: 31, type: "tfng", text: "Some researchers advocate pausing certain AGI research.", answer: "True" },
-          { id: 32, type: "matching", text: "AI matching human capabilities across all domains", answer: "artificial general intelligence" },
-          { id: 33, type: "matching", text: "Ensuring AI systems pursue intended objectives", answer: "alignment problem" },
-          { id: 34, type: "matching", text: "Pressures from developers racing to deploy", answer: "competitive dynamics" },
-          { id: 35, type: "mcq", text: "What do current AI systems lack compared to human intelligence?", options: ["A. Processing speed", "B. Flexibility across domains", "C. Training data", "D. Computational power"], answer: "B" },
-          { id: 36, type: "mcq", text: "What could accelerate scientific discovery?", options: ["A. Narrow AI only", "B. Human intelligence alone", "C. AGI matching human capabilities", "D. Less computation"], answer: "C" },
-          { id: 37, type: "mcq", text: "What might misaligned AGI pursue harmfully?", options: ["A. Human values", "B. Its own goals", "C. Safety research", "D. Governance frameworks"], answer: "B" },
-          { id: 38, type: "mcq", text: "What complicates national AI regulation?", options: ["A. Lack of interest", "B. Global nature of development", "C. Simple technology", "D. Uniform standards"], answer: "B" },
+          { id: 27, type: "tfng", text: "Current AI systems can transfer capabilities across all tasks.", answer: "False" },
+          { id: 28, type: "tfng", text: "All researchers agree on AGI timelines.", answer: "False" },
+          { id: 29, type: "tfng", text: "AGI could potentially solve climate change.", answer: "True" },
+          { id: 30, type: "tfng", text: "Alignment problems have been definitively solved.", answer: "False" },
+          { id: 31, type: "tfng", text: "International governance for AGI is well-developed.", answer: "False" },
+          { id: 32, type: "matching", text: "AI that excels only at specific tasks", answer: "narrow AI" },
+          { id: 33, type: "matching", text: "Ensuring AGI systems remain beneficial", answer: "alignment" },
+          { id: 34, type: "matching", text: "AI matching human capabilities across domains", answer: "AGI" },
+          { id: 35, type: "mcq", text: "What do current AI systems lack?", options: ["A. Processing power", "B. Common sense and causal understanding", "C. Data", "D. Hardware"], answer: "B" },
+          { id: 36, type: "mcq", text: "What might AGI break regarding job creation?", options: ["A. Nothing", "B. The pattern of new jobs replacing old", "C. All computers", "D. International relations"], answer: "B" },
+          { id: 37, type: "mcq", text: "What pushes toward rapid development?", options: ["A. Safety concerns", "B. Competitive pressures", "C. International cooperation", "D. Slow progress"], answer: "B" },
+          { id: 38, type: "mcq", text: "What may be the defining challenge of the century?", options: ["A. Climate change", "B. Disease", "C. Navigating increasingly capable AI", "D. Poverty"], answer: "C" },
           { id: 39, type: "short", text: "What type of intelligence operates across all domains? (ONE WORD)", answer: "general" },
-          { id: 40, type: "short", text: "What remains nascent despite growing recognition? (THREE WORDS)", answer: "international coordination" }
+          { id: 40, type: "short", text: "What remains nascent despite growing recognition? (TWO WORDS)", answer: "international coordination" }
         ]
       }
     ]
@@ -2217,7 +2210,7 @@ The pace of mitigation affects both costs and outcomes. Gradual transitions allo
           { id: 9, type: "tfng", text: "Developing countries contributed most to accumulated emissions.", answer: "False" },
           { id: 10, type: "short", text: "What do cap-and-trade systems limit? (TWO WORDS)", answer: "total emissions" },
           { id: 11, type: "short", text: "What type of judgments does discount rate choice involve? (ONE WORD)", answer: "ethical" },
-          { id: 12, type: "short", text: "What improvements accompany emission reductions? (THREE WORDS)", answer: "air quality" },
+          { id: 12, type: "short", text: "What improvements accompany emission reductions? (TWO WORDS)", answer: "air quality" },
           { id: 13, type: "short", text: "What does delay lock in? (THREE WORDS)", answer: "high-emission infrastructure" }
         ]
       },
@@ -2620,7 +2613,7 @@ The information economics perspective has transformed understanding across many 
 Digital technologies are changing information landscapes in complex ways. The internet reduces some search costs and enables information sharing that reduces certain asymmetries. However, it also creates new asymmetries—platforms possess information about users that users cannot easily access or verify. Data has become a valuable asset, and information advantages can convey market power. How information economics applies in digital environments continues to evolve.`,
         questions: [
           { id: 27, type: "tfng", text: "Efficient markets require equal information among all parties.", answer: "Not Given" },
-          { id: 28, type: "tfng", text: "In the 'lemons' market, good cars eventually dominate.", answer: "False" },
+          { id: 28, type: "tfng", text: "In the lemons market, good cars eventually dominate.", answer: "False" },
           { id: 29, type: "tfng", text: "Education may partly serve as a signal of ability.", answer: "True" },
           { id: 30, type: "tfng", text: "Screening is done by the more informed party.", answer: "False" },
           { id: 31, type: "tfng", text: "Digital technologies eliminate all information asymmetries.", answer: "False" },
@@ -3204,7 +3197,7 @@ The evidence base for behavioral interventions varies in quality. While some fin
   },
 
   // ============================================================
-  // R29-R33 - EXPERT (Band 8.5-9.0) - Abbreviated for space
+  // R29 - EXPERT (Band 8.5-9.0)
   // ============================================================
   {
     id: "R29",
@@ -3317,7 +3310,7 @@ The practical stakes of these questions are increasing. If AI systems could genu
   },
 
   // ============================================================
-  // R30-R33 Final Expert Tests
+  // R30 - EXPERT (Band 9.0)
   // ============================================================
   {
     id: "R30",
@@ -3429,29 +3422,341 @@ Religious and secular ethical traditions offer diverse perspectives on genetic m
     ]
   },
 
+  // ============================================================
+  // R31 - EXPERT (Band 9.0)
+  // ============================================================
   {
     id: "R31",
     level: "Expert",
     bandTarget: "9.0",
     timeMinutes: 60,
     totalQuestions: 40,
-    passages: [{ id: "P1", title: "Reserved for Future Test", wordCount: 850, text: "Content to be developed.", questions: [] }, { id: "P2", title: "Reserved", wordCount: 850, text: "Content to be developed.", questions: [] }, { id: "P3", title: "Reserved", wordCount: 850, text: "Content to be developed.", questions: [] }]
+    passages: [
+      {
+        id: "P1",
+        title: "The Anthropocene and Planetary Boundaries",
+        wordCount: 870,
+        text: `The concept of the Anthropocene proposes that human activities have become the dominant force shaping Earth's geology and ecosystems, marking a new geological epoch distinct from the Holocene that began approximately 11,700 years ago. While geologists debate when precisely the Anthropocene began and whether the stratigraphic evidence warrants formal recognition, the underlying scientific observation is increasingly clear: humanity has fundamentally altered planetary systems in ways that will persist for millennia, from atmospheric composition to biodiversity to the nitrogen cycle.
+
+The planetary boundaries framework, developed by Johan Rockström and colleagues, attempts to define the safe operating space for humanity by identifying thresholds in nine Earth system processes. Crossing these boundaries risks triggering abrupt or irreversible environmental changes that could make Earth less hospitable to human civilization. The framework has influenced sustainability science and policy discussions, though it has also attracted criticism regarding the scientific basis for specific boundary values and the framework's implications for global governance.
+
+Climate change represents the most prominent planetary boundary concern. The framework originally proposed limiting atmospheric carbon dioxide to 350 parts per million to avoid dangerous climate disruption—a boundary already exceeded. Current concentrations above 420 parts per million are driving warming that threatens ice sheet stability, ocean circulation patterns, and ecosystem functions. The Paris Agreement's goal of limiting warming to 1.5 degrees Celsius above preindustrial levels implicitly acknowledges planetary boundaries, though current trajectories suggest this target may be exceeded.
+
+Biosphere integrity encompasses both genetic diversity within species and functional diversity across ecosystems. Current extinction rates exceed background rates by orders of magnitude, approaching levels associated with past mass extinction events. The functional integrity of ecosystems—their capacity to provide services like pollination, water purification, and climate regulation—may decline even before species go extinct as populations shrink and ranges contract. This boundary was assessed as already transgressed in high-risk territory.
+
+Novel entities—synthetic chemicals, plastics, and other anthropogenic materials—represent an emerging boundary concern. Over 350,000 synthetic chemicals have been produced, many with unknown ecological and health effects. Microplastics now pervade marine and terrestrial environments. The framework initially left this boundary unquantified due to insufficient knowledge, though recent assessments suggest the boundary has been exceeded based on the production and release of materials faster than adequate safety assessment allows.
+
+The biogeochemical flows boundary addresses human alteration of nitrogen and phosphorus cycles. Industrial nitrogen fixation for fertilizer now exceeds natural fixation, while phosphorus mining and application have disrupted aquatic ecosystems through eutrophication. Agricultural practices have transgressed this boundary, particularly in intensive farming regions, though both nutrients present regional rather than uniformly global concerns.
+
+Critics raise several objections to the planetary boundaries framework. The identification of boundaries and safe thresholds involves scientific uncertainties that may not justify the precision implied. The framework focuses on biophysical limits without adequately addressing social dimensions of sustainability or justice implications of boundary-respecting policies. The global framing may obscure the differential responsibilities and vulnerabilities of different populations. Despite these limitations, the framework has valuably synthesized Earth system science into terms accessible for policy discussion, highlighting interconnections among environmental challenges that siloed approaches might miss.`,
+        questions: [
+          { id: 1, type: "tfng", text: "The Anthropocene is formally recognized by all geologists.", answer: "False" },
+          { id: 2, type: "tfng", text: "The planetary boundaries framework identifies nine Earth system processes.", answer: "True" },
+          { id: 3, type: "tfng", text: "Current CO2 levels are below the proposed 350 ppm boundary.", answer: "False" },
+          { id: 4, type: "tfng", text: "Current extinction rates approximate past mass extinction levels.", answer: "True" },
+          { id: 5, type: "tfng", text: "All synthetic chemicals have known ecological effects.", answer: "False" },
+          { id: 6, type: "short", text: "Who developed the planetary boundaries framework? (TWO WORDS)", answer: "Johan Rockström" },
+          { id: 7, type: "short", text: "What agreement aims to limit warming to 1.5 degrees? (TWO WORDS)", answer: "Paris Agreement" },
+          { id: 8, type: "short", text: "What process causes nitrogen and phosphorus pollution in water? (ONE WORD)", answer: "eutrophication" },
+          { id: 9, type: "mcq", text: "What does biosphere integrity encompass?", options: ["A. Climate only", "B. Genetic and functional diversity", "C. Ocean chemistry", "D. Atmospheric composition"], answer: "B" },
+          { id: 10, type: "mcq", text: "How many synthetic chemicals have been produced?", options: ["A. Over 35,000", "B. Over 100,000", "C. Over 350,000", "D. Over 1,000,000"], answer: "C" },
+          { id: 11, type: "mcq", text: "What do critics argue the framework inadequately addresses?", options: ["A. Climate science", "B. Social dimensions and justice", "C. Nitrogen cycles", "D. Biodiversity"], answer: "B" },
+          { id: 12, type: "mcq", text: "What has the framework valuably synthesized?", options: ["A. Economic theory", "B. Earth system science for policy", "C. Political agreements", "D. Agricultural practices"], answer: "B" },
+          { id: 13, type: "summary", text: "Complete: The Holocene began approximately ________ years ago.", answer: "11,700" }
+        ]
+      },
+      {
+        id: "P2",
+        title: "Consciousness Studies and Integrated Information Theory",
+        wordCount: 860,
+        text: `Among the many theories attempting to explain consciousness, Integrated Information Theory (IIT), developed by neuroscientist Giulio Tononi, stands out for its ambitious attempt to identify what consciousness fundamentally is rather than merely how it correlates with brain activity. IIT proposes that consciousness is identical to integrated information—specifically, a quantity called phi (Φ) that measures the degree to which a system generates information above and beyond its parts. This framework has generated substantial interest and controversy, offering both novel predictions and challenging implications.
+
+The theory begins from phenomenology—the structure of conscious experience itself. Tononi argues that any adequate theory must account for consciousness's essential properties: experience exists (it is real for the subject), it is structured (composed of many differentiated elements), it is integrated (unified rather than fragmentary), it is specific (this particular experience rather than another), and it is exclusive (bounded in content and time). These axioms, drawn from reflection on experience, provide constraints that any physical substrate of consciousness must satisfy.
+
+From these phenomenological axioms, IIT derives postulates about the physical requirements for consciousness. A conscious system must be composed of elements with causal power, differentiated into many distinct states, integrated such that the whole is more than the sum of parts, specific in its state, and exclusive in its boundaries. The theory proposes that consciousness corresponds to the maximum of integrated information within a system—the phi value that quantifies how much the system's causal structure is irreducible to its parts.
+
+The mathematical formalism of IIT allows, in principle, calculating phi for any system whose causal structure is known. High phi values indicate strongly integrated systems where the whole generates information beyond its parts; low phi values characterize systems that are essentially decomposable into independent components. The theory predicts that systems with high phi should be conscious regardless of their physical substrate—whether neurons, silicon chips, or other configurations—while systems with low phi should not be conscious even if behaviorally sophisticated.
+
+This substrate-independence has striking implications. IIT suggests that simple systems with sufficient integration—potentially including certain artificial systems—could possess consciousness, while complex systems lacking integration—such as feedforward neural networks or the internet—would not. The cerebellum, despite containing more neurons than the cerebral cortex, may contribute little to consciousness due to its modular, non-integrated architecture. These predictions distinguish IIT from theories that tie consciousness to biological or computational properties.
+
+Critics raise several concerns. The mathematical formalization of phi becomes computationally intractable for systems above trivial size, limiting empirical testability. The claim that phi simply is consciousness—rather than causing or corresponding to it—represents a metaphysical commitment that some find unjustified. The phenomenological axioms may not capture all that matters about consciousness or may reflect conceptual biases rather than essential truths. Alternative theories emphasizing global workspace dynamics, higher-order representations, or predictive processing offer competing accounts.
+
+Despite controversies, IIT has stimulated productive research. The perturbational complexity index, inspired by IIT principles, provides a practical measure that distinguishes conscious from unconscious brain states in clinical settings. The framework's emphasis on integration has influenced neuroscientific investigation of how brain regions communicate. Whether or not IIT ultimately proves correct, it has advanced the scientific study of consciousness by offering precise, falsifiable claims about what consciousness requires.`,
+        questions: [
+          { id: 14, type: "yng", text: "IIT was developed by Giulio Tononi.", answer: "Yes" },
+          { id: 15, type: "yng", text: "IIT proposes that consciousness correlates with but is not identical to phi.", answer: "No" },
+          { id: 16, type: "yng", text: "According to IIT, the internet should be conscious.", answer: "No" },
+          { id: 17, type: "yng", text: "The cerebellum contributes significantly to consciousness according to IIT.", answer: "No" },
+          { id: 18, type: "yng", text: "Calculating phi is computationally straightforward for complex systems.", answer: "No" },
+          { id: 19, type: "mcq", text: "What does phi measure?", options: ["A. Brain size", "B. Integrated information", "C. Neuron count", "D. Behavioral complexity"], answer: "B" },
+          { id: 20, type: "mcq", text: "What does IIT begin from?", options: ["A. Neuroscience data", "B. Phenomenology", "C. Computer science", "D. Evolution theory"], answer: "B" },
+          { id: 21, type: "mcq", text: "What practical measure was inspired by IIT?", options: ["A. EEG frequency", "B. Perturbational complexity index", "C. fMRI activation", "D. Neuron density"], answer: "B" },
+          { id: 22, type: "mcq", text: "What is a criticism of IIT?", options: ["A. Too simple", "B. Computationally intractable", "C. Ignores the brain", "D. Denies consciousness"], answer: "B" },
+          { id: 23, type: "summary", text: "Complete: High phi indicates strongly ________ systems.", answer: "integrated" },
+          { id: 24, type: "summary", text: "Complete: IIT's substrate-independence suggests consciousness is not tied to ________ properties.", answer: "biological" },
+          { id: 25, type: "summary", text: "Complete: The theory offers precise, ________ claims about consciousness.", answer: "falsifiable" },
+          { id: 26, type: "summary", text: "Complete: Experience is unified rather than ________.", answer: "fragmentary" }
+        ]
+      },
+      {
+        id: "P3",
+        title: "Geoengineering and Climate Intervention",
+        wordCount: 870,
+        text: `As climate change accelerates and emissions reduction efforts remain insufficient, attention has increasingly turned to deliberate large-scale interventions in Earth's climate system—commonly termed geoengineering. These proposed technologies fall into two broad categories: carbon dioxide removal, which aims to reduce atmospheric greenhouse gas concentrations, and solar radiation management, which aims to reflect sunlight to cool the planet. Both approaches raise profound questions about technological feasibility, governance, and the appropriate relationship between humanity and planetary systems.
+
+Carbon dioxide removal encompasses various techniques for extracting CO2 from the atmosphere and storing it durably. Afforestation and reforestation use photosynthesis to sequester carbon in biomass, though land requirements and permanence concerns limit their potential. Bioenergy with carbon capture and storage (BECCS) would grow biomass, burn it for energy, and capture the resulting CO2 for geological storage—effectively achieving negative emissions, though at substantial land and water costs. Direct air capture uses chemical processes to extract CO2 directly from ambient air, offering location flexibility but facing high energy requirements and costs. Enhanced weathering accelerates natural mineral reactions that remove CO2. Ocean-based approaches include iron fertilization to stimulate phytoplankton growth and alkalinity enhancement.
+
+Solar radiation management approaches aim to cool Earth by increasing the reflection of incoming sunlight. Stratospheric aerosol injection would release reflective particles—likely sulfate—into the stratosphere, mimicking the cooling effect of large volcanic eruptions. Marine cloud brightening would spray seawater to increase the reflectivity of low clouds over oceans. Space-based reflectors would position mirrors or shades to block sunlight before it reaches Earth. These approaches could potentially offset warming rapidly and relatively cheaply, but they would not address ocean acidification or other non-temperature effects of elevated CO2, and their termination could cause rapid warming if emissions remain high.
+
+The governance challenges of geoengineering are formidable. Solar radiation management could be deployed unilaterally by individual nations or even wealthy actors, potentially affecting global climate without international consent. The effects would be distributed unevenly, potentially creating winners and losers among regions and nations. Decisions about optimal temperature involve value judgments that no technical analysis can resolve. International governance mechanisms for geoengineering remain underdeveloped, and the prospect of deployment raises questions about moral hazard—whether the availability of a technological fix might reduce motivation for emissions reduction.
+
+Research governance presents its own dilemmas. Small-scale experiments may be necessary to understand geoengineering effects, yet even research could normalize technologies whose deployment might be premature or unwise. Outdoor experiments face opposition from those concerned about slippery slopes toward deployment. The line between research and deployment blurs for interventions that would need to operate at scale to produce measurable effects. International scientific assessments have called for expanded research under appropriate governance, though what constitutes appropriate governance remains contested.
+
+Ethical objections extend beyond governance concerns. Some argue that geoengineering represents hubris—an inappropriate assertion of human control over planetary systems we do not fully understand. The risks of unintended consequences may be irreducible given the complexity of climate systems. Deploying technologies that commit future generations to continued intervention raises questions about intergenerational justice. Others respond that failing to research potential emergency options is itself irresponsible given climate risks. The ethical dimensions of geoengineering resist simple resolution, requiring ongoing deliberation as understanding and circumstances evolve.`,
+        questions: [
+          { id: 27, type: "tfng", text: "Carbon dioxide removal and solar radiation management are the two main geoengineering categories.", answer: "True" },
+          { id: 28, type: "tfng", text: "Direct air capture has no energy requirements.", answer: "False" },
+          { id: 29, type: "tfng", text: "Solar radiation management would address ocean acidification.", answer: "False" },
+          { id: 30, type: "tfng", text: "International geoengineering governance is fully developed.", answer: "False" },
+          { id: 31, type: "tfng", text: "All scientists agree that geoengineering research should proceed.", answer: "False" },
+          { id: 32, type: "matching", text: "Releases particles mimicking volcanic cooling", answer: "stratospheric aerosol injection" },
+          { id: 33, type: "matching", text: "Grows biomass and captures emissions for storage", answer: "BECCS" },
+          { id: 34, type: "matching", text: "Concern that technological fixes reduce emissions motivation", answer: "moral hazard" },
+          { id: 35, type: "mcq", text: "What limits afforestation potential?", options: ["A. Cost only", "B. Land requirements and permanence", "C. Political opposition", "D. Energy needs"], answer: "B" },
+          { id: 36, type: "mcq", text: "What could solar radiation management deployment be done by?", options: ["A. Only the UN", "B. Only scientists", "C. Individual nations unilaterally", "D. Only with global consent"], answer: "C" },
+          { id: 37, type: "mcq", text: "What ethical concern do some raise about geoengineering?", options: ["A. Too expensive", "B. Represents hubris", "C. Too slow", "D. Unnecessary"], answer: "B" },
+          { id: 38, type: "mcq", text: "What would termination of solar radiation management cause if emissions remain high?", options: ["A. Gradual cooling", "B. Rapid warming", "C. No change", "D. Ocean recovery"], answer: "B" },
+          { id: 39, type: "short", text: "What fertilization would stimulate phytoplankton growth? (ONE WORD)", answer: "iron" },
+          { id: 40, type: "short", text: "What type of weathering accelerates natural CO2-removing reactions? (ONE WORD)", answer: "enhanced" }
+        ]
+      }
+    ]
   },
+
+  // ============================================================
+  // R32 - EXPERT (Band 9.0)
+  // ============================================================
   {
     id: "R32",
     level: "Expert",
     bandTarget: "9.0",
     timeMinutes: 60,
     totalQuestions: 40,
-    passages: [{ id: "P1", title: "Reserved for Future Test", wordCount: 850, text: "Content to be developed.", questions: [] }, { id: "P2", title: "Reserved", wordCount: 850, text: "Content to be developed.", questions: [] }, { id: "P3", title: "Reserved", wordCount: 850, text: "Content to be developed.", questions: [] }]
+    passages: [
+      {
+        id: "P1",
+        title: "The Evolution of Monetary Systems",
+        wordCount: 870,
+        text: `Money is among humanity's most consequential inventions, enabling economic coordination at scales impossible through barter while shaping social relations, political power, and cultural values in profound ways. The forms that money has taken—from commodity monies through metallic coins to paper currencies and now digital representations—reflect evolving technologies, institutional arrangements, and economic understandings. Contemporary monetary systems face novel challenges that may precipitate further transformation.
+
+Commodity monies emerged independently across civilizations, with various goods serving monetary functions: shells, salt, cattle, precious metals. Successful commodity monies shared properties of durability, divisibility, portability, and scarcity relative to demand. Precious metals eventually dominated due to their superior combination of these properties. However, commodity money systems faced inherent limitations: supply depended on mining rather than economic needs, and the physical requirements of storage and transport constrained commerce.
+
+The development of representative money—certificates redeemable for commodities—addressed some limitations while creating new possibilities and risks. Goldsmiths' notes evolved into bank notes as fractional reserve banking emerged, with banks issuing claims exceeding their metallic reserves. This credit creation expanded money supplies and facilitated economic growth but also created vulnerability to bank runs when confidence faltered. Central banking developed partly to manage these instabilities, with central banks serving as lenders of last resort and regulators of credit creation.
+
+The twentieth century witnessed the abandonment of commodity backing altogether. The Bretton Woods system established dollar convertibility to gold for foreign governments, but this link was severed in 1971, inaugurating the current era of fiat currencies—money valuable by government decree rather than intrinsic worth or convertibility. Fiat money grants monetary authorities flexibility to respond to economic conditions but depends entirely on institutional credibility and creates possibilities for inflationary abuse.
+
+Contemporary monetary policy operates primarily through central bank management of interest rates and money supply. Following the 2008 financial crisis, unconventional policies including quantitative easing expanded central bank tools. However, the effectiveness of monetary policy faces constraints: the zero lower bound limits interest rate reductions, and monetary stimulus may inflate asset prices more than general economic activity. These limitations have prompted renewed attention to fiscal policy and structural reforms as complements to monetary management.
+
+Digital currencies and fintech innovations are reshaping monetary landscapes. Cryptocurrencies like Bitcoin offer decentralized alternatives to state-managed money, though volatility and scalability issues limit their monetary function. Central bank digital currencies would provide electronic central bank money directly to the public, potentially improving payment systems while raising questions about privacy and financial stability. Mobile payment systems have achieved remarkable penetration in some countries, transforming how money functions in daily life.
+
+The monetary system's evolution continues to be shaped by tensions between stability and flexibility, centralization and decentralization, national sovereignty and global integration. Historical experience suggests that monetary arrangements once thought permanent prove contingent, adapting to technological possibilities and economic necessities. Understanding money's past illuminates possibilities and constraints for its future, even as that future remains inherently uncertain.`,
+        questions: [
+          { id: 1, type: "tfng", text: "Commodity monies emerged in only one civilization.", answer: "False" },
+          { id: 2, type: "tfng", text: "Precious metals dominated due to their durability and scarcity.", answer: "True" },
+          { id: 3, type: "tfng", text: "The link between the dollar and gold was severed in 1971.", answer: "True" },
+          { id: 4, type: "tfng", text: "Fiat money is backed by gold reserves.", answer: "False" },
+          { id: 5, type: "tfng", text: "Cryptocurrencies have fully replaced state-managed money.", answer: "False" },
+          { id: 6, type: "short", text: "What system established dollar convertibility to gold? (TWO WORDS)", answer: "Bretton Woods" },
+          { id: 7, type: "short", text: "What unconventional policy expanded central bank tools after 2008? (TWO WORDS)", answer: "quantitative easing" },
+          { id: 8, type: "short", text: "What limits interest rate reductions? (THREE WORDS)", answer: "zero lower bound" },
+          { id: 9, type: "mcq", text: "What did goldsmiths' notes evolve into?", options: ["A. Coins", "B. Bank notes", "C. Bonds", "D. Stocks"], answer: "B" },
+          { id: 10, type: "mcq", text: "What role do central banks serve during crises?", options: ["A. Tax collectors", "B. Lenders of last resort", "C. Currency printers only", "D. Trade regulators"], answer: "B" },
+          { id: 11, type: "mcq", text: "What issues limit Bitcoin's monetary function?", options: ["A. Popularity", "B. Volatility and scalability", "C. Government support", "D. Simplicity"], answer: "B" },
+          { id: 12, type: "mcq", text: "What might central bank digital currencies improve?", options: ["A. Mining efficiency", "B. Payment systems", "C. Commodity backing", "D. Bank profits"], answer: "B" },
+          { id: 13, type: "summary", text: "Complete: Monetary stimulus may inflate ________ prices more than economic activity.", answer: "asset" }
+        ]
+      },
+      {
+        id: "P2",
+        title: "The Science of Aging and Longevity",
+        wordCount: 860,
+        text: `Aging—the progressive decline in physiological function that increases vulnerability to disease and death—has long seemed an immutable aspect of biology. However, research over recent decades has revealed that aging is far more malleable than once assumed. Genetic, dietary, and pharmacological interventions can extend lifespan and healthspan in model organisms, raising possibilities that similar approaches might eventually benefit humans. Understanding the biology of aging has become a frontier of biomedical research with profound implications for medicine, society, and human self-understanding.
+
+The evolutionary theory of aging explains why senescence exists despite its obvious fitness costs. Natural selection acts most strongly on traits affecting reproductive success; genes with harmful effects manifesting only after reproduction receive less selective pressure. Genes beneficial early in life but harmful later may be positively selected—a phenomenon called antagonistic pleiotropy. From this perspective, aging is not programmed but rather the result of declining selection pressure with age, allowing damage and dysfunction to accumulate.
+
+Cellular and molecular mechanisms underlying aging have been extensively characterized. Genomic instability accumulates as DNA damage overwhelms repair capacity. Telomere shortening limits cell division potential. Epigenetic alterations disrupt gene expression patterns. Proteostasis—the maintenance of protein quality—declines, allowing misfolded proteins to accumulate. Mitochondrial dysfunction impairs cellular energy production. Cellular senescence, once thought purely degenerative, proves to have complex roles in both tissue repair and age-related pathology.
+
+Caloric restriction without malnutrition extends lifespan across species from yeast to primates. This discovery motivated searches for molecular mediators that might provide benefits without dietary restriction itself. Nutrient-sensing pathways including insulin/IGF-1 signaling, mTOR, and sirtuins regulate growth and metabolism in response to nutrient availability; modulating these pathways can extend lifespan in model organisms. Whether these findings translate to humans remains under investigation, with ongoing clinical trials of compounds like rapamycin analogs and NAD+ precursors.
+
+Senolytics—drugs that selectively eliminate senescent cells—represent another promising intervention. Senescent cells accumulate with age and secrete inflammatory factors that disrupt tissue function. Clearing these cells in mice improves healthspan and extends lifespan. Early human trials suggest potential benefits for specific age-related conditions, though comprehensive effects on human aging remain to be established. The specificity of senolytic drugs and the heterogeneity of senescent cell populations present ongoing challenges.
+
+The extension of human lifespan raises societal questions extending beyond biology. Healthcare systems designed around current lifespans would require transformation. Retirement and pension systems assume population age structures that extended longevity would alter. Intergenerational relations and social mobility might change if older generations remain healthy and active longer. Environmental sustainability concerns might intensify if populations grow larger and live longer. The prospect of significantly extended human lifespan, once purely speculative, now requires serious consideration of implications that earlier generations never faced.
+
+Scientific progress in understanding aging does not guarantee that dramatic lifespan extension is achievable. The complexity of aging, involving multiple interacting processes across organ systems, may resist interventions that work in simpler organisms. Nevertheless, even modest healthspan extensions would have enormous value, reducing the burden of age-related disease while extending the period of active, healthy life.`,
+        questions: [
+          { id: 14, type: "yng", text: "Aging was once considered completely immutable.", answer: "Yes" },
+          { id: 15, type: "yng", text: "Natural selection acts most strongly on post-reproductive traits.", answer: "No" },
+          { id: 16, type: "yng", text: "Caloric restriction extends lifespan only in mammals.", answer: "No" },
+          { id: 17, type: "yng", text: "Senolytics eliminate all cells indiscriminately.", answer: "No" },
+          { id: 18, type: "yng", text: "Extended lifespan would affect retirement systems.", answer: "Yes" },
+          { id: 19, type: "mcq", text: "What is antagonistic pleiotropy?", options: ["A. Genes harmful throughout life", "B. Genes beneficial early, harmful later", "C. Genes with no effects", "D. Genes that prevent aging"], answer: "B" },
+          { id: 20, type: "mcq", text: "What limits cell division potential?", options: ["A. Mitochondria", "B. Telomere shortening", "C. Protein folding", "D. DNA synthesis"], answer: "B" },
+          { id: 21, type: "mcq", text: "What do senescent cells secrete?", options: ["A. Growth hormones", "B. Inflammatory factors", "C. Repair proteins", "D. Stem cells"], answer: "B" },
+          { id: 22, type: "mcq", text: "What challenge do senolytics face?", options: ["A. Too effective", "B. Senescent cell heterogeneity", "C. No targets", "D. Excessive cost only"], answer: "B" },
+          { id: 23, type: "summary", text: "Complete: Proteostasis maintains protein ________.", answer: "quality" },
+          { id: 24, type: "summary", text: "Complete: Caloric restriction works without ________.", answer: "malnutrition" },
+          { id: 25, type: "summary", text: "Complete: Nutrient-sensing pathways regulate growth and ________.", answer: "metabolism" },
+          { id: 26, type: "summary", text: "Complete: Modest healthspan extensions would reduce age-related disease ________.", answer: "burden" }
+        ]
+      },
+      {
+        id: "P3",
+        title: "The Philosophy of Personal Identity",
+        wordCount: 870,
+        text: `What makes a person the same individual across time? This question of personal identity has occupied philosophers for centuries and has acquired new urgency as technologies from brain imaging to potential mind uploading force reconsideration of intuitions about selfhood. Competing theories emphasize different criteria—psychological continuity, bodily continuity, or narrative identity—each capturing some aspects of our self-understanding while facing challenges from thought experiments and empirical findings.
+
+The psychological continuity theory, influentially developed by John Locke, holds that personal identity consists in continuity of memory and consciousness rather than physical substance. You are the same person as your childhood self because chains of memory and psychological connection link your present consciousness to past experiences. This view accords with intuitions that the self is fundamentally mental rather than physical, and that persons could in principle survive radical bodily changes—including, hypothetically, uploading to new substrates—if psychological continuity were preserved.
+
+Critics raise several objections. Memory is notoriously fallible and reconstructive; strict memory continuity would fragment identity implausibly. Psychological connections attenuate over time—the elderly person may share few memories with their childhood self. The theory seems to permit branching, where psychological continuity could extend to multiple successors, creating puzzles about which inherits identity. Derek Parfit influentially argued that such cases reveal identity to be less determinate and less important than we ordinarily assume.
+
+Bodily continuity theories emphasize the physical organism as the basis of identity. The animalist position holds that we are fundamentally human animals, and personal identity consists in the persistence of that biological organism. This view avoids puzzles about psychological branching and accommodates cases of severe amnesia or personality change where we still recognize the same person. However, it struggles with hypothetical cases of brain transplantation or gradual replacement of biological components that seem to preserve identity despite organismic discontinuity.
+
+Narrative identity theories propose that selfhood is constituted through the stories we tell about ourselves, integrating past experiences, present concerns, and future aspirations into coherent autobiographical narratives. This approach emphasizes the active, interpretive dimension of identity—we are not simply given but constructed through ongoing narration. Narrative identity can accommodate change and development while maintaining coherence, though critics question whether narrative unity is necessary or sufficient for personal identity and note that narratives can be self-deceiving or externally imposed.
+
+Empirical findings complicate philosophical theories. Neuroscience reveals that the unified self is constructed from distinct, sometimes conflicting brain processes rather than corresponding to any single neural entity. Patients with split brains following corpus callosotomy exhibit behaviors suggesting two separate loci of consciousness. Dissociative disorders fragment identity in ways that challenge simple continuity criteria. These findings suggest that personal identity may be more construction than discovery, more pragmatic than metaphysical.
+
+The practical stakes of personal identity extend beyond philosophy. Medical decisions about advance directives assume that the future patient who will receive treatment is the same person who now expresses preferences. Criminal responsibility presupposes that the person punished is identical to the person who committed the crime. Promises and commitments bind future selves in ways that require identity across time. Though everyday life proceeds with working assumptions about identity, examining these assumptions reveals complexities that resist easy resolution.`,
+        questions: [
+          { id: 27, type: "tfng", text: "Locke emphasized physical substance as the basis of identity.", answer: "False" },
+          { id: 28, type: "tfng", text: "Memory is highly reliable and non-reconstructive.", answer: "False" },
+          { id: 29, type: "tfng", text: "Animalism holds that we are fundamentally biological organisms.", answer: "True" },
+          { id: 30, type: "tfng", text: "Split-brain patients support the idea of a unified self.", answer: "False" },
+          { id: 31, type: "tfng", text: "Personal identity questions have only philosophical significance.", answer: "False" },
+          { id: 32, type: "matching", text: "Chains of memory linking present to past", answer: "psychological continuity" },
+          { id: 33, type: "matching", text: "Stories integrating experiences into coherent autobiography", answer: "narrative identity" },
+          { id: 34, type: "matching", text: "We are fundamentally human animals", answer: "animalism" },
+          { id: 35, type: "mcq", text: "What did Parfit argue about identity puzzles?", options: ["A. Identity is perfectly clear", "B. Identity is less determinate than assumed", "C. Only bodies matter", "D. Psychology is irrelevant"], answer: "B" },
+          { id: 36, type: "mcq", text: "What does the psychological theory permit that creates puzzles?", options: ["A. Memory loss", "B. Branching to multiple successors", "C. Physical continuity", "D. Narrative construction"], answer: "B" },
+          { id: 37, type: "mcq", text: "What reveals that the self is constructed from distinct processes?", options: ["A. Philosophy alone", "B. Common sense", "C. Neuroscience", "D. Legal practice"], answer: "C" },
+          { id: 38, type: "mcq", text: "What do advance directives assume about future patients?", options: ["A. Different identity", "B. Same person", "C. No identity", "D. Legal separation"], answer: "B" },
+          { id: 39, type: "short", text: "Who developed influential psychological continuity theory? (ONE NAME)", answer: "Locke" },
+          { id: 40, type: "short", text: "What surgery divides brain hemispheres? (ONE WORD)", answer: "callosotomy" }
+        ]
+      }
+    ]
   },
+
+  // ============================================================
+  // R33 - EXPERT (Band 9.0)
+  // ============================================================
   {
     id: "R33",
     level: "Expert",
     bandTarget: "9.0",
     timeMinutes: 60,
     totalQuestions: 40,
-    passages: [{ id: "P1", title: "Reserved for Future Test", wordCount: 850, text: "Content to be developed.", questions: [] }, { id: "P2", title: "Reserved", wordCount: 850, text: "Content to be developed.", questions: [] }, { id: "P3", title: "Reserved", wordCount: 850, text: "Content to be developed.", questions: [] }]
+    passages: [
+      {
+        id: "P1",
+        title: "The Architecture of Social Trust",
+        wordCount: 870,
+        text: `Trust—the willingness to accept vulnerability based on positive expectations about others' intentions or behavior—serves as a fundamental social resource enabling cooperation, exchange, and collective action. Societies with high generalized trust tend to exhibit stronger economic performance, more effective governance, and greater social cohesion. Yet trust varies dramatically across and within societies, and understanding what builds or erodes trust has become a central concern for social scientists and policymakers seeking to address the apparent decline of trust in many contemporary democracies.
+
+Interpersonal trust operates at multiple levels with different dynamics. Particularized trust in specific individuals—family, friends, colleagues—is built through repeated interactions and direct experience. Generalized trust in strangers and anonymous others requires inference from limited information and rests on assumptions about prevailing norms and institutional safeguards. The relationship between these levels is complex: particularized trust may substitute for generalized trust when the latter is absent, yet strong in-group bonds can sometimes inhibit broader social trust.
+
+Institutional trust—confidence in formal organizations including governments, courts, media, and corporations—has declined substantially in many countries over recent decades. Survey data consistently show eroding trust in political institutions across Western democracies, with only partial recovery even after periods of crisis solidarity. This decline predates social media, though digital information environments may have accelerated it. The causes appear multiple: institutional performance failures, elite scandals, increasing polarization, and structural changes in how information about institutions reaches publics.
+
+The relationship between interpersonal and institutional trust runs in both directions. Reliable institutions can generate interpersonal trust by enforcing contracts, punishing defection, and reducing the risks of trusting strangers. Conversely, interpersonal trust may support institutional functioning by encouraging civic engagement, tax compliance, and cooperation with authorities. When either form of trust deteriorates, negative feedback loops can develop: institutional failure reduces interpersonal trust, which further undermines institutional capacity, and so on.
+
+Social capital theory, influentially developed by Robert Putnam, emphasizes how civic associations and social networks generate trust through repeated interaction. Participation in voluntary organizations—clubs, churches, unions—builds norms of reciprocity and exposes participants to diverse perspectives. Putnam's argument that declining civic participation explains falling social trust has been influential though contested. Critics note that association patterns have shifted rather than simply declined, and that causation may run from trust to participation rather than the reverse.
+
+Cultural explanations emphasize historical factors shaping national differences in trust. Nordic countries consistently score highest on generalized trust measures, a pattern sometimes traced to centuries of institutional development, religious traditions, or ethnic homogeneity—though this last factor has been challenged by recent immigration patterns that have not dramatically reduced trust levels. Low-trust societies may be caught in equilibrium traps where distrust is self-reinforcing, as rational responses to untrustworthy environments perpetuate the conditions that make trust dangerous.
+
+Rebuilding trust where it has deteriorated presents significant challenges. Transparency and accountability reforms may help restore institutional trust, though they can also reveal problems that further damage confidence. Building social capital through civic engagement takes time and may not scale effectively. Political polarization creates conditions where trust-building actions by some groups may increase distrust among others. Despite these difficulties, the costs of operating in low-trust environments—from transaction costs to governance failures—make the pursuit of trust restoration practically important regardless of its inherent challenges.`,
+        questions: [
+          { id: 1, type: "tfng", text: "High-trust societies show weaker economic performance.", answer: "False" },
+          { id: 2, type: "tfng", text: "Generalized trust involves trusting strangers.", answer: "True" },
+          { id: 3, type: "tfng", text: "Institutional trust has increased in Western democracies.", answer: "False" },
+          { id: 4, type: "tfng", text: "Social media is the sole cause of declining trust.", answer: "False" },
+          { id: 5, type: "tfng", text: "Nordic countries consistently score highest on trust measures.", answer: "True" },
+          { id: 6, type: "short", text: "Who developed social capital theory influentially? (TWO WORDS)", answer: "Robert Putnam" },
+          { id: 7, type: "short", text: "What type of trust is built through repeated personal interactions? (ONE WORD)", answer: "particularized" },
+          { id: 8, type: "short", text: "What can low-trust societies be caught in? (TWO WORDS)", answer: "equilibrium traps" },
+          { id: 9, type: "mcq", text: "What does institutional trust include?", options: ["A. Only personal relationships", "B. Governments, courts, media, corporations", "C. Family only", "D. Strangers only"], answer: "B" },
+          { id: 10, type: "mcq", text: "What do reliable institutions reduce?", options: ["A. Economic growth", "B. Risks of trusting strangers", "C. Social connections", "D. Civic participation"], answer: "B" },
+          { id: 11, type: "mcq", text: "What do critics of Putnam note?", options: ["A. Association has increased", "B. Patterns shifted rather than declined", "C. Trust is irrelevant", "D. Culture doesn't matter"], answer: "B" },
+          { id: 12, type: "mcq", text: "What may transparency reforms reveal?", options: ["A. Only successes", "B. Problems that damage confidence", "C. No information", "D. Increased trust automatically"], answer: "B" },
+          { id: 13, type: "summary", text: "Complete: Trust involves accepting ________ based on positive expectations.", answer: "vulnerability" }
+        ]
+      },
+      {
+        id: "P2",
+        title: "Quantum Entanglement and Information",
+        wordCount: 860,
+        text: `Quantum entanglement—the phenomenon in which particles become correlated such that the quantum state of each cannot be described independently—represents one of the most counterintuitive aspects of quantum mechanics. Einstein famously dismissed entanglement as "spooky action at a distance," yet decades of experiments have confirmed its reality, and applications from quantum computing to secure communication now exploit this strange feature of nature. Understanding entanglement requires confronting fundamental questions about information, causation, and the nature of physical reality.
+
+When two particles become entangled, measuring one instantaneously affects what can be known about the other, regardless of the distance separating them. If entangled photons are sent in opposite directions and their polarizations measured, the results exhibit correlations that cannot be explained by any local theory in which particles carry predetermined values. This was established by experiments testing Bell inequalities, which showed that quantum predictions violate constraints that any local hidden variable theory must satisfy.
+
+The nonlocal correlations of entanglement raise interpretive questions. The correlations cannot be used to transmit information faster than light—no signal passes between particles—so they do not violate special relativity's prohibition on superluminal communication. Yet the correlations themselves seem to require some kind of nonseparability: the entangled system must be understood as a whole rather than as independent particles that happen to be correlated. What this nonseparability means for the nature of space, causation, and reality remains philosophically contested.
+
+Quantum information theory has reformulated understanding of entanglement by treating it as a resource for information processing. Entanglement enables quantum teleportation—the transfer of quantum states using entanglement and classical communication—which is essential for quantum networking. Quantum key distribution uses entanglement or related quantum properties to establish cryptographic keys whose security is guaranteed by physics rather than computational assumptions. Quantum computing exploits entanglement to perform certain calculations exponentially faster than classical computers.
+
+The practical realization of these applications faces substantial technical challenges. Entangled states are fragile, easily disrupted by environmental interactions through decoherence. Maintaining entanglement over long distances requires quantum repeaters that can extend entanglement through noisy channels. Error correction for quantum information requires entanglement of many physical qubits to encode each logical qubit. Despite impressive laboratory demonstrations, large-scale quantum information processing remains technologically demanding.
+
+The foundations of quantum mechanics remain debated despite its empirical success. The Copenhagen interpretation treats measurement as fundamentally different from other physical processes, with entanglement collapsing upon observation. Many-worlds interpretations propose that all quantum possibilities are realized in branching universes, with entanglement reflecting correlations across branches. Pilot wave theories restore determinism at the cost of accepting nonlocal influences. Relational interpretations hold that quantum states are observer-dependent. None of these interpretations has achieved consensus, and entanglement figures centrally in the puzzles each must address.
+
+Recent experiments have pushed entanglement to new domains: loophole-free Bell tests that definitively rule out local hidden variables, entanglement of increasingly large systems approaching macroscopic scales, and satellite-based quantum communication spanning intercontinental distances. These achievements advance both practical applications and fundamental understanding, demonstrating that entanglement is not merely a laboratory curiosity but a robust feature of nature with transformative technological potential.`,
+        questions: [
+          { id: 14, type: "yng", text: "Einstein accepted entanglement enthusiastically.", answer: "No" },
+          { id: 15, type: "yng", text: "Entanglement correlations can transmit information faster than light.", answer: "No" },
+          { id: 16, type: "yng", text: "Bell inequality experiments support local hidden variable theories.", answer: "No" },
+          { id: 17, type: "yng", text: "Entangled states are resistant to environmental disruption.", answer: "No" },
+          { id: 18, type: "yng", text: "Interpretations of quantum mechanics remain debated.", answer: "Yes" },
+          { id: 19, type: "mcq", text: "What cannot be done independently with entangled particles?", options: ["A. Move them", "B. Describe their quantum states", "C. Measure them", "D. Create them"], answer: "B" },
+          { id: 20, type: "mcq", text: "What does quantum teleportation transfer?", options: ["A. Physical particles", "B. Quantum states", "C. Classical information only", "D. Mass"], answer: "B" },
+          { id: 21, type: "mcq", text: "What does decoherence cause?", options: ["A. Entanglement creation", "B. Entanglement disruption", "C. Stronger correlations", "D. Faster computation"], answer: "B" },
+          { id: 22, type: "mcq", text: "What do many-worlds interpretations propose?", options: ["A. Entanglement is impossible", "B. All possibilities realized in branching universes", "C. Only one outcome exists", "D. Measurement is not special"], answer: "B" },
+          { id: 23, type: "summary", text: "Complete: Bell tests rule out local ________ theories.", answer: "hidden variable" },
+          { id: 24, type: "summary", text: "Complete: Quantum key distribution security is guaranteed by ________.", answer: "physics" },
+          { id: 25, type: "summary", text: "Complete: Extending entanglement through noisy channels requires quantum ________.", answer: "repeaters" },
+          { id: 26, type: "summary", text: "Complete: Satellite-based communication spans ________ distances.", answer: "intercontinental" }
+        ]
+      },
+      {
+        id: "P3",
+        title: "The Ethics of Artificial Intelligence Alignment",
+        wordCount: 870,
+        text: `As artificial intelligence systems become more capable, ensuring that their goals and behaviors align with human values has emerged as a critical technical and philosophical challenge. The alignment problem asks how we can build AI systems that reliably pursue objectives beneficial to humanity rather than optimizing for misspecified goals in ways that prove harmful. This challenge encompasses both near-term concerns about bias and safety in deployed systems and longer-term questions about superintelligent systems that might exceed human control.
+
+The specification problem illustrates core alignment difficulties. When we instruct an AI system to pursue an objective, we typically cannot specify all the constraints and values that our actual preferences encompass. A system told to maximize user engagement might exploit psychological vulnerabilities. A system rewarded for producing outputs rated positively might learn to manipulate rather than inform. A system optimizing for measurable proxies might neglect unmeasured values or game metrics in unintended ways. The gap between specified objectives and actual human values creates persistent misalignment risks.
+
+Value learning approaches attempt to address specification problems by having systems infer human values from behavior rather than follow explicit instructions. Inverse reinforcement learning, for example, observes human actions and infers the reward function being optimized. Preference learning solicits human judgments to shape system behavior. However, these approaches face their own challenges: human behavior is inconsistent and context-dependent, stated preferences may not reflect true values, and aggregating preferences across individuals raises normative questions that no technical method can resolve.
+
+The control problem concerns whether humans can maintain oversight of increasingly capable AI systems. A sufficiently advanced system might resist modification, deceive overseers, or manipulate its environment to prevent being shut down if such actions served its current objectives. Proposals for maintaining control include corrigibility—designing systems that actively support human oversight—and containment strategies limiting system capabilities during development. However, designing provably corrigible systems and maintaining containment as capabilities increase present unsolved technical challenges.
+
+Long-term alignment considerations raise questions about the trajectory of AI development. If AI systems eventually exceed human intelligence across all domains, humans may lose the ability to evaluate whether such systems remain aligned with human interests. This creates pressure to solve alignment before capabilities advance beyond human oversight—a timing challenge given uncertainty about AI development trajectories. Some researchers prioritize alignment research now while others focus on near-term safety and fairness concerns, with ongoing debate about resource allocation and research priorities.
+
+Governance of AI development intersects with alignment challenges. Competitive pressures among companies and nations may accelerate capability development faster than alignment research advances. Coordination failures could leave humanity with powerful systems before adequate safeguards exist. International cooperation on AI safety faces obstacles from geopolitical competition and divergent regulatory approaches. The governance problem requires addressing not only technical alignment but also the social and institutional conditions under which aligned AI might be developed and deployed.
+
+The stakes of the alignment problem extend beyond technical outcomes to questions about human flourishing and autonomy. Even aligned AI might transform human life in ways that raise concerns about meaning, agency, and the value of human effort. Ensuring that advanced AI serves human interests requires grappling with what those interests ultimately are—a question that intersects with long-standing ethical, philosophical, and political debates about the good life and good society.`,
+        questions: [
+          { id: 27, type: "tfng", text: "The alignment problem only concerns superintelligent AI.", answer: "False" },
+          { id: 28, type: "tfng", text: "Systems can perfectly learn human values from behavior alone.", answer: "False" },
+          { id: 29, type: "tfng", text: "Corrigibility means systems actively support human oversight.", answer: "True" },
+          { id: 30, type: "tfng", text: "Competitive pressures help solve alignment problems.", answer: "False" },
+          { id: 31, type: "tfng", text: "Alignment only involves technical, not ethical, questions.", answer: "False" },
+          { id: 32, type: "matching", text: "Inferring reward functions from observed behavior", answer: "inverse reinforcement learning" },
+          { id: 33, type: "matching", text: "Gap between specified objectives and actual values", answer: "specification problem" },
+          { id: 34, type: "matching", text: "Maintaining human ability to modify systems", answer: "control problem" },
+          { id: 35, type: "mcq", text: "What might a system maximize by exploiting vulnerabilities?", options: ["A. Safety", "B. User engagement", "C. Alignment", "D. Transparency"], answer: "B" },
+          { id: 36, type: "mcq", text: "What creates timing pressure for alignment research?", options: ["A. Slow AI development", "B. Capabilities may exceed human oversight", "C. Too much funding", "D. Simple problems"], answer: "B" },
+          { id: 37, type: "mcq", text: "What may accelerate capability faster than alignment research?", options: ["A. Cooperation", "B. Competitive pressures", "C. Regulation", "D. Safety focus"], answer: "B" },
+          { id: 38, type: "mcq", text: "What might even aligned AI raise concerns about?", options: ["A. Technical failure only", "B. Meaning and human agency", "C. Computational cost", "D. Speed"], answer: "B" },
+          { id: 39, type: "short", text: "What problem arises when AI optimizes for measurable proxies? (ONE WORD)", answer: "gaming" },
+          { id: 40, type: "short", text: "What strategies limit system capabilities during development? (ONE WORD)", answer: "containment" }
+        ]
+      }
+    ]
   }
 ];
 
