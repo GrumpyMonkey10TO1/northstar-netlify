@@ -1,20 +1,29 @@
 [build]
-  publish = "public"
+  publish = "/"
   functions = "netlify/functions"
 
-[functions]
-  node_bundler = "esbuild"
+# CORS Headers for all JavaScript files
+[[headers]]
+  for = "/public/*.js"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, OPTIONS"
+    Content-Type = "application/javascript; charset=utf-8"
 
-# Serve static JS files directly
 [[headers]]
   for = "/*.js"
   [headers.values]
     Access-Control-Allow-Origin = "*"
-    Cache-Control = "public, max-age=3600"
+    Content-Type = "application/javascript; charset=utf-8"
 
-# Stripe webhook route
-[[redirects]]
-  from = "/api/stripe-webhook"
-  to = "/.netlify/functions/stripe-webhook"
-  status = 200
-  force = true
+[[headers]]
+  for = "/public/*.json"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Content-Type = "application/json; charset=utf-8"
+
+[[headers]]
+  for = "/*.json"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Content-Type = "application/json; charset=utf-8"
