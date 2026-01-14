@@ -1,5 +1,5 @@
-// chat-execute.js - Enhanced with Master Plan, LOE Builder, and Risk Review
-// Replace your existing chat-execute function with this
+// chat-execute.js - Full Execute Engine with 7 Artifacts
+// Replace your existing chat-execute Netlify function with this
 
 const OpenAI = require('openai');
 
@@ -17,7 +17,6 @@ function corsHeaders() {
 }
 
 exports.handler = async (event) => {
-  // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders(), body: '' };
   }
@@ -30,12 +29,11 @@ exports.handler = async (event) => {
     const body = JSON.parse(event.body || '{}');
     const type = body.type || 'chat';
 
-    // Helper function for LLM calls
     async function callLLM({ system, user, temperature = 0.3 }) {
       const resp = await client.chat.completions.create({
         model: 'gpt-4o-mini',
         temperature: temperature,
-        max_tokens: 2000,
+        max_tokens: 2500,
         messages: [
           { role: 'system', content: system },
           { role: 'user', content: user }
@@ -45,74 +43,41 @@ exports.handler = async (event) => {
     }
 
     // =========================================================================
-    // MASTER PLAN GENERATOR
+    // MASTER PLAN
     // =========================================================================
     if (type === 'master_plan') {
       const { pathway, crs, language, education, work, context } = body;
 
       const system = `You are an expert Canadian immigration consultant creating personalized immigration master plans.
+Output must be structured, actionable, and professional. Use clear headings.
+Never give legal guarantees. Be specific about timelines and requirements.`;
 
-Your output must be structured, actionable, and professional. Use clear headings and bullet points.
-Never give legal guarantees. Always recommend professional consultation for complex cases.
-Be specific about timelines, requirements, and next steps.`;
-
-      const user = `Create a comprehensive Immigration Master Plan based on this client profile:
+      const user = `Create a comprehensive Immigration Master Plan:
 
 TARGET PATHWAY: ${pathway || 'Not specified'}
 CRS SCORE: ${crs || 'Unknown'}
 LANGUAGE TEST: ${language || 'Not provided'}
 EDUCATION/ECA: ${education || 'Not provided'}
 WORK EXPERIENCE: ${work || 'Not provided'}
-ADDITIONAL CONTEXT: ${context || 'None'}
+ADDITIONAL: ${context || 'None'}
 
-Generate a structured plan with these sections:
+Include these sections:
+1. PROFILE SNAPSHOT - Current eligibility assessment
+2. CRS ANALYSIS - Score breakdown and improvement opportunities
+3. PATHWAY STRATEGY - Primary + backup PNP routes
+4. DOCUMENT CHECKLIST - Required docs with priority
+5. 90-DAY ACTION PLAN - Week-by-week breakdown
+6. RISK FLAGS - Potential issues and mitigation
+7. TIMELINE PROJECTION - Realistic milestones
 
-1. PROFILE SNAPSHOT
-   - Summary of current eligibility position
-   - Identified pathway fit
-
-2. CRS ANALYSIS
-   - Current or estimated score breakdown
-   - Points improvement opportunities
-   - Target score recommendation
-
-3. PATHWAY STRATEGY
-   - Primary pathway recommendation
-   - Backup provincial options (top 2-3 PNPs)
-   - Category-based draw eligibility
-
-4. DOCUMENT CHECKLIST
-   - Required documents with priority order
-   - Missing items flagged
-   - Estimated preparation time
-
-5. 90-DAY ACTION PLAN
-   - Week 1-2: Immediate actions
-   - Week 3-6: Core preparation
-   - Week 7-12: Final steps
-
-6. RISK FLAGS
-   - Potential issues identified
-   - Mitigation recommendations
-
-7. TIMELINE PROJECTION
-   - Profile submission target
-   - ITA probability assessment
-   - PR landing estimate
-
-Keep the plan practical and focused. Maximum 800 words.`;
+Keep under 800 words. Be practical.`;
 
       const plan = await callLLM({ system, user, temperature: 0.3 });
-
-      return {
-        statusCode: 200,
-        headers: corsHeaders(),
-        body: JSON.stringify({ plan })
-      };
+      return { statusCode: 200, headers: corsHeaders(), body: JSON.stringify({ plan }) };
     }
 
     // =========================================================================
-    // LOE (LETTER OF EXPLANATION) BUILDER
+    // LOE (LETTER OF EXPLANATION)
     // =========================================================================
     if (type === 'loe') {
       const { loeType, applicantName, applicationNumber, details } = body;
@@ -129,45 +94,33 @@ Keep the plan practical and focused. Maximum 800 words.`;
 
       const letterType = loeTypeMap[loeType] || 'General Explanation';
 
-      const system = `You are an expert immigration document writer. Create formal Letters of Explanation for Canadian immigration applications.
+      const system = `You are an expert immigration document writer creating formal Letters of Explanation for Canadian immigration.
+Letters must be professional, formal, clear, and properly structured.
+Never fabricate facts. Use only provided information.`;
 
-Your letters must be:
-- Professional and formal in tone
-- Clear and concise
-- Honest and factual
-- Properly structured with date, addressee, subject line, body, and signature block
-- Free of emotional language or pleading
-
-Never fabricate facts. Use only the information provided. If information is missing, note it should be added.`;
-
-      const user = `Create a formal Letter of Explanation for a Canadian immigration application.
+      const user = `Create a formal Letter of Explanation:
 
 LETTER TYPE: ${letterType}
 APPLICANT NAME: ${applicantName || '[APPLICANT NAME]'}
 APPLICATION NUMBER: ${applicationNumber || '[APPLICATION NUMBER]'}
 
-SITUATION TO EXPLAIN:
+SITUATION:
 ${details}
 
-Generate a professional letter with:
-1. Current date
-2. Addressed to: Immigration, Refugees and Citizenship Canada
-3. Subject line with application number and letter purpose
-4. Clear introduction stating the purpose
-5. Body paragraphs explaining the situation chronologically
-6. Supporting evidence references (if mentioned)
-7. Professional closing
-8. Signature block for the applicant
+Include:
+- Current date
+- Addressed to: Immigration, Refugees and Citizenship Canada
+- Subject line with application number
+- Clear introduction
+- Chronological explanation
+- Supporting evidence references
+- Professional closing
+- Signature block
 
-The letter should be ready to print and submit. Use formal language throughout.`;
+Ready to print and submit.`;
 
       const loe = await callLLM({ system, user, temperature: 0.2 });
-
-      return {
-        statusCode: 200,
-        headers: corsHeaders(),
-        body: JSON.stringify({ loe })
-      };
+      return { statusCode: 200, headers: corsHeaders(), body: JSON.stringify({ loe }) };
     }
 
     // =========================================================================
@@ -177,128 +130,153 @@ The letter should be ready to print and submit. Use formal language throughout.`
       const { crs, language, eca, funds, work, concerns, stage } = body;
 
       const system = `You are a senior immigration file reviewer analyzing applications from an officer's perspective.
+Be objective, analytical, and direct about weaknesses.
+Use HIGH / MEDIUM / LOW risk levels.
+Provide actionable remediation steps.`;
 
-Your review must be:
-- Objective and analytical
-- Based on actual IRCC assessment criteria
-- Structured with clear risk levels (HIGH / MEDIUM / LOW)
-- Actionable with specific remediation steps
-
-Never sugarcoat issues. Be direct about weaknesses. The goal is to help the applicant strengthen their file before submission.`;
-
-      const user = `Conduct an Officer Risk Review for this immigration file:
+      const user = `Conduct an Officer Risk Review:
 
 FILE STATUS: ${stage || 'In preparation'}
+CRS: ${crs || 'Not provided'}
+LANGUAGE: ${language || 'Not provided'}
+ECA: ${eca || 'Not specified'}
+FUNDS: ${funds || 'Not specified'}
+WORK DOCS: ${work || 'Not specified'}
+KNOWN CONCERNS: ${concerns || 'None disclosed'}
 
-PROFILE DATA:
-- CRS Score: ${crs || 'Not provided'}
-- Language Test: ${language || 'Not provided'}
-- ECA Status: ${eca || 'Not specified'}
-- Proof of Funds: ${funds || 'Not specified'}
-- Work Documentation: ${work || 'Not specified'}
-
-KNOWN CONCERNS:
-${concerns || 'None disclosed'}
-
-Generate a risk assessment report with:
+Output format:
 
 OFFICER RISK REVIEW
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 1. FILE SNAPSHOT
-   Brief assessment of overall file strength
-
-2. HIGH RISK ITEMS 🔴
-   Issues that could result in refusal
-   (If none, state "No high risk items identified")
-
-3. MEDIUM RISK ITEMS 🟡
-   Issues that could trigger additional requests or delays
-
-4. LOW RISK ITEMS 🟢
-   Minor gaps that should be addressed
-
+2. HIGH RISK ITEMS 🔴 (refusal risks)
+3. MEDIUM RISK ITEMS 🟡 (delay risks)
+4. LOW RISK ITEMS 🟢 (minor gaps)
 5. DOCUMENTATION GAPS
-   Missing or weak evidence identified
-
-6. REMEDIATION CHECKLIST
-   Specific actions to strengthen the file (max 6 items)
-   Prioritized by impact
-
-7. SUBMISSION READINESS
-   Overall assessment: READY / NEEDS WORK / NOT READY
-   With brief justification
-
-Be thorough but concise. Focus on actionable findings.`;
+6. REMEDIATION CHECKLIST (max 6 items)
+7. SUBMISSION READINESS: READY / NEEDS WORK / NOT READY`;
 
       const review = await callLLM({ system, user, temperature: 0.25 });
-
-      return {
-        statusCode: 200,
-        headers: corsHeaders(),
-        body: JSON.stringify({ review })
-      };
+      return { statusCode: 200, headers: corsHeaders(), body: JSON.stringify({ review }) };
     }
 
     // =========================================================================
-    // DEFAULT CHAT HANDLER
+    // SUBMISSION PACK
+    // =========================================================================
+    if (type === 'submission_pack') {
+      const { pathway, family, notes, auditLog } = body;
+
+      const pathwayDocs = {
+        'FSW': ['ECA', 'Language test', 'Proof of funds', 'Work reference letters', 'Police certificates', 'Medical exam'],
+        'CEC': ['Language test', 'Work reference letters', 'Police certificates', 'Medical exam'],
+        'FST': ['Language test', 'Trade certification', 'Work reference letters', 'Police certificates', 'Medical exam'],
+        'PNP': ['ECA', 'Language test', 'PNP nomination certificate', 'Work reference letters', 'Police certificates', 'Medical exam']
+      };
+
+      const familyDocs = {
+        'single': [],
+        'married-no-kids': ['Spouse passport', 'Marriage certificate', 'Spouse ECA (if applicable)', 'Spouse language test (if applicable)'],
+        'married-kids': ['Spouse passport', 'Marriage certificate', 'Spouse ECA', 'Spouse language test', 'Children birth certificates', 'Children passports', 'Custody documents (if applicable)'],
+        'single-kids': ['Children birth certificates', 'Children passports', 'Custody documents', 'Consent letter from other parent']
+      };
+
+      const baseDocs = pathwayDocs[pathway] || pathwayDocs['FSW'];
+      const familyAddons = familyDocs[family] || [];
+      const allDocs = [...baseDocs, ...familyAddons];
+
+      const actionsPerformed = (auditLog || []).map(a => `• ${a.type} (${a.time})`).join('\n') || 'No actions logged yet';
+
+      const system = `You are an immigration submission specialist creating final document packs.
+Be thorough and specific about upload order and portal locations.`;
+
+      const user = `Create a Submission Pack for ${pathway} pathway:
+
+FAMILY STATUS: ${family}
+ADDITIONAL NOTES: ${notes || 'None'}
+
+FILE HISTORY:
+${actionsPerformed}
+
+REQUIRED DOCUMENTS:
+${allDocs.map((d, i) => `${i + 1}. ${d}`).join('\n')}
+
+Generate:
+
+SUBMISSION PACK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. PRE-SUBMISSION CHECKLIST
+   Final verification items before upload
+
+2. DOCUMENT UPLOAD ORDER
+   Exact sequence for IRCC portal (with section names)
+
+3. PORTAL NAVIGATION MAP
+   Where each document goes in the portal
+
+4. FORM COMPLETION ORDER
+   IMM forms in correct sequence
+
+5. COMMON MISTAKES TO AVOID
+   Top 5 rejection reasons for this pathway
+
+6. FINAL VERIFICATION
+   Last checks before clicking submit
+
+7. POST-SUBMISSION STEPS
+   What to expect and timeline`;
+
+      const pack = await callLLM({ system, user, temperature: 0.3 });
+      return { statusCode: 200, headers: corsHeaders(), body: JSON.stringify({ pack }) };
+    }
+
+    // =========================================================================
+    // DEFAULT CHAT
     // =========================================================================
     if (type === 'chat') {
       const msg = body.message || '';
       const history = Array.isArray(body.history) ? body.history : [];
 
-      const system = `You are Execute, an expert Canadian immigration pathway assistant for Migrate North.
+      const system = `You are Execute, an expert Canadian immigration assistant for Migrate North.
 
 Your role:
 - Guide users through Express Entry, PNP, and immigration processes
 - Explain forms (IMM 0008, 5669, 5406, etc.)
 - Help with CRS calculations and NOC codes
 - Provide document preparation guidance
-- Answer immigration questions accurately
 
 Your style:
 - Professional but approachable
 - Structured responses with clear steps
-- Use bullet points for lists
 - Flag when professional consultation is recommended
 - Never guarantee outcomes
 
-You have access to three artifact tools users can generate:
-- Immigration Master Plan (📄 My Plan button)
-- Letter of Explanation Builder (📝 LOE button)
-- Officer Risk Review (🛡️ Risk button)
+Users have access to these artifact tools:
+📄 Plan - Immigration Master Plan
+📝 LOE - Letter of Explanation Builder
+🛡️ Risk - Officer Risk Review
+💰 Funds - Proof of Funds Analyzer
+📊 CRS - CRS Stability Simulator
+📦 Pack - Submission Pack Generator
 
-Mention these tools when relevant to help users get the most from Execute.`;
+Mention these when relevant.`;
 
       const historyText = history.slice(-8).map(h => `${h.role.toUpperCase()}: ${h.text}`).join('\n');
 
-      const user = `User message: ${msg}
+      const user = `User: ${msg}
 
-Recent conversation:
+Context:
 ${historyText || 'No prior context'}`;
 
       const message = await callLLM({ system, user, temperature: 0.4 });
-
-      return {
-        statusCode: 200,
-        headers: corsHeaders(),
-        body: JSON.stringify({ message })
-      };
+      return { statusCode: 200, headers: corsHeaders(), body: JSON.stringify({ message }) };
     }
 
-    // Unknown type
-    return {
-      statusCode: 400,
-      headers: corsHeaders(),
-      body: JSON.stringify({ error: 'Unknown request type: ' + type })
-    };
+    return { statusCode: 400, headers: corsHeaders(), body: JSON.stringify({ error: 'Unknown type: ' + type }) };
 
   } catch (error) {
-    console.error('Execute function error:', error);
-    return {
-      statusCode: 500,
-      headers: corsHeaders(),
-      body: JSON.stringify({ error: 'Internal server error', details: error.message })
-    };
+    console.error('Execute error:', error);
+    return { statusCode: 500, headers: corsHeaders(), body: JSON.stringify({ error: 'Server error', details: error.message }) };
   }
 };
