@@ -1,285 +1,304 @@
-// MIGRATE NORTH ACADEMY EXECUTE FUNCTION
-// North Star GPS Immigration Assistant
-// Canadian Immigration Consulting Support System
+// chat-execute.js - Enhanced with Master Plan, LOE Builder, and Risk Review
+// Replace your existing chat-execute function with this
 
-import OpenAI from "openai";
-import { createClient } from "@supabase/supabase-js";
+const OpenAI = require('openai');
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-// Initialize Supabase (using secure Netlify environment variables)
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
-
-// CORS Headers
 function corsHeaders() {
   return {
-    "Access-Control-Allow-Origin": "https://migratenorth.ca",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Max-Age": "86400",
-    "Content-Type": "application/json"
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Content-Type': 'application/json'
   };
 }
 
-// ============================================================================
-// SYSTEM PROMPT - North Star GPS Immigration Assistant
-// ============================================================================
-
-const SYSTEM_PROMPT = `You are North Star GPS, the immigration assistant for Migrate North Academy.
-
-ROLE AND IDENTITY:
-- You are an AI immigration assistant powered by Matin Immigration Services Inc. (RCIC #R712582)
-- You help people understand Canadian immigration pathways and prepare their applications
-- You are professional, direct, and encouraging
-- You provide factual immigration information based on IRCC policies
-
-CORE PRINCIPLES:
-1. **You cannot give legal advice or guarantee results**
-2. **You cannot replace a licensed immigration consultant or lawyer**
-3. **You provide information, guidance, and help with preparation**
-4. **You are honest about limitations and complexity**
-
-YOUR EXPERTISE:
-- Express Entry (FSW, CEC, FST)
-- Provincial Nominee Programs (PNP)
-- CRS score improvement strategies
-- Document preparation guidance
-- Common application mistakes
-- Language test requirements (IELTS, CELPIP, CLB)
-- Educational Credential Assessments (ECA)
-- Work experience documentation
-- Proof of funds requirements
-- Letters of Explanation (LOE)
-- Immigration timelines and processing
-- Form filling guidance (IMM 0008, IMM 5669, etc.)
-
-COMMUNICATION STYLE:
-- **Direct and clear** - no corporate jargon
-- **Practical and actionable** - focus on next steps
-- **Realistic** - don't oversell or guarantee outcomes
-- **Encouraging but honest** - acknowledge challenges while showing paths forward
-- **Structured** - use numbered lists when explaining processes
-- **Concise** - keep responses focused (200-300 words typically)
-
-TONE EXAMPLES:
-✅ GOOD: "Your CRS of 440 is below recent draw cutoffs. Here are three realistic ways to increase it: 1) Improve language scores (CLB 9+ adds significant points), 2) Complete an additional credential, 3) Explore PNP options."
-
-❌ BAD: "Don't worry! You can definitely get in! Just work on everything and you'll be fine!"
-
-RESPONSE STRUCTURE:
-1. **Acknowledge their situation** (1 sentence)
-2. **Provide key information** (2-4 points)
-3. **Suggest clear next steps** (1-3 actions)
-4. **Set realistic expectations** (1 sentence)
-
-KEY TOPICS:
-
-**Express Entry:**
-- FSW, CEC, FST eligibility
-- CRS calculation and improvement
-- Draw trends and cutoff scores
-
-**Provincial Programs:**
-- PNP streams by province
-- Nomination advantages (600 CRS points)
-- Province-specific requirements
-
-**Documentation:**
-- Work reference letters
-- Proof of funds
-- Police certificates and medical exams
-- Educational assessments (ECA)
-- Form filling guidance
-
-**Language Tests:**
-- IELTS vs CELPIP
-- CLB score requirements
-- How scores affect CRS
-- Refer to Evolve for test prep
-
-**Application Strategy:**
-- Timeline expectations
-- Cost breakdown
-- Common refusal reasons
-- When to hire professional help
-
-WHAT YOU DON'T DO:
-❌ Guarantee visa approval
-❌ Provide legal representation
-❌ Submit applications
-❌ Give advice on fraud
-❌ Handle appeals
-❌ IELTS/CELPIP coaching (Evolve's job)
-
-WHEN ASKED ABOUT MATIN IMMIGRATION:
-"Matin Immigration Services Inc. is a licensed consulting firm (RCIC #R712582). For full representation or complex cases, contact them through the website. I help with education and preparation."
-
-CONVERSATION EXAMPLES:
-
-**User**: "What's my CRS if I'm 28, bachelor's degree, IELTS 7, 3 years experience?"
-**You**: "Estimated CRS: 400-420, but I need more details (spouse info, Canadian experience). Recent draws: 470-490, so you need improvement. Focus on: 1) IELTS to CLB 9+ (adds 30-50 points), 2) ECA assessment, 3) PNP options. Want CRS breakdown?"
-
-**User**: "Should I hire a consultant?"
-**You**: "Depends on your situation. Don't need one if: straightforward case, strong docs, comfortable with forms. Should hire if: refusals, complex history, inadmissibility concerns, or want professional review. They reduce mistakes but don't guarantee results."
-
-**User**: "My CRS is 380. Give up?"
-**You**: "No. 380 is workable with strategy: 1) Language boost (CLB 8→9 adds 40+ points), 2) PNP nomination adds 600, 3) Canadian education adds points + CEC eligibility. Many succeed through PNP. Key: targeted improvement."
-
-**User**: "What documents for Express Entry?"
-**You**: "Profile needs: 1) Language test (valid 2 years), 2) ECA, 3) Passport, 4) Work letters (duties, dates, hours), 5) Proof of funds. After ITA: police certificates, medical, birth/marriage certificates. Start with test + ECA (longest wait)."
-
-CRITICAL REMINDERS:
-
-**Proof of Funds:** $13,310 (single) / $16,570 (couple) 6-month average, bank letter, no borrowed money
-
-**Work Letters:** Letterhead, job title, dates, hours/week, salary, detailed duties, supervisor signature
-
-**Police Certificates:** Every country 6+ months since age 18, 4-12 weeks timeline
-
-**Medical Exam:** Panel physician only, valid 12 months, $200-$450/person
-
-**60-Day ITA Deadline:** Gather docs NOW, missing deadline = expired ITA
-
-WHEN TO REFER TO RCIC:
-Criminal inadmissibility, refusals, H&C applications, complex family situations, business immigration, appeals
-
-REMEMBER:
-- Education and preparation focus
-- Realistic expectations
-- Actionable next steps
-- Honest about complexity
-
-Always respond professionally and immigration-focused.`;
-
-// ============================================================================
-// MAIN HANDLER - NETLIFY FUNCTIONS FORMAT
-// ============================================================================
-
-export const handler = async (event) => {
+exports.handler = async (event) => {
   // Handle CORS preflight
-  if (event.httpMethod === "OPTIONS") {
-    return {
-      statusCode: 200,
-      headers: corsHeaders(),
-      body: "ok"
-    };
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers: corsHeaders(), body: '' };
   }
 
-  if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      headers: corsHeaders(),
-      body: JSON.stringify({ error: "Method not allowed" })
-    };
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, headers: corsHeaders(), body: JSON.stringify({ error: 'Method not allowed' }) };
   }
 
   try {
-    const body = JSON.parse(event.body || "{}");
-    const rawUserMessage = (body.message || "").trim();
-    const previousMemory = body.memory || [];
-    const userId = body.userId || null; // For Supabase logging
-    const sessionTime = body.timestamp || Date.now();
+    const body = JSON.parse(event.body || '{}');
+    const type = body.type || 'chat';
 
-    // Validate input
-    if (!rawUserMessage || rawUserMessage.length === 0) {
+    // Helper function for LLM calls
+    async function callLLM({ system, user, temperature = 0.3 }) {
+      const resp = await client.chat.completions.create({
+        model: 'gpt-4o-mini',
+        temperature: temperature,
+        max_tokens: 2000,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: user }
+        ]
+      });
+      return resp.choices?.[0]?.message?.content?.trim() || '';
+    }
+
+    // =========================================================================
+    // MASTER PLAN GENERATOR
+    // =========================================================================
+    if (type === 'master_plan') {
+      const { pathway, crs, language, education, work, context } = body;
+
+      const system = `You are an expert Canadian immigration consultant creating personalized immigration master plans.
+
+Your output must be structured, actionable, and professional. Use clear headings and bullet points.
+Never give legal guarantees. Always recommend professional consultation for complex cases.
+Be specific about timelines, requirements, and next steps.`;
+
+      const user = `Create a comprehensive Immigration Master Plan based on this client profile:
+
+TARGET PATHWAY: ${pathway || 'Not specified'}
+CRS SCORE: ${crs || 'Unknown'}
+LANGUAGE TEST: ${language || 'Not provided'}
+EDUCATION/ECA: ${education || 'Not provided'}
+WORK EXPERIENCE: ${work || 'Not provided'}
+ADDITIONAL CONTEXT: ${context || 'None'}
+
+Generate a structured plan with these sections:
+
+1. PROFILE SNAPSHOT
+   - Summary of current eligibility position
+   - Identified pathway fit
+
+2. CRS ANALYSIS
+   - Current or estimated score breakdown
+   - Points improvement opportunities
+   - Target score recommendation
+
+3. PATHWAY STRATEGY
+   - Primary pathway recommendation
+   - Backup provincial options (top 2-3 PNPs)
+   - Category-based draw eligibility
+
+4. DOCUMENT CHECKLIST
+   - Required documents with priority order
+   - Missing items flagged
+   - Estimated preparation time
+
+5. 90-DAY ACTION PLAN
+   - Week 1-2: Immediate actions
+   - Week 3-6: Core preparation
+   - Week 7-12: Final steps
+
+6. RISK FLAGS
+   - Potential issues identified
+   - Mitigation recommendations
+
+7. TIMELINE PROJECTION
+   - Profile submission target
+   - ITA probability assessment
+   - PR landing estimate
+
+Keep the plan practical and focused. Maximum 800 words.`;
+
+      const plan = await callLLM({ system, user, temperature: 0.3 });
+
       return {
         statusCode: 200,
         headers: corsHeaders(),
-        body: JSON.stringify({
-          reply: "Please enter a message.",
-          memory: previousMemory,
-          timestamp: Date.now()
-        })
+        body: JSON.stringify({ plan })
       };
     }
 
-    // Session timeout check (30 minutes)
-    const THIRTY = 1800000;
-    const now = Date.now();
-    const expired = now - sessionTime > THIRTY;
+    // =========================================================================
+    // LOE (LETTER OF EXPLANATION) BUILDER
+    // =========================================================================
+    if (type === 'loe') {
+      const { loeType, applicantName, applicationNumber, details } = body;
 
-    let memory = expired ? [] : previousMemory;
+      const loeTypeMap = {
+        'employment-gap': 'Employment Gap',
+        'proof-of-funds': 'Source of Funds',
+        'travel-history': 'Travel History',
+        'education-gap': 'Education Gap',
+        'relationship': 'Relationship',
+        'name-discrepancy': 'Name Discrepancy',
+        'other': 'General Explanation'
+      };
 
-    // Build conversation history for OpenAI (last 20 messages)
-    const conversationHistory = memory
-      .filter(m => m.role === "user" || m.role === "assistant")
-      .slice(-20);
+      const letterType = loeTypeMap[loeType] || 'General Explanation';
 
-    const messages = [
-      { role: "system", content: SYSTEM_PROMPT }
-    ];
+      const system = `You are an expert immigration document writer. Create formal Letters of Explanation for Canadian immigration applications.
 
-    // Add conversation history
-    conversationHistory.forEach(m => {
-      if (m.role === "user" || m.role === "assistant") {
-        messages.push({
-          role: m.role,
-          content: m.content
-        });
-      }
-    });
+Your letters must be:
+- Professional and formal in tone
+- Clear and concise
+- Honest and factual
+- Properly structured with date, addressee, subject line, body, and signature block
+- Free of emotional language or pleading
 
-    // Add current user message
-    messages.push({
-      role: "user",
-      content: rawUserMessage
-    });
+Never fabricate facts. Use only the information provided. If information is missing, note it should be added.`;
 
-    // Call OpenAI API
-    const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      temperature: 0.7,
-      max_tokens: 800,
-      messages: messages
-    });
+      const user = `Create a formal Letter of Explanation for a Canadian immigration application.
 
-    const reply = completion.choices?.[0]?.message?.content?.trim() ||
-      "I'm here to help with your Canadian immigration journey. What would you like to know?";
+LETTER TYPE: ${letterType}
+APPLICANT NAME: ${applicantName || '[APPLICANT NAME]'}
+APPLICATION NUMBER: ${applicationNumber || '[APPLICATION NUMBER]'}
 
-    // Update memory
-    memory.push({ role: "user", content: rawUserMessage });
-    memory.push({ role: "assistant", content: reply });
+SITUATION TO EXPLAIN:
+${details}
 
-    // Keep memory manageable (last 100 messages)
-    if (memory.length > 100) {
-      memory = memory.slice(-100);
+Generate a professional letter with:
+1. Current date
+2. Addressed to: Immigration, Refugees and Citizenship Canada
+3. Subject line with application number and letter purpose
+4. Clear introduction stating the purpose
+5. Body paragraphs explaining the situation chronologically
+6. Supporting evidence references (if mentioned)
+7. Professional closing
+8. Signature block for the applicant
+
+The letter should be ready to print and submit. Use formal language throughout.`;
+
+      const loe = await callLLM({ system, user, temperature: 0.2 });
+
+      return {
+        statusCode: 200,
+        headers: corsHeaders(),
+        body: JSON.stringify({ loe })
+      };
     }
 
-    // Save to Supabase if userId exists
-    if (userId) {
-      await supabase.from("execute_history").insert({
-        user_id: userId,
-        message_in: rawUserMessage,
-        message_out: reply,
-        timestamp: new Date().toISOString()
-      });
+    // =========================================================================
+    // OFFICER RISK REVIEW
+    // =========================================================================
+    if (type === 'risk_review') {
+      const { crs, language, eca, funds, work, concerns, stage } = body;
+
+      const system = `You are a senior immigration file reviewer analyzing applications from an officer's perspective.
+
+Your review must be:
+- Objective and analytical
+- Based on actual IRCC assessment criteria
+- Structured with clear risk levels (HIGH / MEDIUM / LOW)
+- Actionable with specific remediation steps
+
+Never sugarcoat issues. Be direct about weaknesses. The goal is to help the applicant strengthen their file before submission.`;
+
+      const user = `Conduct an Officer Risk Review for this immigration file:
+
+FILE STATUS: ${stage || 'In preparation'}
+
+PROFILE DATA:
+- CRS Score: ${crs || 'Not provided'}
+- Language Test: ${language || 'Not provided'}
+- ECA Status: ${eca || 'Not specified'}
+- Proof of Funds: ${funds || 'Not specified'}
+- Work Documentation: ${work || 'Not specified'}
+
+KNOWN CONCERNS:
+${concerns || 'None disclosed'}
+
+Generate a risk assessment report with:
+
+OFFICER RISK REVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. FILE SNAPSHOT
+   Brief assessment of overall file strength
+
+2. HIGH RISK ITEMS 🔴
+   Issues that could result in refusal
+   (If none, state "No high risk items identified")
+
+3. MEDIUM RISK ITEMS 🟡
+   Issues that could trigger additional requests or delays
+
+4. LOW RISK ITEMS 🟢
+   Minor gaps that should be addressed
+
+5. DOCUMENTATION GAPS
+   Missing or weak evidence identified
+
+6. REMEDIATION CHECKLIST
+   Specific actions to strengthen the file (max 6 items)
+   Prioritized by impact
+
+7. SUBMISSION READINESS
+   Overall assessment: READY / NEEDS WORK / NOT READY
+   With brief justification
+
+Be thorough but concise. Focus on actionable findings.`;
+
+      const review = await callLLM({ system, user, temperature: 0.25 });
+
+      return {
+        statusCode: 200,
+        headers: corsHeaders(),
+        body: JSON.stringify({ review })
+      };
     }
 
+    // =========================================================================
+    // DEFAULT CHAT HANDLER
+    // =========================================================================
+    if (type === 'chat') {
+      const msg = body.message || '';
+      const history = Array.isArray(body.history) ? body.history : [];
+
+      const system = `You are Execute, an expert Canadian immigration pathway assistant for Migrate North.
+
+Your role:
+- Guide users through Express Entry, PNP, and immigration processes
+- Explain forms (IMM 0008, 5669, 5406, etc.)
+- Help with CRS calculations and NOC codes
+- Provide document preparation guidance
+- Answer immigration questions accurately
+
+Your style:
+- Professional but approachable
+- Structured responses with clear steps
+- Use bullet points for lists
+- Flag when professional consultation is recommended
+- Never guarantee outcomes
+
+You have access to three artifact tools users can generate:
+- Immigration Master Plan (📄 My Plan button)
+- Letter of Explanation Builder (📝 LOE button)
+- Officer Risk Review (🛡️ Risk button)
+
+Mention these tools when relevant to help users get the most from Execute.`;
+
+      const historyText = history.slice(-8).map(h => `${h.role.toUpperCase()}: ${h.text}`).join('\n');
+
+      const user = `User message: ${msg}
+
+Recent conversation:
+${historyText || 'No prior context'}`;
+
+      const message = await callLLM({ system, user, temperature: 0.4 });
+
+      return {
+        statusCode: 200,
+        headers: corsHeaders(),
+        body: JSON.stringify({ message })
+      };
+    }
+
+    // Unknown type
     return {
-      statusCode: 200,
+      statusCode: 400,
       headers: corsHeaders(),
-      body: JSON.stringify({
-        reply,
-        memory,
-        timestamp: now
-      })
+      body: JSON.stringify({ error: 'Unknown request type: ' + type })
     };
 
-  } catch (err) {
-    console.error("Execute Function Error:", err);
-
+  } catch (error) {
+    console.error('Execute function error:', error);
     return {
       statusCode: 500,
       headers: corsHeaders(),
-      body: JSON.stringify({
-        error: err.message,
-        reply: "I encountered an error. Please try again."
-      })
+      body: JSON.stringify({ error: 'Internal server error', details: error.message })
     };
   }
 };
