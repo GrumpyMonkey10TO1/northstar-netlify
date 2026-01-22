@@ -7,6 +7,20 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
+// Strip meta-comments about band levels to prevent prompt injection
+function cleanEssayText(text) {
+  return text
+    .replace(/here is a band \d[^.]*\./gi, '')
+    .replace(/this is a band \d[^.]*\./gi, '')
+    .replace(/this is (roughly|approximately|about) band \d[^.]*\./gi, '')
+    .replace(/band \d[\-–]\d level[^.]*\./gi, '')
+    .replace(/band \d\+? (level )?(response|essay|answer)[^.]*\./gi, '')
+    .replace(/deliberately weak[^.]*\./gi, '')
+    .replace(/failing[- ]level[^.]*\./gi, '')
+    .replace(/^\s*below is[^.]*\.\s*/gi, '')
+    .trim();
+}
+
 export async function handler(event) {
   if (event.httpMethod === "OPTIONS") {
     return {
@@ -31,44 +45,63 @@ export async function handler(event) {
       };
     }
 
-    const wordCount = answer.trim().split(/\s+/).filter(w => w.length > 0).length;
+    // Clean the essay to remove any band-level claims
+    const cleanedAnswer = cleanEssayText(answer);
+    const wordCount = cleanedAnswer.trim().split(/\s+/).filter(w => w.length > 0).length;
     console.log("Scoring request:", { email, testId, wordCount });
 
-    const scoringPrompt = `You are an expert IELTS/CELPIP writing examiner. Score this essay on 4 criteria using IELTS band descriptors (0-9 scale, half bands allowed like 6.5, 7.5).
+    const scoringPrompt = `You are an IELTS Writing Task 2 examiner.
 
 ESSAY PROMPT:
 ${prompt}
 
 STUDENT'S RESPONSE (${wordCount} words):
-${answer}
+${cleanedAnswer}
 
-Provide scores and detailed feedback in this exact JSON format:
+MANDATORY SCORING PROCESS:
+1. First decide which IELTS band descriptor (5, 6, 7, 8, or 9) the essay MOST closely matches for EACH criterion
+2. Only after selecting the descriptor, assign the numerical score
+3. Do NOT default to 6.0 or 6.5 - use the FULL range (5.0 to 8.5)
+
+LEXICAL RESOURCE RULES:
+- Judge based on PRECISION and APPROPRIATENESS, not rarity
+- Reward controlled academic vocabulary and natural collocations
+- Do NOT penalize common academic words if accurate and natural
+- Basic repetitive vocabulary (good/bad/very/many) = Band 5.0-5.5
+- Sophisticated controlled vocabulary = Band 7.0-8.0
+- If essay shows Band 7-8 lexical CONTROL, you MUST NOT assign Band 5-6
+
+BAND DESCRIPTORS:
+- Band 8-9: Sophisticated, precise vocabulary, rare errors, natural collocations, fully developed
+- Band 7: Good range, occasional errors, effective word choice, well-organized
+- Band 6: Adequate range, some errors, generally appropriate
+- Band 5: LIMITED range, REPETITIVE, basic vocabulary, underdeveloped
+
+Return ONLY this JSON (replace NUMBER with your actual scores):
 {
   "scores": {
-    "task": 6.5,
-    "coherence": 6.0,
-    "lexical": 6.5,
-    "grammar": 6.0,
-    "overall": 6.5
+    "task": NUMBER,
+    "coherence": NUMBER,
+    "lexical": NUMBER,
+    "grammar": NUMBER,
+    "overall": NUMBER
   },
   "feedback": {
-    "task": "Brief feedback on task achievement...",
-    "coherence": "Brief feedback on coherence and cohesion...",
-    "lexical": "Brief feedback on vocabulary usage...",
-    "grammar": "Brief feedback on grammar accuracy..."
+    "task": "one sentence",
+    "coherence": "one sentence",
+    "lexical": "one sentence",
+    "grammar": "one sentence"
   },
-  "strengths": ["strength 1", "strength 2", "strength 3"],
-  "improvements": ["area to improve 1", "area to improve 2", "area to improve 3"],
-  "next_focus": "The single most important thing to practice next",
-  "band_summary": "One sentence summary of the overall performance"
-}
-
-Respond ONLY with valid JSON, no additional text.`;
+  "strengths": ["strength 1", "strength 2"],
+  "improvements": ["improvement 1", "improvement 2"],
+  "next_focus": "single most important thing to practice",
+  "band_summary": "one sentence overall summary"
+}`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "You are an expert IELTS examiner. Always respond with valid JSON only." },
+        { role: "system", content: "You are a strict IELTS examiner. Score accurately using the full band range. Respond with valid JSON only." },
         { role: "user", content: scoringPrompt }
       ],
       temperature: 0.3,
