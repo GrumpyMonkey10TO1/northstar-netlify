@@ -1,8 +1,8 @@
 // =============================================================================
-// EVOLVE IELTS WRITING SCORING ENGINE v6
+// EVOLVE IELTS WRITING SCORING ENGINE v7
 // =============================================================================
-// Uses REAL scored essays from Kaggle IELTS dataset as calibration anchors
-// GPT compares submitted essay against actual Band 4, 5, 6, 7, 8 examples
+// HYBRID APPROACH: Real calibration essays + Detailed band descriptors
+// Prevents central tendency bias and improves extremes scoring
 // =============================================================================
 
 import OpenAI from "openai";
@@ -52,33 +52,94 @@ In addition, teams sports do not always promote cooperation among players. In so
 In conclusion, although team sports are a great method to teach children how to get along with each other, there are various activities which can encourage cooperation among children, as well. Therefore, it is considerably significant for a school to embrace diversity and make children play with what they really like, instead of forcing them to do something they feel they don't belong.`;
 
 // =============================================================================
-// SCORING PROMPT - COMPARATIVE APPROACH
+// DETAILED BAND DESCRIPTORS
+// =============================================================================
+
+const BAND_DESCRIPTORS = `
+## DETAILED BAND DESCRIPTORS
+
+### BAND 9 (8.5-9.0) ⭐ EXCEPTIONAL
+- Task: Exceptional depth, nuanced critical thinking, intellectually rigorous
+- Coherence: Seamless, organic flow with sophisticated linking
+- Lexical: "attenuation," "paradigm shift," "tacit knowledge," "precipitate," "atomization" - zero errors
+- Grammar: Perfect control, wide range of complex structures, zero errors
+**If ALL criteria met → MUST score 8.5-9.0. Do not withhold 9.0 from truly exceptional work.**
+
+### BAND 8 (7.5-8.5) ⭐ VERY STRONG
+- Task: Fully addresses with well-developed ideas and specific examples
+- Coherence: Logical sequencing, effective cohesive devices
+- Lexical: "transformative," "unprecedented," "cultivate," "democratized" - rare minor errors (1-2)
+- Grammar: Wide range used accurately, 1-3 minor slips maximum
+
+### BAND 7 (6.5-7.5) ✓ GOOD
+- Task: Adequately addresses all parts, clear position
+- Coherence: Clear progression, cohesive devices generally well used
+- Lexical: "implement," "enhance," "facilitate" - occasional errors (3-5)
+- Grammar: Variety of complex structures, occasional errors (5-8)
+
+### BAND 6 (5.5-6.5) ~ COMPETENT
+- Task: Addresses task but some parts more than others
+- Coherence: Coherent but paragraphing may be inadequate
+- Lexical: "improve," "develop," "advantage" - noticeable errors (8-12)
+- Grammar: Mix of simple/complex, errors in complex structures (10-15)
+
+### BAND 5 (4.5-5.5) ⚠ MODEST
+- Task: Partially addresses task, limited development
+- Coherence: Some organization but progression unclear
+- Lexical: Limited vocabulary, repetition of "good," "bad," "make" - frequent errors (15-20)
+- Grammar: Limited range, frequent errors including missing articles (15-20)
+
+### BAND 4 (3.5-4.5) ⚠⚠ LIMITED
+**CRITICAL MARKERS (if 4-5+ present → MUST score 4.0-4.5):**
+- ✗ Pervasive errors in almost every sentence (25+ total)
+- ✗ Missing articles constantly ("technology help student")
+- ✗ Wrong verb forms throughout ("This have advantage," "they not need")
+- ✗ Very limited vocabulary with excessive repetition
+- ✗ Under 200 words OR minimal task response
+- ✗ No clear organization or progression
+**Do NOT inflate to 5.0 if these markers present.**
+
+## ERROR FREQUENCY GUIDE
+| Band | Errors | Per Sentence |
+|------|--------|--------------|
+| 9    | 0      | None         |
+| 8    | 1-3    | Rare slips   |
+| 7    | 5-8    | Occasional   |
+| 6    | 10-15  | Some         |
+| 5    | 15-20  | Frequent     |
+| 4    | 25+    | Multiple     |
+`;
+
+// =============================================================================
+// ENHANCED SCORING PROMPT
 // =============================================================================
 
 function buildScoringPrompt(essay, taskPrompt, wordCount) {
-  return `You are an IELTS Writing Task 2 examiner. You will score an essay by comparing it to REAL scored essays.
+  return `You are an expert IELTS Writing Task 2 examiner. Score this essay using BOTH calibration examples AND detailed band descriptors.
 
-## CALIBRATION ESSAYS (scored by real IELTS examiners)
+## STEP 1: COMPARE TO CALIBRATION ESSAYS
 
-### BAND 4.0 EXAMPLE:
+### BAND 4.0 CALIBRATION:
 "${BAND_4_ESSAY}"
-CHARACTERISTICS: Frequent spelling/grammar errors ("variaty", "scepticles", "persisimistic", "abserved"), attempts complex vocabulary but misuses it, ideas present but poorly connected, position unclear.
+**Key markers:** Errors every sentence ("variaty," "scepticles," "persisimistic," "be able to access information around the world allowing specialists enlarge"), very limited vocabulary, unclear position.
 
-### BAND 5.0 EXAMPLE:
+### BAND 5.0 CALIBRATION:
 "${BAND_5_ESSAY}"
-CHARACTERISTICS: Spelling errors throughout ("youngesters", "cooperetion", "completly", "evolvment", "acuire"), basic vocabulary repeated, ideas present but underdeveloped, some organization visible.
+**Key markers:** Frequent spelling errors ("youngesters," "cooperetion," "completly," "evolvment"), basic vocabulary repeated heavily, ideas present but thin, visible organization.
 
-### BAND 6.0 EXAMPLE:
+### BAND 6.0 CALIBRATION:
 "${BAND_6_ESSAY}"
-CHARACTERISTICS: Some spelling errors ("invist", "devolping", "compititions", "bascketball"), adequate vocabulary, clear position, ideas developed but could be stronger, reasonable coherence.
+**Key markers:** Some spelling errors ("invist," "devolping," "compititions"), adequate vocabulary, clear position, ideas developed but could be stronger.
 
-### BAND 7.0 EXAMPLE:
+### BAND 7.0 CALIBRATION:
 "${BAND_7_ESSAY}"
-CHARACTERISTICS: Rare errors, good vocabulary range ("inadequate", "vocational", "prosperous"), clear position throughout, well-developed ideas with examples, logical progression, minor issues only.
+**Key markers:** Rare errors, good vocabulary ("inadequate," "vocational," "prosperous"), well-developed ideas with examples, clear logical progression.
 
-### BAND 8.0 EXAMPLE:
+### BAND 8.0 CALIBRATION:
 "${BAND_8_ESSAY}"
-CHARACTERISTICS: Very few errors, sophisticated vocabulary ("competitiveness", "inequities", "embrace diversity"), nuanced position, fully developed arguments, excellent coherence, reads fluently.
+**Key markers:** Very few errors, sophisticated vocabulary ("competitiveness," "inequities," "embrace diversity"), nuanced arguments, excellent coherence.
+
+${BAND_DESCRIPTORS}
 
 ---
 
@@ -86,58 +147,72 @@ CHARACTERISTICS: Very few errors, sophisticated vocabulary ("competitiveness", "
 
 **Task:** ${taskPrompt}
 **Word count:** ${wordCount}
+
 **Essay:**
 "${essay}"
 
 ---
 
-## SCORING INSTRUCTIONS
+## SCORING PROCESS
 
-Compare the submitted essay to the calibration essays above. Ask yourself:
-- Does it have MORE or FEWER errors than the Band 5 example?
-- Is the vocabulary MORE or LESS sophisticated than the Band 6 example?
-- Are ideas BETTER or WORSE developed than the Band 7 example?
+**STEP 1 - Initial Comparison:**
+- Is this essay BETTER or WORSE than Band 5 (lots of spelling errors, basic vocab)?
+- Is this essay BETTER or WORSE than Band 6 (some errors, adequate ideas)?
+- Is this essay AS GOOD AS Band 7 (rare errors, good vocab, well-developed)?
+- Is this essay AS GOOD AS Band 8 (sophisticated, nuanced, excellent)?
 
-Then assign scores for each criterion:
+**STEP 2 - Count Critical Markers:**
+- Count grammar/spelling errors - are there 25+ (Band 4), 15-20 (Band 5), 10-15 (Band 6)?
+- Check for Band 4 markers: missing articles constantly, wrong verb forms everywhere, very limited vocab
+- Check for Band 8-9 markers: sophisticated vocabulary, zero/rare errors, nuanced arguments
 
-**Task Response (TR):** Does it address all parts of the task? Is the position clear? Are ideas relevant and developed?
-**Coherence & Cohesion (CC):** Is it logically organized? Are paragraphs well-linked? Does it flow?
-**Lexical Resource (LR):** Is vocabulary adequate, good, or sophisticated? Are there word choice errors?
-**Grammatical Range & Accuracy (GRA):** Are sentences varied? How frequent are grammar errors?
+**STEP 3 - Apply Band Descriptors:**
+Use the detailed descriptors above for precise scoring.
 
-IMPORTANT RULES:
-- Essays with frequent spelling/grammar errors like Band 4-5 examples CANNOT score above 5.5 for GRA
-- Essays with basic/repetitive vocabulary like Band 5 example CANNOT score above 5.5 for LR
-- Essays under 250 words are capped at 6.0 overall
-- Be STRICT: only give 7+ if the essay is clearly BETTER than the Band 6 example
-- Be STRICT: only give 8+ if the essay is clearly AS GOOD AS the Band 8 example
+**STEP 4 - Anti-Bias Check:**
+- Am I being too generous? (Band 4 essays with 25+ errors cannot score 5.0+)
+- Am I being too harsh? (Band 8-9 quality essays with exceptional vocab deserve 8.5-9.0)
+- Am I avoiding extremes? (Use full range - 4.0 and 9.0 exist for a reason)
+
+---
+
+## CRITICAL RULES
+
+1. **Word count penalty:** Under 250 words = maximum 6.0 overall
+2. **Error-based caps:**
+   - 25+ errors throughout = maximum 4.5 for GRA and LR
+   - 15-20 errors = maximum 5.5 for GRA and LR
+   - 10-15 errors = maximum 6.5 for GRA and LR
+3. **Band 4 identification:** If essay has pervasive errors (multiple per sentence), missing articles constantly, very limited vocabulary → MUST score 4.0-4.5
+4. **Band 9 identification:** If essay has zero errors, exceptional vocabulary ("paradigm shift," "attenuation," "tacit knowledge"), perfect coherence, nuanced arguments → MUST score 8.5-9.0
 
 ---
 
 ## RESPONSE FORMAT
 
-Return ONLY valid JSON (no markdown, no explanation):
+Return ONLY valid JSON:
 
 {
-  "closest_to": "band_4" | "band_5" | "band_6" | "band_7" | "band_8",
-  "task": <score 4.0-9.0>,
-  "coherence": <score 4.0-9.0>,
-  "lexical": <score 4.0-9.0>,
-  "grammar": <score 4.0-9.0>,
-  "overall": <score 4.0-9.0>,
+  "closest_to": "band_4" | "band_5" | "band_6" | "band_7" | "band_8" | "band_9",
+  "task": <score 3.5-9.0 in 0.5 increments>,
+  "coherence": <score 3.5-9.0 in 0.5 increments>,
+  "lexical": <score 3.5-9.0 in 0.5 increments>,
+  "grammar": <score 3.5-9.0 in 0.5 increments>,
+  "overall": <score 3.5-9.0 in 0.5 increments>,
+  "error_count": <approximate total errors>,
   "feedback": {
-    "task": "<1-2 sentences on task response>",
-    "coherence": "<1-2 sentences on coherence>",
-    "lexical": "<1-2 sentences on vocabulary>",
-    "grammar": "<1-2 sentences on grammar>"
+    "task": "<1-2 sentences>",
+    "coherence": "<1-2 sentences>",
+    "lexical": "<1-2 sentences - mention specific vocabulary level>",
+    "grammar": "<1-2 sentences - mention error frequency>"
   },
-  "strengths": ["<strength 1>", "<strength 2>"],
-  "improvements": ["<improvement 1>", "<improvement 2>", "<improvement 3>"]
+  "strengths": ["<specific strength 1>", "<specific strength 2>"],
+  "improvements": ["<specific improvement 1>", "<specific improvement 2>", "<specific improvement 3>"]
 }`;
 }
 
 // =============================================================================
-// CLEAN ESSAY TEXT (prevent prompt injection)
+// REST OF THE CODE STAYS THE SAME
 // =============================================================================
 
 function cleanEssayText(text) {
@@ -154,18 +229,12 @@ function cleanEssayText(text) {
     .trim();
 }
 
-// =============================================================================
-// PARSE RESPONSE
-// =============================================================================
-
 function parseResponse(text) {
-  // Remove markdown code blocks if present
   let cleaned = text.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
   
   try {
     return JSON.parse(cleaned);
   } catch (e) {
-    // Try to extract JSON from the response
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0]);
@@ -174,24 +243,15 @@ function parseResponse(text) {
   }
 }
 
-// =============================================================================
-// CALCULATE OVERALL (weighted average, rounded to nearest 0.5)
-// =============================================================================
-
 function calculateOverall(scores) {
-  // IELTS weights all 4 criteria equally
   const avg = (scores.task + scores.coherence + scores.lexical + scores.grammar) / 4;
-  return Math.round(avg * 2) / 2; // Round to nearest 0.5
+  return Math.round(avg * 2) / 2;
 }
-
-// =============================================================================
-// CLB PROJECTION
-// =============================================================================
 
 function getCLBProjection(overall) {
   const clbMap = {
     9.0: 12, 8.5: 11, 8.0: 10, 7.5: 9, 7.0: 9,
-    6.5: 8, 6.0: 7, 5.5: 6, 5.0: 5, 4.5: 4, 4.0: 4
+    6.5: 8, 6.0: 7, 5.5: 6, 5.0: 5, 4.5: 4, 4.0: 4, 3.5: 3, 3.0: 3
   };
   
   const clb = clbMap[overall] || 5;
@@ -210,21 +270,15 @@ function getCLBProjection(overall) {
   };
 }
 
-// =============================================================================
-// BAND SUMMARY
-// =============================================================================
-
 function getBandSummary(overall) {
-  if (overall >= 8.0) return "Expert user - very few errors, sophisticated language, fully developed arguments.";
+  if (overall >= 8.5) return "Expert user - exceptional quality with zero/rare errors, sophisticated language, fully developed nuanced arguments.";
+  if (overall >= 8.0) return "Very good user - very few errors, sophisticated language, well-developed arguments.";
   if (overall >= 7.0) return "Good user - occasional errors, good vocabulary range, well-developed ideas.";
   if (overall >= 6.0) return "Competent user - some errors, adequate vocabulary, ideas need more development.";
   if (overall >= 5.0) return "Modest user - frequent errors, limited vocabulary, basic idea development.";
-  return "Limited user - many errors affecting comprehension, very basic vocabulary.";
+  if (overall >= 4.0) return "Limited user - many errors affecting comprehension, very basic vocabulary.";
+  return "Extremely limited user - severe errors throughout, communication breakdown.";
 }
-
-// =============================================================================
-// MAIN HANDLER
-// =============================================================================
 
 export async function handler(event) {
   if (event.httpMethod === "OPTIONS") {
@@ -242,36 +296,32 @@ export async function handler(event) {
       };
     }
 
-    // Clean and analyze the essay
     const cleanedAnswer = cleanEssayText(answer);
     const wordCount = cleanedAnswer.trim().split(/\s+/).filter(w => w.length > 0).length;
     
-    console.log("v6 Scoring request:", { email, testId, wordCount });
+    console.log("v7 Scoring request:", { email, testId, wordCount });
 
-    // Build the comparative scoring prompt
     const scoringPrompt = buildScoringPrompt(cleanedAnswer, prompt, wordCount);
 
-    // Call GPT-4o
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "You are an expert IELTS examiner. Score essays by comparing them to real calibration examples. Return only valid JSON."
+          content: "You are an expert IELTS examiner. Use both calibration essays and detailed band descriptors for accurate scoring. Avoid central tendency bias - use the full range (4.0-9.0). Return only valid JSON."
         },
         {
           role: "user",
           content: scoringPrompt
         }
       ],
-      temperature: 0.3,  // Low temperature for consistency
-      max_tokens: 1000
+      temperature: 0.2,  // Lowered for more consistency
+      max_tokens: 1200
     });
 
     const responseText = completion.choices[0].message.content;
     console.log("GPT response:", responseText);
 
-    // Parse the response
     let result;
     try {
       result = parseResponse(responseText);
@@ -284,13 +334,12 @@ export async function handler(event) {
       };
     }
 
-    // Validate and constrain scores
-    const task = Math.min(9, Math.max(4, parseFloat(result.task) || 5.5));
-    const coherence = Math.min(9, Math.max(4, parseFloat(result.coherence) || 5.5));
-    const lexical = Math.min(9, Math.max(4, parseFloat(result.lexical) || 5.5));
-    const grammar = Math.min(9, Math.max(4, parseFloat(result.grammar) || 5.5));
+    // Validate scores with wider range
+    const task = Math.min(9, Math.max(3.5, parseFloat(result.task) || 5.5));
+    const coherence = Math.min(9, Math.max(3.5, parseFloat(result.coherence) || 5.5));
+    const lexical = Math.min(9, Math.max(3.5, parseFloat(result.lexical) || 5.5));
+    const grammar = Math.min(9, Math.max(3.5, parseFloat(result.grammar) || 5.5));
     
-    // Recalculate overall to ensure consistency
     let overall = calculateOverall({ task, coherence, lexical, grammar });
     
     // Apply word count cap
@@ -298,40 +347,29 @@ export async function handler(event) {
       overall = 6.0;
     }
     
-    // Get CLB projection
     const clbProjection = getCLBProjection(overall);
 
-    // Build response
     const response = {
-      // Scores
       task,
       coherence,
       lexical,
       grammar,
       overall,
-      
-      // Comparison info
       closest_to: result.closest_to || "unknown",
-      
-      // Feedback
+      error_count: result.error_count || null,
       feedback: result.feedback || {},
       band_summary: getBandSummary(overall),
       strengths: result.strengths || [],
       improvements: result.improvements || [],
-      
-      // Meta
       wordCount,
       testId,
-      
-      // CLB Immigration projection
       clb: clbProjection.clb,
       clb_projection: clbProjection,
-      
-      // Debug info
       _debug: {
-        version: "v6",
+        version: "v7",
         model: "gpt-4o",
-        closest_to: result.closest_to
+        closest_to: result.closest_to,
+        error_count: result.error_count
       }
     };
 
