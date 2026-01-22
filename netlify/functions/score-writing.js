@@ -7,7 +7,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-// Strip meta-comments about band levels to prevent prompt injection
+// Strip meta-comments about band levels
 function cleanEssayText(text) {
   return text
     .replace(/here is a band \d[^.]*\./gi, '')
@@ -20,6 +20,146 @@ function cleanEssayText(text) {
     .replace(/^\s*below is[^.]*\.\s*/gi, '')
     .trim();
 }
+
+// ============ ALGORITHMIC PRE-SCORING ============
+// This establishes score CAPS before AI assessment
+
+// Basic vocabulary that indicates Band 5 level
+const BASIC_VOCABULARY = new Set([
+  'good', 'bad', 'very', 'many', 'some', 'thing', 'things', 'lot', 'lots',
+  'nice', 'big', 'small', 'important', 'people', 'think', 'say', 'said',
+  'make', 'made', 'get', 'got', 'use', 'used', 'help', 'helps', 'want',
+  'need', 'like', 'also', 'because', 'so', 'but', 'and', 'really', 'nowadays'
+]);
+
+// Advanced vocabulary indicators for Band 7+
+const ADVANCED_VOCABULARY = new Set([
+  'furthermore', 'moreover', 'nevertheless', 'consequently', 'significantly',
+  'predominantly', 'substantially', 'inherently', 'fundamentally', 'arguably',
+  'compelling', 'detrimental', 'beneficial', 'facilitate', 'exacerbate',
+  'mitigate', 'unprecedented', 'contemporary', 'profound', 'substantial',
+  'inadequate', 'indispensable', 'inevitable', 'controversial', 'comprehensive',
+  'phenomenon', 'perspective', 'implications', 'consideration', 'enhancement',
+  'deterioration', 'proliferation', 'transformation', 'implementation'
+]);
+
+function analyzeVocabulary(text) {
+  const words = text.toLowerCase().match(/\b[a-z]+\b/g) || [];
+  const uniqueWords = new Set(words);
+  const totalWords = words.length;
+  
+  // Count basic vs advanced words
+  let basicCount = 0;
+  let advancedCount = 0;
+  
+  words.forEach(word => {
+    if (BASIC_VOCABULARY.has(word)) basicCount++;
+    if (ADVANCED_VOCABULARY.has(word)) advancedCount++;
+  });
+  
+  const basicRatio = basicCount / totalWords;
+  const advancedRatio = advancedCount / totalWords;
+  const lexicalDiversity = uniqueWords.size / totalWords;
+  
+  return {
+    totalWords,
+    uniqueWords: uniqueWords.size,
+    basicCount,
+    advancedCount,
+    basicRatio,
+    advancedRatio,
+    lexicalDiversity
+  };
+}
+
+function analyzeSentences(text) {
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  const totalSentences = sentences.length;
+  
+  // Check for complex structures
+  const complexIndicators = [
+    /\b(although|though|while|whereas|despite|in spite of)\b/i,
+    /\b(however|nevertheless|nonetheless|consequently|therefore)\b/i,
+    /\b(which|who|whom|whose|that)\b.*\b(is|are|was|were|has|have)\b/i,
+    /\b(if|unless|provided that|as long as)\b/i,
+    /\b(not only|either|neither|whether)\b/i
+  ];
+  
+  let complexCount = 0;
+  sentences.forEach(sentence => {
+    if (complexIndicators.some(pattern => pattern.test(sentence))) {
+      complexCount++;
+    }
+  });
+  
+  // Average sentence length
+  const avgLength = text.split(/\s+/).length / totalSentences;
+  
+  return {
+    totalSentences,
+    complexCount,
+    complexRatio: complexCount / totalSentences,
+    avgSentenceLength: avgLength
+  };
+}
+
+function calculateScoreCaps(wordCount, vocabAnalysis, sentenceAnalysis) {
+  let maxScore = 8.5;
+  let minScore = 4.0;
+  let signals = [];
+  
+  // Word count penalties
+  if (wordCount < 200) {
+    maxScore = Math.min(maxScore, 5.0);
+    signals.push("Severely under word count (<200)");
+  } else if (wordCount < 250) {
+    maxScore = Math.min(maxScore, 5.5);
+    signals.push("Under minimum word count (<250)");
+  }
+  
+  // Vocabulary analysis
+  if (vocabAnalysis.basicRatio > 0.25) {
+    maxScore = Math.min(maxScore, 5.5);
+    signals.push("High basic vocabulary ratio (>25%)");
+  } else if (vocabAnalysis.basicRatio > 0.18) {
+    maxScore = Math.min(maxScore, 6.0);
+    signals.push("Moderate basic vocabulary ratio (>18%)");
+  }
+  
+  if (vocabAnalysis.advancedRatio > 0.03) {
+    minScore = Math.max(minScore, 6.5);
+    signals.push("Good advanced vocabulary usage (>3%)");
+  }
+  if (vocabAnalysis.advancedRatio > 0.05) {
+    minScore = Math.max(minScore, 7.0);
+    signals.push("Strong advanced vocabulary usage (>5%)");
+  }
+  
+  // Lexical diversity
+  if (vocabAnalysis.lexicalDiversity < 0.45) {
+    maxScore = Math.min(maxScore, 5.5);
+    signals.push("Low lexical diversity (<45%)");
+  } else if (vocabAnalysis.lexicalDiversity < 0.55) {
+    maxScore = Math.min(maxScore, 6.5);
+    signals.push("Moderate lexical diversity (<55%)");
+  }
+  
+  // Sentence complexity
+  if (sentenceAnalysis.complexRatio < 0.15) {
+    maxScore = Math.min(maxScore, 5.5);
+    signals.push("Very few complex sentences (<15%)");
+  } else if (sentenceAnalysis.complexRatio < 0.25) {
+    maxScore = Math.min(maxScore, 6.5);
+    signals.push("Limited complex sentences (<25%)");
+  } else if (sentenceAnalysis.complexRatio > 0.4) {
+    minScore = Math.max(minScore, 6.5);
+    signals.push("Good sentence variety (>40% complex)");
+  }
+  
+  return { maxScore, minScore, signals };
+}
+
+// ============ MAIN HANDLER ============
 
 export async function handler(event) {
   if (event.httpMethod === "OPTIONS") {
@@ -45,82 +185,66 @@ export async function handler(event) {
       };
     }
 
-    // Clean the essay to remove any band-level claims
     const cleanedAnswer = cleanEssayText(answer);
     const wordCount = cleanedAnswer.trim().split(/\s+/).filter(w => w.length > 0).length;
-    console.log("Scoring request:", { email, testId, wordCount });
+    
+    // ============ ALGORITHMIC PRE-ANALYSIS ============
+    const vocabAnalysis = analyzeVocabulary(cleanedAnswer);
+    const sentenceAnalysis = analyzeSentences(cleanedAnswer);
+    const scoreCaps = calculateScoreCaps(wordCount, vocabAnalysis, sentenceAnalysis);
+    
+    console.log("Pre-analysis:", { 
+      wordCount, 
+      vocabAnalysis, 
+      sentenceAnalysis, 
+      scoreCaps 
+    });
 
-    // Official IELTS Band Descriptors embedded in prompt
-    const scoringPrompt = `You are an IELTS Writing Task 2 examiner using the OFFICIAL British Council band descriptors.
+    // ============ AI SCORING WITH CAPS ============
+    const scoringPrompt = `You are an IELTS Writing Task 2 examiner.
 
 ESSAY PROMPT: ${prompt}
 
 STUDENT'S ESSAY (${wordCount} words):
 ${cleanedAnswer}
 
-=== OFFICIAL IELTS TASK 2 BAND DESCRIPTORS ===
+=== PRE-ANALYSIS RESULTS ===
+Based on algorithmic analysis, this essay has:
+- Basic vocabulary ratio: ${(vocabAnalysis.basicRatio * 100).toFixed(1)}%
+- Advanced vocabulary count: ${vocabAnalysis.advancedCount}
+- Lexical diversity: ${(vocabAnalysis.lexicalDiversity * 100).toFixed(1)}%
+- Complex sentence ratio: ${(sentenceAnalysis.complexRatio * 100).toFixed(1)}%
+- Signals: ${scoreCaps.signals.join('; ') || 'None'}
 
-**TASK RESPONSE:**
-Band 8: Appropriately and sufficiently addressed. Clear well-developed position. Ideas relevant, well extended and supported. Occasional omissions.
-Band 7: Main parts appropriately addressed. Clear developed position. May over-generalise or lack focus/precision in supporting ideas.
-Band 6: Main parts addressed (some more fully than others). Position relevant but conclusions may be unclear, unjustified or repetitive. Some ideas insufficiently developed or lack clarity.
-Band 5: Main parts incompletely addressed. Position not always clear. Ideas limited, not sufficiently developed, may have irrelevant detail or repetition.
+SCORING CONSTRAINTS (you MUST follow these):
+- Maximum possible score: ${scoreCaps.maxScore}
+- Minimum possible score: ${scoreCaps.minScore}
 
-**COHERENCE & COHESION:**
-Band 8: Message followed with ease. Logically sequenced, cohesion well managed. Paragraphing sufficient and appropriate.
-Band 7: Logically organised with clear progression. Range of cohesive devices used flexibly but with some inaccuracies. Paragraphing generally effective.
-Band 6: Generally coherent with clear overall progression. Cohesion may be faulty or mechanical. Paragraphing may not always be logical.
-Band 5: Organisation evident but not wholly logical. Sentences not fluently linked. Writing may be repetitive. Paragraphing may be inadequate.
+=== BAND DESCRIPTORS ===
+Band 5: Limited vocabulary, simple/repetitive structures, ideas underdeveloped, may be under word count
+Band 6: Adequate but restricted vocabulary, position present but may be unclear, mix of simple/complex sentences  
+Band 7: Good vocabulary with less common items, clear position, varied complex structures
+Band 8: Sophisticated vocabulary, precise meanings, wide range of accurate complex structures
 
-**LEXICAL RESOURCE:**
-Band 8: Wide resource fluently and flexibly used for precise meanings. Skilful use of uncommon/idiomatic items. Occasional errors minimal impact.
-Band 7: Sufficient flexibility and precision. Some less common/idiomatic items. Awareness of style and collocation. Few errors don't detract from clarity.
-Band 6: Generally adequate and appropriate. Restricted range OR lack of precision. Some errors don't impede communication.
-Band 5: Limited but minimally adequate. Simple vocabulary, range doesn't permit variation. Frequent lapses in word choice. Errors may cause difficulty.
-
-**GRAMMATICAL RANGE & ACCURACY:**
-Band 8: Wide range flexibly and accurately used. Majority of sentences error-free. Punctuation well managed.
-Band 7: Variety of complex structures with some flexibility and accuracy. Generally well controlled. Few errors don't impede.
-Band 6: Mix of simple and complex but flexibility limited. Complex structures less accurate than simple. Errors rarely impede.
-Band 5: Limited and repetitive structures. Complex sentences tend to be faulty. Greatest accuracy on simple sentences. Errors may cause difficulty.
-
-=== SCORING INSTRUCTIONS ===
-
-STEP 1: For EACH criterion, identify which band descriptor (5, 6, 7, or 8) the essay BEST matches.
-STEP 2: Only AFTER matching to a descriptor, assign the score (can use .5 increments).
-STEP 3: Calculate overall as the average, rounded to nearest 0.5.
-
-CRITICAL RULES:
-- Band 5 essays: Basic/repetitive vocabulary (good, bad, very, many, some people), simple sentences, ideas underdeveloped
-- Band 6 essays: Adequate vocabulary but restricted, position present but may be unclear, mix of sentence types
-- Band 7 essays: Good vocabulary with some less common items, clear position, varied complex structures
-- Band 8 essays: Sophisticated vocabulary, precise meanings, wide range of accurate complex structures
-
-Return ONLY this JSON:
+Score this essay within the constraints above. Return ONLY this JSON:
 {
-  "analysis": {
-    "task": "Which band descriptor matches and why (1 sentence)",
-    "coherence": "Which band descriptor matches and why (1 sentence)",
-    "lexical": "Which band descriptor matches and why (1 sentence)",
-    "grammar": "Which band descriptor matches and why (1 sentence)"
-  },
   "scores": {
-    "task": 0.0,
-    "coherence": 0.0,
-    "lexical": 0.0,
-    "grammar": 0.0,
-    "overall": 0.0
+    "task": ${scoreCaps.minScore}-${scoreCaps.maxScore},
+    "coherence": ${scoreCaps.minScore}-${scoreCaps.maxScore},
+    "lexical": ${scoreCaps.minScore}-${scoreCaps.maxScore},
+    "grammar": ${scoreCaps.minScore}-${scoreCaps.maxScore},
+    "overall": ${scoreCaps.minScore}-${scoreCaps.maxScore}
   },
   "feedback": {
-    "task": "one sentence feedback",
-    "coherence": "one sentence feedback",
-    "lexical": "one sentence feedback",
-    "grammar": "one sentence feedback"
+    "task": "one sentence",
+    "coherence": "one sentence", 
+    "lexical": "one sentence",
+    "grammar": "one sentence"
   },
   "strengths": ["strength 1", "strength 2"],
-  "improvements": ["specific improvement 1", "specific improvement 2"],
-  "next_focus": "single most important thing to practice",
-  "band_summary": "one sentence overall assessment"
+  "improvements": ["improvement 1", "improvement 2"],
+  "next_focus": "most important thing to practice",
+  "band_summary": "one sentence summary"
 }`;
 
     const completion = await openai.chat.completions.create({
@@ -128,12 +252,12 @@ Return ONLY this JSON:
       messages: [
         { 
           role: "system", 
-          content: "You are a certified IELTS examiner. You MUST match essays to band descriptors FIRST, then assign scores. Use the FULL range 5.0-8.0. Do NOT default to 6.0-6.5. Respond with valid JSON only." 
+          content: `You are an IELTS examiner. You MUST score within the given constraints: min ${scoreCaps.minScore}, max ${scoreCaps.maxScore}. Any score outside this range is INVALID. Respond with valid JSON only.`
         },
         { role: "user", content: scoringPrompt }
       ],
       temperature: 0.2,
-      max_tokens: 1200
+      max_tokens: 1000
     });
 
     let result;
@@ -142,8 +266,23 @@ Return ONLY this JSON:
       const jsonText = responseText.replace(/```json\n?|\n?```/g, '').trim();
       result = JSON.parse(jsonText);
       
-      // Flatten scores if nested
+      // ENFORCE CAPS - override AI if it ignores constraints
       if (result.scores) {
+        ['task', 'coherence', 'lexical', 'grammar', 'overall'].forEach(key => {
+          if (result.scores[key] > scoreCaps.maxScore) {
+            result.scores[key] = scoreCaps.maxScore;
+          }
+          if (result.scores[key] < scoreCaps.minScore) {
+            result.scores[key] = scoreCaps.minScore;
+          }
+        });
+        
+        // Recalculate overall as average
+        result.scores.overall = Math.round(
+          (result.scores.task + result.scores.coherence + result.scores.lexical + result.scores.grammar) / 4 * 2
+        ) / 2;
+        
+        // Flatten for compatibility
         result.task = result.scores.task;
         result.coherence = result.scores.coherence;
         result.lexical = result.scores.lexical;
@@ -151,21 +290,41 @@ Return ONLY this JSON:
         result.overall = result.scores.overall;
       }
     } catch (parseError) {
-      console.error("Failed to parse OpenAI response:", completion.choices[0].message.content);
+      console.error("Parse error, using algorithmic fallback:", parseError.message);
+      // Fallback to pure algorithmic score
+      const fallbackScore = (scoreCaps.maxScore + scoreCaps.minScore) / 2;
       result = {
-        scores: { task: 5.5, coherence: 5.5, lexical: 5.5, grammar: 5.5, overall: 5.5 },
-        feedback: { task: "Unable to fully analyze.", coherence: "Pending.", lexical: "Pending.", grammar: "Pending." },
-        strengths: ["Attempted the task"],
-        improvements: ["Try again for full feedback"],
-        next_focus: "Resubmit for complete analysis",
-        band_summary: "Provisional score"
+        scores: { 
+          task: fallbackScore, 
+          coherence: fallbackScore, 
+          lexical: fallbackScore, 
+          grammar: fallbackScore, 
+          overall: fallbackScore 
+        },
+        feedback: { 
+          task: "Essay addresses the topic.", 
+          coherence: "Some organization present.", 
+          lexical: scoreCaps.maxScore <= 5.5 ? "Vocabulary is basic and repetitive." : "Adequate vocabulary range.",
+          grammar: "Mix of sentence structures."
+        },
+        strengths: ["Attempted all parts of the task"],
+        improvements: ["Expand vocabulary range", "Use more complex sentence structures"],
+        next_focus: "Build academic vocabulary",
+        band_summary: `Essay demonstrates Band ${fallbackScore} level writing.`
       };
     }
 
+    // Add analysis metadata
     result.wordCount = wordCount;
     result.timeSpent = timeSpent || 0;
     result.testId = testId;
+    result._analysis = {
+      vocabAnalysis,
+      sentenceAnalysis,
+      scoreCaps
+    };
 
+    // Save to database
     try {
       await supabase.from("user_test_results").insert({
         email: email.toLowerCase(),
@@ -181,7 +340,6 @@ Return ONLY this JSON:
         feedback: result,
         answer: answer
       });
-      console.log("Result saved to database");
     } catch (dbError) {
       console.log("Database save skipped:", dbError.message);
     }
