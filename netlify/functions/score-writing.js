@@ -1,10 +1,9 @@
 // =============================================================================
-// EVOLVE IELTS WRITING SCORING ENGINE v4.2
+// EVOLVE IELTS WRITING SCORING ENGINE v5.1
 // =============================================================================
-// FIXED: Lexical scoring completely rewritten
-// - Removed function words from basic vocab detection
-// - Uses word stems and suffixes for sophisticated vocabulary detection
-// - Much smarter vocabulary assessment
+// AI-powered feature extraction with CALIBRATION EXAMPLES
+// GPT compares the essay against real Band 5, 6.5, and 8 examples
+// Then deterministic rules convert features to scores
 // =============================================================================
 
 import OpenAI from "openai";
@@ -17,679 +16,593 @@ const supabase = createClient(
 );
 
 // =============================================================================
-// WORD LISTS - COMPLETELY REWRITTEN
+// CALIBRATION ESSAYS - REAL BAND ANCHORS
 // =============================================================================
 
-// WEAK_VOCAB: Only truly weak CONTENT words that indicate limited vocabulary
-// NO function words (and, but, if, because, etc.)
-const WEAK_VOCAB = new Set([
-  // Vague adjectives
-  'good', 'bad', 'nice', 'great', 'big', 'small', 'happy', 'sad',
-  'interesting', 'boring', 'easy', 'hard', 'important', 'special',
-  
-  // Overused intensifiers
-  'very', 'really', 'extremely', 'totally', 'completely', 'absolutely',
-  'definitely', 'certainly', 'surely',
-  
-  // Vague nouns
-  'thing', 'things', 'stuff', 'lot', 'lots', 'kind', 'kinds',
-  
-  // Overused/simple verbs when better exists
-  'get', 'got', 'getting', 'make', 'made', 'making',
-  'think', 'thinking', 'feel', 'feeling', 'want', 'wanting',
-  'like', 'liking', 'need', 'needing',
-  
-  // Filler expressions
-  'nowadays', 'maybe', 'probably', 'actually', 'basically', 'literally'
-]);
+const BAND_5_EXAMPLE = `Technology is very important in our life today. Many people use technology every day. Some people think technology is good for education and some people think it is bad.
 
-// LINKING_WORDS: Cohesive devices (neutral - neither weak nor strong)
-const LINKING_WORDS = new Set([
-  'however', 'therefore', 'although', 'despite', 'whereas', 'while',
-  'furthermore', 'moreover', 'nevertheless', 'consequently', 'hence',
-  'thus', 'meanwhile', 'otherwise', 'instead', 'besides', 'nonetheless',
-  'additionally', 'similarly', 'conversely', 'subsequently', 'accordingly',
-  'notwithstanding', 'alternatively', 'correspondingly'
-]);
+First, technology help students to learn. They can use internet to find information. Also they can watch videos to understand things better. This is good because books are sometimes boring.
 
-// Academic word STEMS - if a word contains these, it's likely sophisticated
-const ACADEMIC_STEMS = [
-  'analy', 'assess', 'signific', 'substant', 'comprehen', 'fundament',
-  'phenomen', 'implement', 'perspect', 'transform', 'establish', 'demonstr',
-  'contribut', 'facilitat', 'exacerbat', 'mitigat', 'alleviat', 'perpetuat',
-  'innovat', 'collabor', 'incorporat', 'integrat', 'differenti', 'distinguish',
-  'evalu', 'investig', 'determin', 'identif', 'recogn', 'perceiv',
-  'interpret', 'conclud', 'implic', 'indicat', 'suggest', 'demonstrat',
-  'illustrat', 'emphasiz', 'emphasise', 'highlight', 'undermin', 'examin',
-  'scrutin', 'critic', 'advocat', 'propos', 'argu', 'contend', 'assert',
-  'maintain', 'sustain', 'acknowledg', 'valid', 'legitim', 'justif',
-  'rational', 'logic', 'systemat', 'method', 'approach', 'strateg',
-  'techni', 'mechan', 'process', 'procedure', 'protocol',
-  'pedagog', 'cognit', 'psycholog', 'sociolog', 'econom', 'polit',
-  'environ', 'technolog', 'scientif', 'academ', 'theoret', 'empiric',
-  'quantit', 'qualit', 'statist', 'hypothe', 'evidenc',
-  'consequen', 'implicat', 'ramificat', 'repercuss', 'outcom',
-  'benefit', 'detriment', 'advantag', 'disadvantag',
-  'prevalent', 'pervasiv', 'widespr', 'ubiquit', 'predomin',
-  'unprecedented', 'extraordin', 'remarkab', 'notabl', 'strikin',
-  'contempor', 'tradition', 'convention', 'innovat', 'revolution',
-  'effici', 'effect', 'product', 'optim', 'maxim', 'minim',
-  'adequat', 'insuffici', 'defici', 'excess', 'surplus',
-  'divers', 'vari', 'hetero', 'homo', 'uniform',
-  'complex', 'sophistic', 'intric', 'nuanc', 'subtl',
-  'profound', 'superfic', 'thorough', 'comprehens', 'extens',
-  'restrict', 'constrain', 'limit', 'bound', 'confin',
-  'expand', 'extend', 'broaden', 'widen', 'enhanc', 'augment',
-  'diminish', 'decreas', 'reduc', 'declin', 'deteriorat',
-  'increas', 'escal', 'intensif', 'amplif', 'magnif',
-  'stabil', 'fluctuat', 'volatil', 'consist', 'persist',
-  'tempor', 'perman', 'transit', 'interim', 'prolonge'
-];
+Second, technology is bad because students play games. They spend too much time on phone. They don't study. This is a problem for many students.
 
-// Academic SUFFIXES that indicate sophisticated vocabulary
-const ACADEMIC_SUFFIXES = [
-  'tion', 'sion', 'ment', 'ness', 'ity', 'ism', 'ist',
-  'ical', 'ious', 'eous', 'ive', 'ative', 'itive',
-  'able', 'ible', 'ful', 'less', 'ous', 'al', 'ial',
-  'ence', 'ance', 'ency', 'ancy', 'ure', 'ology', 'ological'
-];
+In my opinion, technology is good and bad. We should use it carefully. Parents should control children use of technology. Teachers should also help students.
+
+In conclusion, technology has advantages and disadvantages. We need to use it in a good way.`;
+
+const BAND_6_5_EXAMPLE = `The increasing use of technology in education has sparked considerable debate. While some argue that digital tools enhance learning, others contend that they create unnecessary distractions. This essay will examine both perspectives before presenting my own view.
+
+On the one hand, technology offers numerous educational benefits. Students can access a wealth of information online, enabling them to research topics in greater depth than traditional textbooks allow. Furthermore, educational applications and videos can explain complex concepts in engaging ways, catering to different learning styles. For instance, visual learners may benefit from animated explanations of scientific processes.
+
+On the other hand, critics argue that technology introduces significant distractions. Social media and games compete for students' attention, potentially reducing their focus on academic work. Additionally, excessive screen time may have negative effects on concentration and sleep patterns, which could ultimately impact academic performance.
+
+In my opinion, the benefits of educational technology outweigh its drawbacks when properly managed. Schools should implement clear guidelines for device usage and teach students to use technology responsibly. With appropriate supervision, digital tools can significantly enhance the learning experience.
+
+In conclusion, while technology presents challenges in educational settings, its potential benefits make it a valuable resource when used appropriately.`;
+
+const BAND_8_EXAMPLE = `The integration of technology into educational environments has fundamentally transformed how knowledge is acquired and disseminated. While proponents emphasize its capacity to democratize learning, critics raise legitimate concerns about its potential to undermine sustained concentration. This essay will analyze both perspectives before arguing that technology's benefits can be maximized through thoughtful implementation.
+
+Those who advocate for educational technology point to its unprecedented ability to personalize learning experiences. Adaptive software can identify individual students' strengths and weaknesses, tailoring content accordingly—a level of customization impossible in traditional classroom settings. Moreover, technology dissolves geographical barriers, enabling students in remote areas to access world-class educational resources. The Khan Academy, for instance, has provided free, high-quality instruction to millions who would otherwise lack such opportunities.
+
+Conversely, skeptics highlight technology's propensity to fragment attention. Research by cognitive scientists suggests that the constant notifications and hyperlinked nature of digital content may impair the deep reading skills essential for academic success. Furthermore, the algorithmic curation of content risks creating intellectual echo chambers, potentially limiting exposure to diverse perspectives crucial for critical thinking development.
+
+Nevertheless, I contend that these drawbacks reflect implementation failures rather than inherent flaws in educational technology. Schools that establish clear protocols for device usage and incorporate digital literacy into their curricula have demonstrated that technology can enhance rather than diminish educational outcomes. Singapore's systematic integration of technology into its education system, consistently ranked among the world's best, exemplifies this approach.
+
+In conclusion, while legitimate concerns about educational technology exist, they can be addressed through deliberate policy choices. The question is not whether to incorporate technology, but how to do so in ways that amplify its benefits while mitigating its risks.`;
 
 // =============================================================================
-// TEXT CLEANING
+// AI FEATURE EXTRACTION WITH CALIBRATION
 // =============================================================================
 
-function cleanEssayText(text) {
-  return text
-    .replace(/here is a band \d[^.]*\./gi, '')
-    .replace(/this is a band \d[^.]*\./gi, '')
-    .replace(/band \d[\-–]\d level[^.]*\./gi, '')
-    .replace(/band \d\+? (level )?(response|essay|answer)[^.]*\./gi, '')
-    .replace(/^\s*here is my essay[:\s]*/gi, '')
-    .replace(/^\s*my essay[:\s]*/gi, '')
-    .replace(/^\s*essay[:\s]*/gi, '')
-    .trim();
+async function extractFeaturesWithAI(prompt, essay) {
+  const wordCount = essay.trim().split(/\s+/).length;
+  const paragraphs = essay.split(/\n\n+/).filter(p => p.trim().length > 0);
+  const sentences = essay.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  
+  const extractionPrompt = `You are a strict IELTS examiner. You will assess an essay by comparing it to three calibrated examples.
+
+=== CALIBRATION EXAMPLES ===
+
+BAND 5.0 ESSAY (Basic):
+"""
+${BAND_5_EXAMPLE}
+"""
+This essay has: unclear position ("good and bad"), basic vocabulary ("very important", "good", "bad"), simple sentences, generic examples, underdeveloped ideas.
+
+---
+
+BAND 6.5 ESSAY (Competent):
+"""
+${BAND_6_5_EXAMPLE}
+"""
+This essay has: clear position stated at end, adequate vocabulary with some range, mix of simple and complex sentences, some development but examples could be more specific.
+
+---
+
+BAND 8.0 ESSAY (Very Good):
+"""
+${BAND_8_EXAMPLE}
+"""
+This essay has: sophisticated thesis, wide vocabulary ("democratize", "disseminated", "propensity"), complex structures used naturally, specific examples (Khan Academy, Singapore), fully developed arguments with nuance.
+
+=== TASK ===
+
+Now assess this student essay:
+
+TASK PROMPT: "${prompt}"
+
+STUDENT ESSAY (${wordCount} words):
+"""
+${essay}
+"""
+
+Compare this essay to the calibration examples above. Which band level is it closest to?
+
+Return ONLY a JSON object with these assessments:
+
+{
+  "overall_impression": "band_5" | "band_5.5" | "band_6" | "band_6.5" | "band_7" | "band_7.5" | "band_8",
+  "task_response": {
+    "position_clarity": "clear" | "partial" | "unclear",
+    "ideas_developed": "fully" | "adequately" | "partially" | "minimally",
+    "examples_quality": "specific" | "some_specific" | "generic" | "none",
+    "addresses_prompt": true | false
+  },
+  "coherence": {
+    "paragraph_structure": "effective" | "adequate" | "basic" | "poor",
+    "cohesive_devices": "skillful" | "adequate" | "mechanical" | "lacking",
+    "logical_flow": true | false
+  },
+  "lexical": {
+    "vocabulary_level": "sophisticated" | "good" | "adequate" | "basic" | "very_basic",
+    "precision": "precise" | "adequate" | "imprecise",
+    "repetition": "minimal" | "some" | "noticeable" | "excessive"
+  },
+  "grammar": {
+    "sentence_variety": "wide" | "good" | "limited" | "very_limited",
+    "accuracy": "high" | "good" | "adequate" | "poor",
+    "complex_structures": true | false
+  },
+  "closest_to": "band_5_example" | "band_6.5_example" | "band_8_example" | "between_5_and_6.5" | "between_6.5_and_8"
 }
 
-// =============================================================================
-// VOCABULARY ANALYSIS - COMPLETELY REWRITTEN
-// =============================================================================
+BE STRICT. Most student essays are Band 5-6.5. Band 7+ requires genuinely sophisticated language and fully developed ideas with specific examples.`;
 
-function analyzeVocabulary(text) {
-  const words = text.toLowerCase().match(/\b[a-z]+\b/g) || [];
-  const wordCount = words.length;
-  
-  // Filter to content words only (4+ letters, not common function words)
-  const functionWords = new Set([
-    'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
-    'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
-    'should', 'may', 'might', 'must', 'shall', 'can', 'need', 'dare',
-    'to', 'of', 'in', 'for', 'on', 'with', 'at', 'by', 'from', 'as',
-    'into', 'through', 'during', 'before', 'after', 'above', 'below',
-    'between', 'under', 'again', 'further', 'then', 'once', 'here', 'there',
-    'when', 'where', 'why', 'how', 'all', 'each', 'every', 'both', 'few',
-    'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only',
-    'own', 'same', 'so', 'than', 'too', 'very', 'just', 'also',
-    'and', 'but', 'or', 'if', 'because', 'although', 'while', 'that',
-    'this', 'these', 'those', 'it', 'its', 'they', 'their', 'them',
-    'he', 'she', 'his', 'her', 'him', 'we', 'us', 'our', 'you', 'your',
-    'who', 'whom', 'which', 'what', 'whose', 'whoever', 'whatever'
-  ]);
-  
-  const contentWords = words.filter(w => w.length >= 4 && !functionWords.has(w));
-  const uniqueContentWords = new Set(contentWords);
-  
-  // Count weak vocabulary
-  let weakCount = 0;
-  contentWords.forEach(word => {
-    if (WEAK_VOCAB.has(word)) weakCount++;
-  });
-  
-  // Count sophisticated vocabulary using stems and suffixes
-  let sophisticatedCount = 0;
-  const sophisticatedWordsFound = [];
-  
-  contentWords.forEach(word => {
-    if (word.length < 6) return; // Short words rarely academic
-    
-    // Check if word contains academic stem
-    const hasStem = ACADEMIC_STEMS.some(stem => word.includes(stem));
-    
-    // Check if word has academic suffix
-    const hasSuffix = ACADEMIC_SUFFIXES.some(suffix => word.endsWith(suffix));
-    
-    // Word is sophisticated if it has a stem OR (has suffix AND is long enough)
-    if (hasStem || (hasSuffix && word.length >= 7)) {
-      sophisticatedCount++;
-      if (!sophisticatedWordsFound.includes(word) && sophisticatedWordsFound.length < 20) {
-        sophisticatedWordsFound.push(word);
-      }
-    }
-  });
-  
-  // Calculate ratios based on CONTENT words, not all words
-  const weakRatio = contentWords.length > 0 ? weakCount / contentWords.length : 0;
-  const sophisticatedRatio = contentWords.length > 0 ? sophisticatedCount / contentWords.length : 0;
-  
-  // Calculate repetition on content words
-  const repetitionRate = contentWords.length > 0 
-    ? 1 - (uniqueContentWords.size / contentWords.length) 
-    : 0;
-  
-  // Average word length (longer = more academic)
-  const avgWordLength = contentWords.length > 0 
-    ? contentWords.reduce((sum, w) => sum + w.length, 0) / contentWords.length 
-    : 0;
-  
-  console.log('=== VOCABULARY ANALYSIS ===');
-  console.log('Content words:', contentWords.length);
-  console.log('Weak count:', weakCount, 'ratio:', weakRatio.toFixed(3));
-  console.log('Sophisticated count:', sophisticatedCount, 'ratio:', sophisticatedRatio.toFixed(3));
-  console.log('Sophisticated words found:', sophisticatedWordsFound.slice(0, 10));
-  console.log('Avg word length:', avgWordLength.toFixed(2));
-  console.log('Repetition rate:', repetitionRate.toFixed(3));
-  
-  return {
-    wordCount,
-    contentWordCount: contentWords.length,
-    weakCount,
-    weakRatio,
-    sophisticatedCount,
-    sophisticatedRatio,
-    sophisticatedWordsFound,
-    repetitionRate,
-    avgWordLength,
-    uniqueContentWords: uniqueContentWords.size
-  };
-}
-
-// =============================================================================
-// FEATURE EXTRACTION
-// =============================================================================
-
-function extractFeatures(text) {
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-  const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 0);
-  
-  const vocab = analyzeVocabulary(text);
-  
-  const sentenceCount = sentences.length;
-  const paragraphCount = paragraphs.length;
-  
-  // Complex sentence detection
-  const complexPatterns = [
-    /\b(although|though|while|whereas|despite|in spite of|notwithstanding)\b/i,
-    /\b(which|who|whom|whose)\s+\w+/i,
-    /\b(if|unless|provided that|assuming that|given that)\b/i,
-    /\b(not only|rather than|whether|whereby)\b/i,
-    /\b(having|being)\s+\w+ed\b/i,
-    /\b(consequently|therefore|thus|hence|accordingly|furthermore|moreover)\b/i,
-    /\b(in order to|so as to|such that)\b/i
-  ];
-  
-  let complexSentenceCount = 0;
-  sentences.forEach(sentence => {
-    if (complexPatterns.some(pattern => pattern.test(sentence))) {
-      complexSentenceCount++;
-    }
-  });
-  const complexSentenceRatio = sentenceCount > 0 ? complexSentenceCount / sentenceCount : 0;
-  
-  // Position detection - expanded
-  const positionIndicators = /\b(i believe|in my opinion|i think|i agree|i disagree|from my perspective|in my view|i strongly believe|i am convinced|it is my belief|i would argue|it can be argued|this essay will|i contend|it seems|one could argue|it is evident|it appears)\b/i;
-  const hasPosition = positionIndicators.test(text);
-  
-  // Implicit thesis detection
-  const thesisIndicators = /\b(suggests that|indicates that|demonstrates that|reveals that|is best understood as|should be viewed as|can be seen as|represents a|serves as)\b/i;
-  const hasImplicitPosition = thesisIndicators.test(text);
-  
-  // Linking words count
-  const words = text.toLowerCase().match(/\b[a-z]+\b/g) || [];
-  let linkingCount = 0;
-  words.forEach(word => {
-    if (LINKING_WORDS.has(word)) linkingCount++;
-  });
-  
-  // Error estimation
-  const errorPatterns = [
-    /\s(a)\s+[aeiou]/gi,
-    /\bhe\s+have\b/gi, /\bshe\s+have\b/gi, /\bit\s+have\b/gi,
-    /\bthey\s+has\b/gi, /\bi\s+has\b/gi,
-    /\bmore\s+\w+er\b/gi, /\bmost\s+\w+est\b/gi,
-  ];
-  
-  let errorCount = 0;
-  sentences.forEach(sentence => {
-    errorPatterns.forEach(pattern => {
-      const matches = sentence.match(pattern);
-      if (matches) errorCount += matches.length;
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0,
+      max_tokens: 600,
+      messages: [
+        { role: "system", content: "You are a strict IELTS examiner. Compare essays against the calibration examples provided. Be honest - most essays are Band 5-6.5. Output only valid JSON." },
+        { role: "user", content: extractionPrompt }
+      ]
     });
-  });
-  
-  const errorFreeSentenceRatio = sentenceCount > 0 
-    ? Math.max(0.3, Math.min(0.95, 1 - (errorCount * 1.5 / sentenceCount))) 
-    : 0.5;
-  
-  // Ideas extended
-  const extensionIndicators = /\b(because|therefore|as a result|for example|for instance|this means|consequently|thus|hence|such as|specifically|in particular|namely|to illustrate|this suggests|this indicates|this demonstrates)\b/gi;
-  const extensionMatches = text.match(extensionIndicators) || [];
-  const ideasExtended = extensionMatches.length >= 3;
-  
-  const mainIdeasCount = Math.max(0, paragraphCount - 2);
+    
+    const content = response.choices[0]?.message?.content || '{}';
+    const cleaned = content.replace(/```json\n?|\n?```/g, '').trim();
+    const features = JSON.parse(cleaned);
+    
+    features.meta = {
+      word_count: wordCount,
+      paragraph_count: paragraphs.length,
+      sentence_count: sentences.length
+    };
+    
+    console.log('=== AI FEATURES (Calibrated) ===');
+    console.log('Overall impression:', features.overall_impression);
+    console.log('Closest to:', features.closest_to);
+    console.log('Position:', features.task_response?.position_clarity);
+    console.log('Vocabulary:', features.lexical?.vocabulary_level);
+    
+    return features;
+    
+  } catch (error) {
+    console.error('AI extraction failed:', error.message);
+    return getFallbackFeatures(essay);
+  }
+}
+
+function getFallbackFeatures(essay) {
+  const wordCount = essay.trim().split(/\s+/).length;
+  const paragraphs = essay.split(/\n\n+/).filter(p => p.trim().length > 0);
   
   return {
-    wordCount: vocab.wordCount,
-    sentenceCount,
-    paragraphCount,
-    
-    positionPresent: hasPosition || hasImplicitPosition,
-    positionClear: (hasPosition || hasImplicitPosition) && paragraphCount >= 3,
-    ideasExtended,
-    mainIdeasCount,
-    
-    linkingCount,
-    
-    // Vocabulary metrics
-    weakVocabRatio: vocab.weakRatio,
-    sophisticatedCount: vocab.sophisticatedCount,
-    sophisticatedRatio: vocab.sophisticatedRatio,
-    sophisticatedWords: vocab.sophisticatedWordsFound,
-    repetitionRate: vocab.repetitionRate,
-    avgWordLength: vocab.avgWordLength,
-    
-    // Grammar metrics
-    complexSentenceRatio,
-    errorFreeSentenceRatio,
-    estimatedErrors: errorCount
+    overall_impression: "band_5.5",
+    task_response: {
+      position_clarity: "partial",
+      ideas_developed: "partially",
+      examples_quality: "generic",
+      addresses_prompt: true
+    },
+    coherence: {
+      paragraph_structure: "basic",
+      cohesive_devices: "adequate",
+      logical_flow: true
+    },
+    lexical: {
+      vocabulary_level: "basic",
+      precision: "adequate",
+      repetition: "some"
+    },
+    grammar: {
+      sentence_variety: "limited",
+      accuracy: "adequate",
+      complex_structures: false
+    },
+    closest_to: "band_5_example",
+    meta: {
+      word_count: wordCount,
+      paragraph_count: paragraphs.length,
+      sentence_count: 0
+    }
   };
 }
 
 // =============================================================================
-// LAYER 0: BAND 6 ELIGIBILITY GATE
+// DETERMINISTIC SCORING FROM FEATURES
 // =============================================================================
 
-function checkBand6Eligibility(features) {
-  const failures = [];
-  
-  if (!features.positionPresent && features.paragraphCount < 3) {
-    failures.push('No clear position and poor structure');
-  }
-  if (features.paragraphCount < 2) {
-    failures.push('Fewer than 2 paragraphs');
-  }
-  if (features.repetitionRate > 0.35) {
-    failures.push('Vocabulary extremely repetitive');
-  }
-  if (features.weakVocabRatio > 0.40) {
-    failures.push('Vocabulary extremely limited');
-  }
-  if (features.errorFreeSentenceRatio < 0.20) {
-    failures.push('Persistent sentence-level errors');
-  }
-  if (features.wordCount < 150) {
-    failures.push('Severely under word count');
-  }
-  
-  return { eligible: failures.length === 0, failures };
-}
-
-// =============================================================================
-// LAYER 1: HARD CAPS
-// =============================================================================
-
-function applyHardCaps(features) {
-  const caps = { task: 9.0, coherence: 9.0, lexical: 9.0, grammar: 9.0 };
+function scoreFromFeatures(features) {
+  const scores = { task: 6.0, coherence: 6.0, lexical: 6.0, grammar: 6.0 };
   const capReasons = { task: [], coherence: [], lexical: [], grammar: [] };
   
-  // TASK CAPS
-  if (!features.positionClear) {
-    caps.task = Math.min(caps.task, 6.5);
-    capReasons.task.push('Position could be clearer');
+  const tr = features.task_response || {};
+  const cc = features.coherence || {};
+  const lr = features.lexical || {};
+  const gra = features.grammar || {};
+  const meta = features.meta || {};
+  
+  // Use overall_impression as an anchor
+  const impression = features.overall_impression || "band_5.5";
+  const baseFromImpression = parseFloat(impression.replace("band_", "")) || 5.5;
+  
+  // ===================
+  // TASK RESPONSE SCORE
+  // ===================
+  
+  let taskScore = baseFromImpression;
+  
+  // Adjust based on specific features
+  if (tr.position_clarity === "clear") {
+    taskScore = Math.max(taskScore, 6.0);
+  } else if (tr.position_clarity === "unclear") {
+    taskScore = Math.min(taskScore, 5.5);
+    capReasons.task.push('Position unclear');
   }
-  if (!features.ideasExtended && features.wordCount < 280) {
-    caps.task = Math.min(caps.task, 6.5);
-    capReasons.task.push('Ideas could be more extended');
+  
+  if (tr.ideas_developed === "fully") {
+    taskScore += 0.5;
+  } else if (tr.ideas_developed === "minimally") {
+    taskScore -= 0.5;
+    capReasons.task.push('Ideas underdeveloped');
   }
-  if (features.wordCount < 200) {
-    caps.task = Math.min(caps.task, 5.5);
+  
+  if (tr.examples_quality === "specific") {
+    taskScore += 0.5;
+  } else if (tr.examples_quality === "none") {
+    taskScore -= 0.5;
+  }
+  
+  if (!tr.addresses_prompt) {
+    taskScore -= 1.0;
+    capReasons.task.push('Does not fully address the prompt');
+  }
+  
+  // Word count caps
+  if (meta.word_count < 200) {
+    taskScore = Math.min(taskScore, 5.0);
     capReasons.task.push('Significantly under word count');
-  } else if (features.wordCount < 250) {
-    caps.task = Math.min(caps.task, 6.5);
+  } else if (meta.word_count < 250) {
+    taskScore = Math.min(taskScore, 6.0);
     capReasons.task.push('Under word count');
   }
   
-  // COHERENCE CAPS
-  if (features.paragraphCount < 3) {
-    caps.coherence = Math.min(caps.coherence, 5.5);
-    capReasons.coherence.push('Insufficient paragraphs');
-  }
-  if (features.linkingCount === 0) {
-    caps.coherence = Math.min(caps.coherence, 5.5);
-    capReasons.coherence.push('No cohesive devices');
-  } else if (features.linkingCount < 2) {
-    caps.coherence = Math.min(caps.coherence, 6.5);
-    capReasons.coherence.push('Limited cohesive devices');
+  scores.task = Math.max(4.0, Math.min(9.0, Math.round(taskScore * 2) / 2));
+  
+  // ===================
+  // COHERENCE SCORE
+  // ===================
+  
+  let coherenceScore = baseFromImpression;
+  
+  if (cc.paragraph_structure === "effective") {
+    coherenceScore += 0.5;
+  } else if (cc.paragraph_structure === "poor") {
+    coherenceScore -= 1.0;
+    capReasons.coherence.push('Poor paragraph structure');
+  } else if (cc.paragraph_structure === "basic") {
+    coherenceScore -= 0.5;
   }
   
-  // LEXICAL CAPS - Now based on weak vocab, not basic vocab
-  if (features.weakVocabRatio > 0.30) {
-    caps.lexical = Math.min(caps.lexical, 5.5);
-    capReasons.lexical.push('Over-reliance on weak vocabulary');
-  } else if (features.weakVocabRatio > 0.20 && features.sophisticatedCount < 5) {
-    caps.lexical = Math.min(caps.lexical, 6.5);
-    capReasons.lexical.push('Limited sophisticated vocabulary');
+  if (cc.cohesive_devices === "skillful") {
+    coherenceScore += 0.5;
+  } else if (cc.cohesive_devices === "lacking") {
+    coherenceScore -= 1.0;
+    capReasons.coherence.push('Lacking cohesive devices');
+  } else if (cc.cohesive_devices === "mechanical") {
+    coherenceScore -= 0.5;
+    capReasons.coherence.push('Mechanical use of linking words');
   }
   
-  if (features.repetitionRate > 0.25) {
-    caps.lexical = Math.min(caps.lexical, 5.5);
-    capReasons.lexical.push('Significant word repetition');
-  } else if (features.repetitionRate > 0.18) {
-    caps.lexical = Math.min(caps.lexical, 6.5);
+  if (!cc.logical_flow) {
+    coherenceScore -= 0.5;
+  }
+  
+  if (meta.paragraph_count < 3) {
+    coherenceScore = Math.min(coherenceScore, 5.5);
+  }
+  
+  scores.coherence = Math.max(4.0, Math.min(9.0, Math.round(coherenceScore * 2) / 2));
+  
+  // ===================
+  // LEXICAL SCORE
+  // ===================
+  
+  let lexicalScore = baseFromImpression;
+  
+  if (lr.vocabulary_level === "sophisticated") {
+    lexicalScore += 1.0;
+  } else if (lr.vocabulary_level === "good") {
+    lexicalScore += 0.5;
+  } else if (lr.vocabulary_level === "basic") {
+    lexicalScore -= 0.5;
+    capReasons.lexical.push('Basic vocabulary');
+  } else if (lr.vocabulary_level === "very_basic") {
+    lexicalScore -= 1.0;
+    capReasons.lexical.push('Very limited vocabulary');
+  }
+  
+  if (lr.precision === "precise") {
+    lexicalScore += 0.5;
+  } else if (lr.precision === "imprecise") {
+    lexicalScore -= 0.5;
+  }
+  
+  if (lr.repetition === "noticeable") {
+    lexicalScore -= 0.5;
     capReasons.lexical.push('Noticeable repetition');
+  } else if (lr.repetition === "excessive") {
+    lexicalScore -= 1.0;
+    capReasons.lexical.push('Excessive repetition');
   }
   
-  // GRAMMAR CAPS
-  if (features.errorFreeSentenceRatio < 0.35) {
-    caps.grammar = Math.min(caps.grammar, 5.5);
-    capReasons.grammar.push('Frequent errors');
-  } else if (features.errorFreeSentenceRatio < 0.45) {
-    caps.grammar = Math.min(caps.grammar, 6.0);
-    capReasons.grammar.push('Multiple errors');
-  } else if (features.errorFreeSentenceRatio < 0.55) {
-    caps.grammar = Math.min(caps.grammar, 6.5);
-    capReasons.grammar.push('Some errors');
+  scores.lexical = Math.max(4.0, Math.min(9.0, Math.round(lexicalScore * 2) / 2));
+  
+  // ===================
+  // GRAMMAR SCORE
+  // ===================
+  
+  let grammarScore = baseFromImpression;
+  
+  if (gra.sentence_variety === "wide") {
+    grammarScore += 0.5;
+  } else if (gra.sentence_variety === "very_limited") {
+    grammarScore -= 1.0;
+    capReasons.grammar.push('Very limited sentence variety');
+  } else if (gra.sentence_variety === "limited") {
+    grammarScore -= 0.5;
   }
   
-  if (features.complexSentenceRatio < 0.10) {
-    caps.grammar = Math.min(caps.grammar, 6.0);
-    capReasons.grammar.push('Limited sentence variety');
+  if (gra.accuracy === "high") {
+    grammarScore += 0.5;
+  } else if (gra.accuracy === "poor") {
+    grammarScore -= 1.0;
+    capReasons.grammar.push('Poor grammatical accuracy');
   }
   
-  return { caps, capReasons };
-}
-
-// =============================================================================
-// LAYER 2: BAND CALIBRATION - REWRITTEN LEXICAL SCORING
-// =============================================================================
-
-function computeRawBands(features) {
-  const scores = { task: 6.0, coherence: 6.0, lexical: 6.0, grammar: 6.0 };
-  
-  // TASK RESPONSE
-  if (features.positionClear && features.ideasExtended && features.mainIdeasCount >= 2 && features.wordCount >= 300) {
-    scores.task = 8.0;
-  } else if (features.positionClear && features.ideasExtended && features.mainIdeasCount >= 2) {
-    scores.task = 7.5;
-  } else if (features.positionPresent && features.ideasExtended) {
-    scores.task = 7.0;
-  } else if (features.positionPresent && features.mainIdeasCount >= 1) {
-    scores.task = 6.0;
+  if (gra.complex_structures) {
+    grammarScore += 0.5;
   } else {
-    scores.task = 5.5;
+    grammarScore -= 0.5;
   }
   
-  // COHERENCE
-  if (features.paragraphCount >= 4 && features.linkingCount >= 6) {
-    scores.coherence = 8.0;
-  } else if (features.paragraphCount >= 4 && features.linkingCount >= 4) {
-    scores.coherence = 7.5;
-  } else if (features.paragraphCount >= 3 && features.linkingCount >= 3) {
-    scores.coherence = 7.0;
-  } else if (features.paragraphCount >= 3 && features.linkingCount >= 2) {
-    scores.coherence = 6.0;
-  } else {
-    scores.coherence = 5.5;
-  }
+  scores.grammar = Math.max(4.0, Math.min(9.0, Math.round(grammarScore * 2) / 2));
   
-  // LEXICAL - COMPLETELY REWRITTEN
-  // Based on: sophisticated vocabulary ratio, average word length, low weak vocab, low repetition
-  
-  const lexicalScore = calculateLexicalScore(features);
-  scores.lexical = lexicalScore;
-  
-  // GRAMMAR
-  if (features.errorFreeSentenceRatio >= 0.80 && features.complexSentenceRatio >= 0.40) {
-    scores.grammar = 8.0;
-  } else if (features.errorFreeSentenceRatio >= 0.70 && features.complexSentenceRatio >= 0.30) {
-    scores.grammar = 7.5;
-  } else if (features.errorFreeSentenceRatio >= 0.60 && features.complexSentenceRatio >= 0.20) {
-    scores.grammar = 7.0;
-  } else if (features.errorFreeSentenceRatio >= 0.50 && features.complexSentenceRatio >= 0.10) {
-    scores.grammar = 6.0;
-  } else {
-    scores.grammar = 5.5;
-  }
-  
-  return scores;
-}
-
-function calculateLexicalScore(features) {
-  // Start with base score of 6.0
-  let score = 6.0;
-  
-  // BOOST for sophisticated vocabulary (up to +2.0)
-  if (features.sophisticatedRatio >= 0.25) {
-    score += 2.0;
-  } else if (features.sophisticatedRatio >= 0.18) {
-    score += 1.5;
-  } else if (features.sophisticatedRatio >= 0.12) {
-    score += 1.0;
-  } else if (features.sophisticatedRatio >= 0.08) {
-    score += 0.5;
-  }
-  
-  // BOOST for average word length (longer words = more academic)
-  if (features.avgWordLength >= 7.0) {
-    score += 0.5;
-  } else if (features.avgWordLength >= 6.5) {
-    score += 0.25;
-  }
-  
-  // PENALTY for weak vocabulary
-  if (features.weakVocabRatio > 0.25) {
-    score -= 1.5;
-  } else if (features.weakVocabRatio > 0.18) {
-    score -= 1.0;
-  } else if (features.weakVocabRatio > 0.12) {
-    score -= 0.5;
-  }
-  
-  // PENALTY for repetition
-  if (features.repetitionRate > 0.20) {
-    score -= 1.0;
-  } else if (features.repetitionRate > 0.15) {
-    score -= 0.5;
-  }
-  
-  // Clamp to valid range
-  score = Math.max(4.0, Math.min(9.0, score));
-  
-  // Round to nearest 0.5
-  score = Math.round(score * 2) / 2;
-  
-  console.log('=== LEXICAL SCORE CALCULATION ===');
-  console.log('Sophisticated ratio:', features.sophisticatedRatio.toFixed(3), '→ boost:', features.sophisticatedRatio >= 0.25 ? 2.0 : features.sophisticatedRatio >= 0.18 ? 1.5 : features.sophisticatedRatio >= 0.12 ? 1.0 : features.sophisticatedRatio >= 0.08 ? 0.5 : 0);
-  console.log('Weak vocab ratio:', features.weakVocabRatio.toFixed(3), '→ penalty:', features.weakVocabRatio > 0.25 ? -1.5 : features.weakVocabRatio > 0.18 ? -1.0 : features.weakVocabRatio > 0.12 ? -0.5 : 0);
-  console.log('Final lexical score:', score);
-  
-  return score;
-}
-
-function applyBandCaps(rawScores, caps) {
-  return {
-    task: Math.min(rawScores.task, caps.task),
-    coherence: Math.min(rawScores.coherence, caps.coherence),
-    lexical: Math.min(rawScores.lexical, caps.lexical),
-    grammar: Math.min(rawScores.grammar, caps.grammar)
-  };
-}
-
-// =============================================================================
-// LOWER-BAND SCORING (4.0 - 5.5)
-// =============================================================================
-
-function computeLowerBandScores(features, failures) {
-  let base = 5.0;
-  
-  if (failures.length >= 4 || features.wordCount < 100) base = 4.0;
-  else if (failures.length >= 3 || features.wordCount < 150) base = 4.5;
-  else if (failures.length >= 2) base = 5.0;
-  else base = 5.5;
-  
-  return { task: base, coherence: base, lexical: base, grammar: base };
+  return { scores, capReasons };
 }
 
 // =============================================================================
 // EXPLANATION GENERATION
 // =============================================================================
 
-function generateExplanations(scores, features, capReasons, isLowerBand) {
+function generateExplanations(scores, features, capReasons) {
   const exp = { task: '', coherence: '', lexical: '', grammar: '' };
-  
-  if (isLowerBand) {
-    exp.task = scores.task <= 4.5 
-      ? 'The response does not effectively address the task.' 
-      : 'The response partially addresses the task but ideas lack development.';
-    exp.coherence = 'Organisation is limited and ideas lack clear progression.';
-    exp.lexical = 'Vocabulary is limited and errors reduce clarity.';
-    exp.grammar = 'Grammatical errors are frequent and impede communication.';
-    return exp;
-  }
+  const tr = features.task_response || {};
+  const lr = features.lexical || {};
+  const gra = features.grammar || {};
   
   // Task
-  if (scores.task >= 8.0) exp.task = 'The response presents a fully developed position with well-supported ideas throughout.';
-  else if (scores.task >= 7.5) exp.task = 'The response presents a clear, well-developed position with extended ideas.';
-  else if (scores.task >= 7.0) exp.task = 'The response addresses all parts of the task with ideas that are extended and supported.';
-  else if (capReasons.task.length > 0) exp.task = 'The response presents relevant ideas. ' + capReasons.task[0] + '.';
-  else exp.task = 'The response addresses the task, though some aspects could be more fully developed.';
+  if (scores.task >= 8.0) {
+    exp.task = 'The response fully addresses all parts of the task with a clear, well-developed position throughout.';
+  } else if (scores.task >= 7.0) {
+    exp.task = 'The response addresses all parts of the task with a clear position and extended, supported ideas.';
+  } else if (scores.task >= 6.0) {
+    exp.task = 'The response addresses the task, though some parts may be more fully covered than others.';
+    if (capReasons.task.length > 0) exp.task += ' ' + capReasons.task[0] + '.';
+  } else {
+    exp.task = 'The response only partially addresses the task. ' + (capReasons.task[0] || 'Ideas need more development.');
+  }
   
   // Coherence
-  if (scores.coherence >= 8.0) exp.coherence = 'Ideas are skilfully organised with seamless progression and cohesion.';
-  else if (scores.coherence >= 7.5) exp.coherence = 'Information is logically organised with clear progression and effective cohesion.';
-  else if (scores.coherence >= 7.0) exp.coherence = 'There is clear progression throughout with appropriate use of cohesive devices.';
-  else if (capReasons.coherence.length > 0) exp.coherence = 'Organisation is present. ' + capReasons.coherence[0] + '.';
-  else exp.coherence = 'There is a clear structure, though cohesion could be more skilful.';
+  if (scores.coherence >= 8.0) {
+    exp.coherence = 'Ideas are skilfully organised with seamless progression throughout.';
+  } else if (scores.coherence >= 7.0) {
+    exp.coherence = 'Information is logically organised with clear progression and effective use of cohesive devices.';
+  } else if (scores.coherence >= 6.0) {
+    exp.coherence = 'There is a clear overall structure, though cohesion may be mechanical at times.';
+    if (capReasons.coherence.length > 0) exp.coherence += ' ' + capReasons.coherence[0] + '.';
+  } else {
+    exp.coherence = 'Organisation is limited. ' + (capReasons.coherence[0] || 'Paragraphing needs improvement.');
+  }
   
   // Lexical
-  if (scores.lexical >= 8.0) exp.lexical = 'A wide range of vocabulary is used with precision, sophistication, and natural control.';
-  else if (scores.lexical >= 7.5) exp.lexical = 'A wide range of vocabulary is used with flexibility and precision.';
-  else if (scores.lexical >= 7.0) exp.lexical = 'Sufficient vocabulary range with generally accurate and appropriate word choice.';
-  else if (capReasons.lexical.length > 0) exp.lexical = 'Vocabulary is adequate. ' + capReasons.lexical[0] + '.';
-  else exp.lexical = 'Vocabulary is adequate for the task with some imprecision.';
+  if (scores.lexical >= 8.0) {
+    exp.lexical = 'A wide range of vocabulary is used with precision and sophistication.';
+  } else if (scores.lexical >= 7.0) {
+    exp.lexical = 'A sufficient range of vocabulary is used with flexibility and awareness of style and collocation.';
+  } else if (scores.lexical >= 6.0) {
+    exp.lexical = 'Vocabulary is adequate for the task, though there may be some imprecision or repetition.';
+    if (capReasons.lexical.length > 0) exp.lexical += ' ' + capReasons.lexical[0] + '.';
+  } else {
+    exp.lexical = 'Vocabulary is limited and repetitive. ' + (capReasons.lexical[0] || 'More range needed.');
+  }
   
   // Grammar
-  if (scores.grammar >= 8.0) exp.grammar = 'A wide range of structures is used accurately with only rare minor errors.';
-  else if (scores.grammar >= 7.5) exp.grammar = 'A wide range of structures is used accurately with only occasional errors.';
-  else if (scores.grammar >= 7.0) exp.grammar = 'A range of sentence structures is used with good control.';
-  else if (capReasons.grammar.length > 0) exp.grammar = 'Grammar shows some control. ' + capReasons.grammar[0] + '.';
-  else exp.grammar = 'A mix of structures is used with some errors that do not impede communication.';
+  if (scores.grammar >= 8.0) {
+    exp.grammar = 'A wide range of structures is used accurately with only rare minor errors.';
+  } else if (scores.grammar >= 7.0) {
+    exp.grammar = 'A variety of complex structures is used with good control and few errors.';
+  } else if (scores.grammar >= 6.0) {
+    exp.grammar = 'A mix of sentence structures is used, though errors occur in complex sentences.';
+    if (capReasons.grammar.length > 0) exp.grammar += ' ' + capReasons.grammar[0] + '.';
+  } else {
+    exp.grammar = 'Grammatical errors are frequent and may impede communication. ' + (capReasons.grammar[0] || '');
+  }
   
   return exp;
 }
 
 function generateStrengths(scores, features) {
   const strengths = [];
-  if (scores.task >= 7.0) strengths.push('Clear position with well-developed arguments');
-  else if (features.positionPresent) strengths.push('Position is stated');
-  if (scores.coherence >= 7.0) strengths.push('Logical organisation with effective cohesion');
-  else if (features.paragraphCount >= 3) strengths.push('Clear paragraph structure');
-  if (scores.lexical >= 7.0) strengths.push('Good range of vocabulary with sophisticated word choice');
-  else if (features.sophisticatedCount >= 5) strengths.push('Uses some sophisticated vocabulary');
-  if (scores.grammar >= 7.0) strengths.push('Good grammatical control with complex structures');
-  else if (features.complexSentenceRatio >= 0.20) strengths.push('Uses complex sentence structures');
-  if (strengths.length === 0) strengths.push('Attempted the task');
+  const tr = features.task_response || {};
+  const lr = features.lexical || {};
+  const gra = features.grammar || {};
+  
+  if (scores.task >= 7.0) {
+    strengths.push('Clear position with well-developed arguments');
+  } else if (tr.position_clarity === "clear") {
+    strengths.push('Clear position stated');
+  }
+  
+  if (scores.coherence >= 7.0) {
+    strengths.push('Well-organised with effective cohesion');
+  } else if (features.coherence?.logical_flow) {
+    strengths.push('Logical flow of ideas');
+  }
+  
+  if (scores.lexical >= 7.0) {
+    strengths.push('Good vocabulary range and precision');
+  } else if (lr.vocabulary_level === "good" || lr.vocabulary_level === "sophisticated") {
+    strengths.push('Some sophisticated vocabulary used');
+  }
+  
+  if (scores.grammar >= 7.0) {
+    strengths.push('Good grammatical control');
+  } else if (gra.complex_structures) {
+    strengths.push('Attempts complex sentence structures');
+  }
+  
+  if (tr.examples_quality === "specific" || tr.examples_quality === "some_specific") {
+    strengths.push('Uses relevant examples');
+  }
+  
+  if (strengths.length === 0) {
+    strengths.push('Addresses the task');
+    if (features.meta?.paragraph_count >= 3) strengths.push('Basic structure present');
+  }
+  
   return strengths.slice(0, 3);
 }
 
 function generateImprovements(scores, features, capReasons) {
   const improvements = [];
+  const tr = features.task_response || {};
+  const lr = features.lexical || {};
+  const gra = features.grammar || {};
+  
   if (scores.task < 7.0) {
-    if (features.wordCount < 250) improvements.push('Write at least 250 words to fully develop your ideas');
-    else if (!features.ideasExtended) improvements.push('Extend each idea with examples, reasons, or consequences');
+    if (tr.position_clarity !== "clear") {
+      improvements.push('State your position more clearly and explicitly in the introduction');
+    }
+    if (tr.ideas_developed !== "fully" && tr.ideas_developed !== "adequately") {
+      improvements.push('Develop each main idea with specific examples and detailed explanation');
+    }
+    if (tr.examples_quality === "generic" || tr.examples_quality === "none") {
+      improvements.push('Include specific, real-world examples (names, places, statistics)');
+    }
   }
-  if (scores.coherence < 7.0 && features.linkingCount < 3) {
-    improvements.push('Use more cohesive devices (however, therefore, although)');
-  }
+  
   if (scores.lexical < 7.0) {
-    if (features.weakVocabRatio > 0.15) improvements.push('Replace weak words (good, bad, very, thing) with precise alternatives');
-    if (features.repetitionRate > 0.12) improvements.push('Avoid repeating the same words - use synonyms');
+    if (lr.vocabulary_level === "basic" || lr.vocabulary_level === "very_basic") {
+      improvements.push('Use more varied and sophisticated vocabulary appropriate to academic writing');
+    }
+    if (lr.repetition === "noticeable" || lr.repetition === "excessive") {
+      improvements.push('Avoid word repetition by using synonyms and paraphrasing');
+    }
   }
-  if (scores.grammar < 7.0 && features.complexSentenceRatio < 0.20) {
-    improvements.push('Include more complex sentences with subordinate clauses');
+  
+  if (scores.grammar < 7.0) {
+    if (!gra.complex_structures) {
+      improvements.push('Include more complex sentence structures (relative clauses, conditionals, passive voice)');
+    }
+    if (gra.accuracy === "adequate" || gra.accuracy === "poor") {
+      improvements.push('Focus on grammatical accuracy, especially subject-verb agreement and verb tenses');
+    }
   }
-  if (improvements.length === 0) improvements.push('Continue refining precision and sophistication');
+  
+  if (features.meta?.word_count < 250) {
+    improvements.unshift('Write at least 250 words to fully develop your ideas');
+  }
+  
+  if (improvements.length === 0) {
+    improvements.push('Continue refining precision and sophistication');
+  }
+  
   return improvements.slice(0, 3);
 }
 
 function generateTips(overall) {
-  if (overall < 5.5) return [
-    'Focus on understanding the task and stating a clear position',
-    'Practice writing complete, accurate sentences',
-    'Learn basic paragraph structure: introduction, body, conclusion'
-  ];
-  if (overall < 6.5) return [
-    'Develop each idea with specific examples and explanations',
-    'Vary your vocabulary - avoid repeating the same words',
-    'Use a mix of simple and complex sentence structures'
-  ];
+  if (overall < 5.5) {
+    return [
+      'Study the Band 6.5 example essay structure: clear intro, 2 body paragraphs, conclusion',
+      'Practice stating your opinion clearly: "I believe that..." or "This essay argues that..."',
+      'Learn 10 new topic-specific words for each common IELTS theme'
+    ];
+  }
+  if (overall < 6.5) {
+    return [
+      'Compare your essay to the Band 8 example - note the specific examples used',
+      'Practice extending ideas: give a reason, then an example, then explain the consequence',
+      'Learn complex sentence patterns: "Although X, Y" and "Not only X, but also Y"'
+    ];
+  }
   return [
-    'Refine your examples to be more specific and detailed',
-    'Work on seamless cohesion without obvious linking phrases',
-    'Proofread carefully for minor errors'
+    'Focus on precision - replace good vocabulary with the best vocabulary',
+    'Ensure every paragraph has a clear topic sentence and supporting details',
+    'Proofread specifically for articles (a/the) and prepositions'
   ];
 }
 
 function getBandSummary(overall) {
-  if (overall >= 8.0) return 'Very Good User - Handles complex language with rare errors';
-  if (overall >= 7.0) return 'Good User - Generally effective command with occasional inaccuracies';
-  if (overall >= 6.0) return 'Competent User - Generally effective despite some errors';
-  if (overall >= 5.0) return 'Modest User - Partial command with frequent errors';
-  return 'Limited User - Basic command only';
+  if (overall >= 8.0) return 'Very Good User - Handles complex language with full flexibility';
+  if (overall >= 7.0) return 'Good User - Handles complex language well with occasional inaccuracies';
+  if (overall >= 6.0) return 'Competent User - Generally effective command despite some errors';
+  if (overall >= 5.0) return 'Modest User - Partial command, coping with overall meaning';
+  return 'Limited User - Basic command, frequent problems in understanding and expression';
+}
+
+// =============================================================================
+// CLB PROJECTION (Immigration-facing)
+// =============================================================================
+
+function getCLBProjection(writingBand) {
+  const clbMap = {
+    '4.0': 4, '4.5': 5, '5.0': 5, '5.5': 6, 
+    '6.0': 7, '6.5': 8, '7.0': 9, '7.5': 10, '8.0': 10, '8.5': 10, '9.0': 10
+  };
+  
+  const clb = clbMap[writingBand.toFixed(1)] || 5;
+  const nextThreshold = clb < 7 ? { clb: 7, ielts: 6.0 } 
+                       : clb < 8 ? { clb: 8, ielts: 6.5 }
+                       : clb < 9 ? { clb: 9, ielts: 7.0 }
+                       : null;
+  
+  let immigrationNote = '';
+  if (clb < 7) {
+    immigrationNote = 'This score is below CLB 7, which is the minimum for Express Entry Federal Skilled Worker.';
+  } else if (clb === 7) {
+    immigrationNote = 'This score meets the minimum language requirement for Express Entry.';
+  } else if (clb === 8) {
+    immigrationNote = 'This score meets CLB 8. Reaching CLB 9 (Band 7.0) unlocks significant CRS points.';
+  } else {
+    immigrationNote = 'This score meets CLB 9+, maximizing your language points for Express Entry.';
+  }
+  
+  return { clb, nextThreshold, immigrationNote };
 }
 
 // =============================================================================
 // MAIN SCORING FUNCTION
 // =============================================================================
 
-function scoreEssay(prompt, essay) {
-  console.log('=== SCORING ENGINE v4.2 ===');
+async function scoreEssay(prompt, essay) {
+  console.log('=== SCORING ENGINE v5.1 (Calibrated) ===');
   
-  const cleanedEssay = cleanEssayText(essay);
-  const features = extractFeatures(cleanedEssay);
+  const cleanedEssay = essay
+    .replace(/here is a band \d[^.]*\./gi, '')
+    .replace(/this is a band \d[^.]*\./gi, '')
+    .trim();
   
-  console.log('Word count:', features.wordCount);
-  console.log('Sophisticated words:', features.sophisticatedWords?.slice(0, 8));
-  console.log('Position present:', features.positionPresent);
+  const features = await extractFeaturesWithAI(prompt, cleanedEssay);
+  const { scores, capReasons } = scoreFromFeatures(features);
   
-  const eligibility = checkBand6Eligibility(features);
-  console.log('Band 6 eligible:', eligibility.eligible, 'Failures:', eligibility.failures);
-  
-  let finalScores, explanations;
-  let capReasons = { task: [], coherence: [], lexical: [], grammar: [] };
-  let isLowerBand = false;
-  
-  if (!eligibility.eligible) {
-    isLowerBand = true;
-    finalScores = computeLowerBandScores(features, eligibility.failures);
-    explanations = generateExplanations(finalScores, features, capReasons, true);
-    console.log('Lower-band scores:', finalScores);
-  } else {
-    const capsResult = applyHardCaps(features);
-    capReasons = capsResult.capReasons;
-    console.log('Caps:', capsResult.caps);
-    
-    const rawScores = computeRawBands(features);
-    console.log('Raw scores:', rawScores);
-    
-    finalScores = applyBandCaps(rawScores, capsResult.caps);
-    console.log('Final scores:', finalScores);
-    
-    explanations = generateExplanations(finalScores, features, capReasons, false);
-  }
-  
-  const avg = (finalScores.task + finalScores.coherence + finalScores.lexical + finalScores.grammar) / 4;
+  const avg = (scores.task + scores.coherence + scores.lexical + scores.grammar) / 4;
   const overall = Math.round(avg * 2) / 2;
   
-  return { scores: finalScores, overall, explanations, features, eligibility, capReasons, isLowerBand };
+  const clbProjection = getCLBProjection(overall);
+  
+  console.log('Final scores:', scores, 'Overall:', overall, 'CLB:', clbProjection.clb);
+  
+  const explanations = generateExplanations(scores, features, capReasons);
+  
+  return {
+    scores,
+    overall,
+    explanations,
+    features,
+    capReasons,
+    clbProjection
+  };
 }
 
 // =============================================================================
@@ -713,12 +626,13 @@ export async function handler(event) {
       return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing required fields" }) };
     }
     
-    if (answer.trim().split(/\s+/).length < 20) {
-      return { statusCode: 400, headers, body: JSON.stringify({ error: "Essay too short (minimum 20 words)" }) };
+    const wordCount = answer.trim().split(/\s+/).length;
+    if (wordCount < 20) {
+      return { statusCode: 400, headers, body: JSON.stringify({ error: "Essay too short" }) };
     }
     
-    const taskPrompt = prompt || "Discuss the advantages and disadvantages of the given topic.";
-    const result = scoreEssay(taskPrompt, answer);
+    const taskPrompt = prompt || "Discuss both views and give your own opinion.";
+    const result = await scoreEssay(taskPrompt, answer);
     
     const response = {
       task: result.scores.task,
@@ -732,22 +646,22 @@ export async function handler(event) {
       strengths: generateStrengths(result.scores, result.features),
       improvements: generateImprovements(result.scores, result.features, result.capReasons),
       tips: generateTips(result.overall),
-      wordCount: result.features.wordCount,
+      wordCount: result.features.meta?.word_count || wordCount,
       testId,
+      
+      // CLB Immigration projection
+      clb: result.clbProjection.clb,
+      clb_projection: result.clbProjection,
+      
       _debug: {
-        eligible: result.eligibility.eligible,
-        eligibilityFailures: result.eligibility.failures,
-        capReasons: result.capReasons,
-        isLowerBand: result.isLowerBand,
-        sophisticatedCount: result.features.sophisticatedCount,
-        sophisticatedRatio: result.features.sophisticatedRatio?.toFixed(3),
-        weakVocabRatio: result.features.weakVocabRatio?.toFixed(3),
-        sophisticatedWords: result.features.sophisticatedWords?.slice(0, 10)
+        overall_impression: result.features.overall_impression,
+        closest_to: result.features.closest_to,
+        features: result.features,
+        capReasons: result.capReasons
       }
     };
     
-    console.log('Final overall:', response.overall);
-    
+    // Save to Supabase
     try {
       await supabase.from("user_test_results").insert({
         email: email.toLowerCase(),
@@ -767,6 +681,7 @@ export async function handler(event) {
     }
     
     return { statusCode: 200, headers, body: JSON.stringify(response) };
+    
   } catch (error) {
     console.error("Scoring error:", error);
     return { statusCode: 500, headers, body: JSON.stringify({ error: error.message }) };
