@@ -50,62 +50,90 @@ export async function handler(event) {
     const wordCount = cleanedAnswer.trim().split(/\s+/).filter(w => w.length > 0).length;
     console.log("Scoring request:", { email, testId, wordCount });
 
-    const scoringPrompt = `You are an IELTS Writing Task 2 examiner.
+    // Official IELTS Band Descriptors embedded in prompt
+    const scoringPrompt = `You are an IELTS Writing Task 2 examiner using the OFFICIAL British Council band descriptors.
 
-ESSAY PROMPT:
-${prompt}
+ESSAY PROMPT: ${prompt}
 
-STUDENT'S RESPONSE (${wordCount} words):
+STUDENT'S ESSAY (${wordCount} words):
 ${cleanedAnswer}
 
-MANDATORY SCORING PROCESS:
-1. First decide which IELTS band descriptor (5, 6, 7, 8, or 9) the essay MOST closely matches for EACH criterion
-2. Only after selecting the descriptor, assign the numerical score
-3. Do NOT default to 6.0 or 6.5 - use the FULL range (5.0 to 8.5)
+=== OFFICIAL IELTS TASK 2 BAND DESCRIPTORS ===
 
-LEXICAL RESOURCE RULES:
-- Judge based on PRECISION and APPROPRIATENESS, not rarity
-- Reward controlled academic vocabulary and natural collocations
-- Do NOT penalize common academic words if accurate and natural
-- Basic repetitive vocabulary (good/bad/very/many) = Band 5.0-5.5
-- Sophisticated controlled vocabulary = Band 7.0-8.0
-- If essay shows Band 7-8 lexical CONTROL, you MUST NOT assign Band 5-6
+**TASK RESPONSE:**
+Band 8: Appropriately and sufficiently addressed. Clear well-developed position. Ideas relevant, well extended and supported. Occasional omissions.
+Band 7: Main parts appropriately addressed. Clear developed position. May over-generalise or lack focus/precision in supporting ideas.
+Band 6: Main parts addressed (some more fully than others). Position relevant but conclusions may be unclear, unjustified or repetitive. Some ideas insufficiently developed or lack clarity.
+Band 5: Main parts incompletely addressed. Position not always clear. Ideas limited, not sufficiently developed, may have irrelevant detail or repetition.
 
-BAND DESCRIPTORS:
-- Band 8-9: Sophisticated, precise vocabulary, rare errors, natural collocations, fully developed
-- Band 7: Good range, occasional errors, effective word choice, well-organized
-- Band 6: Adequate range, some errors, generally appropriate
-- Band 5: LIMITED range, REPETITIVE, basic vocabulary, underdeveloped
+**COHERENCE & COHESION:**
+Band 8: Message followed with ease. Logically sequenced, cohesion well managed. Paragraphing sufficient and appropriate.
+Band 7: Logically organised with clear progression. Range of cohesive devices used flexibly but with some inaccuracies. Paragraphing generally effective.
+Band 6: Generally coherent with clear overall progression. Cohesion may be faulty or mechanical. Paragraphing may not always be logical.
+Band 5: Organisation evident but not wholly logical. Sentences not fluently linked. Writing may be repetitive. Paragraphing may be inadequate.
 
-Return ONLY this JSON (replace NUMBER with your actual scores):
+**LEXICAL RESOURCE:**
+Band 8: Wide resource fluently and flexibly used for precise meanings. Skilful use of uncommon/idiomatic items. Occasional errors minimal impact.
+Band 7: Sufficient flexibility and precision. Some less common/idiomatic items. Awareness of style and collocation. Few errors don't detract from clarity.
+Band 6: Generally adequate and appropriate. Restricted range OR lack of precision. Some errors don't impede communication.
+Band 5: Limited but minimally adequate. Simple vocabulary, range doesn't permit variation. Frequent lapses in word choice. Errors may cause difficulty.
+
+**GRAMMATICAL RANGE & ACCURACY:**
+Band 8: Wide range flexibly and accurately used. Majority of sentences error-free. Punctuation well managed.
+Band 7: Variety of complex structures with some flexibility and accuracy. Generally well controlled. Few errors don't impede.
+Band 6: Mix of simple and complex but flexibility limited. Complex structures less accurate than simple. Errors rarely impede.
+Band 5: Limited and repetitive structures. Complex sentences tend to be faulty. Greatest accuracy on simple sentences. Errors may cause difficulty.
+
+=== SCORING INSTRUCTIONS ===
+
+STEP 1: For EACH criterion, identify which band descriptor (5, 6, 7, or 8) the essay BEST matches.
+STEP 2: Only AFTER matching to a descriptor, assign the score (can use .5 increments).
+STEP 3: Calculate overall as the average, rounded to nearest 0.5.
+
+CRITICAL RULES:
+- Band 5 essays: Basic/repetitive vocabulary (good, bad, very, many, some people), simple sentences, ideas underdeveloped
+- Band 6 essays: Adequate vocabulary but restricted, position present but may be unclear, mix of sentence types
+- Band 7 essays: Good vocabulary with some less common items, clear position, varied complex structures
+- Band 8 essays: Sophisticated vocabulary, precise meanings, wide range of accurate complex structures
+
+Return ONLY this JSON:
 {
+  "analysis": {
+    "task": "Which band descriptor matches and why (1 sentence)",
+    "coherence": "Which band descriptor matches and why (1 sentence)",
+    "lexical": "Which band descriptor matches and why (1 sentence)",
+    "grammar": "Which band descriptor matches and why (1 sentence)"
+  },
   "scores": {
-    "task": NUMBER,
-    "coherence": NUMBER,
-    "lexical": NUMBER,
-    "grammar": NUMBER,
-    "overall": NUMBER
+    "task": 0.0,
+    "coherence": 0.0,
+    "lexical": 0.0,
+    "grammar": 0.0,
+    "overall": 0.0
   },
   "feedback": {
-    "task": "one sentence",
-    "coherence": "one sentence",
-    "lexical": "one sentence",
-    "grammar": "one sentence"
+    "task": "one sentence feedback",
+    "coherence": "one sentence feedback",
+    "lexical": "one sentence feedback",
+    "grammar": "one sentence feedback"
   },
   "strengths": ["strength 1", "strength 2"],
-  "improvements": ["improvement 1", "improvement 2"],
+  "improvements": ["specific improvement 1", "specific improvement 2"],
   "next_focus": "single most important thing to practice",
-  "band_summary": "one sentence overall summary"
+  "band_summary": "one sentence overall assessment"
 }`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "You are a strict IELTS examiner. Score accurately using the full band range. Respond with valid JSON only." },
+        { 
+          role: "system", 
+          content: "You are a certified IELTS examiner. You MUST match essays to band descriptors FIRST, then assign scores. Use the FULL range 5.0-8.0. Do NOT default to 6.0-6.5. Respond with valid JSON only." 
+        },
         { role: "user", content: scoringPrompt }
       ],
-      temperature: 0.3,
-      max_tokens: 1000
+      temperature: 0.2,
+      max_tokens: 1200
     });
 
     let result;
@@ -113,6 +141,15 @@ Return ONLY this JSON (replace NUMBER with your actual scores):
       const responseText = completion.choices[0].message.content.trim();
       const jsonText = responseText.replace(/```json\n?|\n?```/g, '').trim();
       result = JSON.parse(jsonText);
+      
+      // Flatten scores if nested
+      if (result.scores) {
+        result.task = result.scores.task;
+        result.coherence = result.scores.coherence;
+        result.lexical = result.scores.lexical;
+        result.grammar = result.scores.grammar;
+        result.overall = result.scores.overall;
+      }
     } catch (parseError) {
       console.error("Failed to parse OpenAI response:", completion.choices[0].message.content);
       result = {
@@ -136,11 +173,11 @@ Return ONLY this JSON (replace NUMBER with your actual scores):
         test_id: testId,
         test_type: meta?.type || "writing",
         level: meta?.level || null,
-        overall: result.scores?.overall ?? null,
-        task: result.scores?.task ?? null,
-        coherence: result.scores?.coherence ?? null,
-        lexical: result.scores?.lexical ?? null,
-        grammar: result.scores?.grammar ?? null,
+        overall: result.scores?.overall ?? result.overall ?? null,
+        task: result.scores?.task ?? result.task ?? null,
+        coherence: result.scores?.coherence ?? result.coherence ?? null,
+        lexical: result.scores?.lexical ?? result.lexical ?? null,
+        grammar: result.scores?.grammar ?? result.grammar ?? null,
         feedback: result,
         answer: answer
       });
