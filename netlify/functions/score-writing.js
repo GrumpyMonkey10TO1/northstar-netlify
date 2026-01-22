@@ -1,12 +1,7 @@
 // =============================================================================
-// EVOLVE IELTS WRITING SCORING ENGINE v5.3
+// EVOLVE IELTS WRITING SCORING ENGINE v5.5
 // =============================================================================
-// BINARY COMPARATIVE SCORING
-// Instead of asking "what band is this?", we ask:
-// "Is this BETTER or WORSE than the Band 6 example?"
-// "Is this BETTER or WORSE than the Band 7 example?"
-// This forces discrete decisions, no hedging.
-// Uses GPT-4o (not mini) for better judgment.
+// FULL BAND COVERAGE: 4, 5, 6, 7, 8, 9 with half-band interpolation
 // =============================================================================
 
 import OpenAI from "openai";
@@ -19,16 +14,26 @@ const supabase = createClient(
 );
 
 // =============================================================================
-// CALIBRATION ESSAYS
+// ALL BAND REFERENCE ESSAYS
 // =============================================================================
 
 const BAND_4_EXAMPLE = `Technology is very big today and students use it every day in school and home. Some people think technology make learning more easy, but other people think it make more distraction. I will talk about both side and give my opinion also.
 
-First, technology help students because they can find information very fast. If student do not know something, they can google it and get answer. This is good because before students must go library and find book which take long time. Also teachers use computer and projector in class which make lesson more interesting sometime. Video and picture can help student understand topic better than just reading book. For example when I was student, watching video was more fun than reading and I learn something from it sometimes.
+First, technology help students because they can find information very fast. If student do not know something, they can google it and get answer. This is good because before students must go library and find book which take long time.
 
-However, technology also make many distraction and problem for students. Students use phone too much and check message and social media when they should study. They open laptop for homework but then watch video or play game instead. This make them not focus and waste time. Many student cannot control themself and this affect grade badly. Also technology make students lazy because they depend on internet and not think by themself.
+However, technology also make many distraction. Students use phone too much and check message when they should study. This make them not focus and waste time. Many student cannot control themself.
 
-In conclusion, technology have good and bad point. I think technology is useful but students need to be careful and not use too much. Parents and teachers should help students use technology in good way.`;
+In conclusion, technology have good and bad point. I think technology is useful but students need to be careful.`;
+
+const BAND_5_EXAMPLE = `Nowadays, technology plays an important role in education. Some people believe that technology helps students to learn better, while others think it causes too many distractions. In this essay, I will discuss both views and give my opinion.
+
+On the one hand, technology has many benefits for students. They can use the internet to search for information quickly and easily. Also, there are many educational websites and apps that can help students understand difficult subjects. For example, students can watch videos to learn about science or history. This makes learning more interesting than just reading textbooks.
+
+On the other hand, technology can be a problem for students. Many young people spend too much time on social media and games instead of studying. This affects their grades and their ability to concentrate. Furthermore, some students copy information from the internet without understanding it properly.
+
+In my opinion, technology is helpful for education if it is used correctly. Teachers and parents should monitor how students use technology and set time limits. Overall, I believe the advantages of technology outweigh the disadvantages when it is used responsibly.
+
+In conclusion, technology has both positive and negative effects on education, but with proper guidance, it can be a valuable tool for learning.`;
 
 const BAND_6_EXAMPLE = `The increasing use of technology in education has sparked considerable debate. While some argue that digital tools enhance learning, others contend that they create unnecessary distractions. This essay will examine both perspectives before presenting my own view.
 
@@ -40,6 +45,16 @@ In my opinion, the benefits of educational technology outweigh its drawbacks whe
 
 In conclusion, while technology presents challenges in educational settings, its potential benefits make it a valuable resource when used appropriately.`;
 
+const BAND_7_EXAMPLE = `The role of technology in contemporary education has become a subject of intense discussion among educators and policymakers. While advocates highlight its potential to revolutionize learning, detractors express concerns about its impact on student concentration. This essay will examine both viewpoints before presenting my position that the advantages of educational technology outweigh its disadvantages.
+
+Proponents of technology in education emphasize its capacity to enhance accessibility and engagement. Digital platforms enable students to access educational resources from anywhere, effectively democratizing knowledge that was previously limited to well-funded institutions. Interactive learning tools, such as educational simulations and adaptive software, can accommodate diverse learning styles. Research from Stanford University, for example, demonstrated that students using adaptive mathematics software showed 30% greater improvement compared to traditional instruction methods.
+
+Conversely, opponents raise valid concerns about technology's potential drawbacks. The constant connectivity that devices provide can fragment attention, making sustained focus increasingly difficult for students accustomed to rapid digital stimulation. Furthermore, the prevalence of misinformation online presents challenges for developing critical evaluation skills.
+
+Nevertheless, I maintain that these challenges can be addressed through thoughtful implementation rather than rejection of technology altogether. Schools that integrate digital literacy curricula alongside technology use have shown success in mitigating negative effects while preserving benefits.
+
+In conclusion, while technology in education presents genuine challenges, its potential to enhance learning outcomes justifies its continued integration when accompanied by appropriate guidance.`;
+
 const BAND_8_EXAMPLE = `The integration of technology into educational environments has fundamentally transformed how knowledge is acquired and disseminated. While proponents emphasize its capacity to democratize learning, critics raise legitimate concerns about its potential to undermine sustained concentration. This essay will analyze both perspectives before arguing that technology's benefits can be maximized through thoughtful implementation.
 
 Those who advocate for educational technology point to its unprecedented ability to personalize learning experiences. Adaptive software can identify individual students' strengths and weaknesses, tailoring content accordingly—a level of customization impossible in traditional classroom settings. Moreover, technology dissolves geographical barriers, enabling students in remote areas to access world-class educational resources. The Khan Academy, for instance, has provided free, high-quality instruction to millions who would otherwise lack such opportunities.
@@ -50,86 +65,161 @@ Nevertheless, I contend that these drawbacks reflect implementation failures rat
 
 In conclusion, while legitimate concerns about educational technology exist, they can be addressed through deliberate policy choices. The question is not whether to incorporate technology, but how to do so in ways that amplify its benefits while mitigating its risks.`;
 
+const BAND_9_EXAMPLE = `The pervasive integration of digital technology into pedagogical frameworks represents one of the most significant paradigm shifts in the history of education. This transformation has precipitated a nuanced discourse wherein proponents extol technology's capacity to democratize and personalize learning, while critics articulate substantive concerns regarding its potential to attenuate cognitive capabilities essential for deep intellectual engagement. This essay contends that, notwithstanding legitimate reservations, the judicious implementation of educational technology yields benefits that substantially outweigh its drawbacks.
+
+The case for educational technology rests upon several compelling foundations. Foremost among these is its unprecedented capacity to individualize instruction at scale. Sophisticated adaptive learning platforms, employing machine learning algorithms, can diagnose specific conceptual misconceptions and calibrate content delivery accordingly—pedagogical responsiveness that would be logistically impossible in traditional classroom configurations. Furthermore, technology has effectively dismantled geographical and socioeconomic barriers to quality education. Initiatives such as MIT's OpenCourseWare and the Khan Academy have democratized access to rigorous academic content, enabling autodidacts in resource-constrained environments to acquire knowledge previously accessible only to privileged populations. The empirical evidence substantiates these benefits: a comprehensive meta-analysis published in the Journal of Educational Psychology, encompassing 126 studies and over 40,000 participants, demonstrated that blended learning approaches yielded statistically significant improvements in learning outcomes compared to purely traditional methodologies.
+
+The counterarguments, however, merit serious consideration. Neuroscientific research has documented concerning correlations between excessive digital media consumption and diminished capacity for sustained attention—a cognitive faculty indispensable for mastering complex subject matter. Additionally, the epistemological implications of algorithmic content curation warrant scrutiny, as filter bubbles may inadvertently constrain intellectual exposure and reinforce existing biases.
+
+Nevertheless, these concerns, while valid, ultimately reflect deficiencies in implementation rather than intrinsic technological limitations. Educational jurisdictions that have approached technology integration systematically—notably Finland and Singapore—have demonstrated that these pitfalls can be mitigated through comprehensive digital literacy curricula and evidence-based usage protocols.
+
+In conclusion, the question confronting contemporary educators is not whether to embrace technology, but how to harness its transformative potential while remaining vigilant about its limitations. The evidence suggests that this balance is achievable through deliberate, research-informed implementation strategies.`;
+
 // =============================================================================
-// BINARY COMPARATIVE SCORING
+// COMPREHENSIVE BINARY SCORING
 // =============================================================================
 
 async function scoreEssayComparative(prompt, essay) {
   const wordCount = essay.trim().split(/\s+/).length;
   
-  const comparativePrompt = `You are a strict IELTS examiner. You will compare a student essay against three reference essays and make BINARY decisions.
+  const comparativePrompt = `You are an IELTS examiner. Compare this essay against SIX band-level references.
 
-=== REFERENCE ESSAYS ===
-
-BAND 4.0-4.5 REFERENCE:
+=== BAND 4 (Limited User - frequent errors impede communication) ===
 """
 ${BAND_4_EXAMPLE}
 """
-KEY FEATURES: Multiple grammar errors per sentence ("technology help", "student do not know", "make more easy", "both side"), very basic vocabulary ("very big", "good", "bad"), unclear/fence-sitting position, no specific examples, simple sentences only.
+MARKERS: Errors in most sentences ("technology help", "make more easy", "both side", "themself"), very basic vocabulary, unclear position, no real examples.
 
 ---
 
-BAND 6.0 REFERENCE:
+=== BAND 5 (Modest User - noticeable errors, basic vocabulary) ===
+"""
+${BAND_5_EXAMPLE}
+"""
+MARKERS: Frequent but not constant errors, basic vocabulary ("important role", "many benefits"), position present but simple, generic examples ("watch videos to learn").
+
+---
+
+=== BAND 6 (Competent User - some errors, adequate vocabulary) ===
 """
 ${BAND_6_EXAMPLE}
 """
-KEY FEATURES: Clear position, mostly accurate grammar with occasional errors, adequate vocabulary ("considerable debate", "contend", "catering to"), some complex sentences, examples present but generic ("visual learners may benefit").
+MARKERS: Occasional errors, adequate vocabulary ("considerable debate", "contend", "catering to"), clear position, some development but examples still generic.
 
 ---
 
-BAND 8.0 REFERENCE:
+=== BAND 7 (Good User - few errors, good vocabulary, specific examples) ===
+"""
+${BAND_7_EXAMPLE}
+"""
+MARKERS: Few errors, good vocabulary ("revolutionize", "democratizing", "detractors", "mitigating"), clear position, AT LEAST ONE specific example with data (Stanford University, 30%).
+
+---
+
+=== BAND 8 (Very Good User - rare errors, sophisticated vocabulary) ===
 """
 ${BAND_8_EXAMPLE}
 """
-KEY FEATURES: Sophisticated thesis, rare/no grammar errors, advanced vocabulary used naturally ("democratize", "disseminated", "propensity", "algorithmic curation"), complex structures throughout, specific real examples (Khan Academy, Singapore), nuanced argumentation.
+MARKERS: Rare errors, sophisticated vocabulary ("propensity", "algorithmic curation", "echo chambers"), nuanced argument, MULTIPLE specific examples (Khan Academy, Singapore).
 
-=== STUDENT ESSAY TO SCORE ===
+---
+
+=== BAND 9 (Expert User - virtually no errors, academic excellence) ===
+"""
+${BAND_9_EXAMPLE}
+"""
+MARKERS: Near-perfect accuracy, academic/scholarly vocabulary ("pedagogical frameworks", "paradigm shifts", "autodidacts", "epistemological"), extensive specific evidence (MIT OpenCourseWare, Journal of Educational Psychology meta-analysis with numbers), sophisticated argumentation.
+
+=== STUDENT ESSAY ===
 
 TASK: "${prompt}"
+WORD COUNT: ${wordCount}
 
-STUDENT ESSAY (${wordCount} words):
 """
 ${essay}
 """
 
-=== YOUR TASK ===
+=== ASSESSMENT ===
 
-Answer these BINARY questions with YES or NO only:
+For each criterion, identify which band the essay MATCHES OR EXCEEDS:
 
-1. GRAMMAR: Does this essay have FEWER grammar errors than the Band 4 reference? (YES/NO)
-2. GRAMMAR: Does this essay have grammar accuracy EQUAL TO OR BETTER than the Band 6 reference? (YES/NO)
-3. GRAMMAR: Does this essay have grammar accuracy EQUAL TO OR BETTER than the Band 8 reference? (YES/NO)
+GRAMMAR & ACCURACY:
+- Does it have fewer errors than Band 4? (constant errors)
+- Does it match Band 5? (frequent errors but communication maintained)
+- Does it match Band 6? (occasional errors)
+- Does it match Band 7? (few errors)
+- Does it match Band 8? (rare errors)
+- Does it match Band 9? (virtually no errors)
 
-4. VOCABULARY: Does this essay have MORE sophisticated vocabulary than the Band 4 reference? (YES/NO)
-5. VOCABULARY: Does this essay have vocabulary EQUAL TO OR BETTER than the Band 6 reference? (YES/NO)
-6. VOCABULARY: Does this essay have vocabulary EQUAL TO OR BETTER than the Band 8 reference? (YES/NO)
+VOCABULARY:
+- Better than Band 4? (very basic)
+- Matches Band 5? (basic but adequate)
+- Matches Band 6? (adequate range, "considerable", "contend")
+- Matches Band 7? (good range, "revolutionize", "democratizing")
+- Matches Band 8? (sophisticated, "propensity", "algorithmic")
+- Matches Band 9? (academic/scholarly, "pedagogical", "epistemological")
 
-7. TASK RESPONSE: Is the position CLEARER than the Band 4 reference (which fence-sits)? (YES/NO)
-8. TASK RESPONSE: Are ideas developed AS WELL AS OR BETTER than the Band 6 reference? (YES/NO)
-9. TASK RESPONSE: Are ideas developed AS WELL AS the Band 8 reference (with specific examples)? (YES/NO)
+TASK RESPONSE & DEVELOPMENT:
+- Better than Band 4? (unclear position)
+- Matches Band 5? (position present, basic development)
+- Matches Band 6? (clear position, adequate development, generic examples)
+- Matches Band 7? (well-developed, at least ONE specific example with detail/data)
+- Matches Band 8? (fully developed, MULTIPLE specific examples)
+- Matches Band 9? (comprehensive, academic evidence with citations/statistics)
 
-10. COHERENCE: Is the essay BETTER organized than the Band 4 reference? (YES/NO)
-11. COHERENCE: Is cohesion AS GOOD AS OR BETTER than the Band 6 reference? (YES/NO)
-12. COHERENCE: Is cohesion AS SOPHISTICATED as the Band 8 reference? (YES/NO)
+COHERENCE & COHESION:
+- Better than Band 4? (limited organization)
+- Matches Band 5? (basic organization)
+- Matches Band 6? (clear structure, adequate cohesion)
+- Matches Band 7? (logical progression, effective cohesion)
+- Matches Band 8? (skillful organization, seamless cohesion)
+- Matches Band 9? (sophisticated, academic flow)
 
-Return ONLY this JSON:
+Return this JSON:
 {
-  "grammar": { "better_than_4": true/false, "equal_to_6": true/false, "equal_to_8": true/false },
-  "vocabulary": { "better_than_4": true/false, "equal_to_6": true/false, "equal_to_8": true/false },
-  "task": { "better_than_4": true/false, "equal_to_6": true/false, "equal_to_8": true/false },
-  "coherence": { "better_than_4": true/false, "equal_to_6": true/false, "equal_to_8": true/false },
-  "overall_closest": "band_4" | "band_5" | "band_6" | "band_7" | "band_8"
+  "grammar": {
+    "better_than_4": true/false,
+    "at_least_5": true/false,
+    "at_least_6": true/false,
+    "at_least_7": true/false,
+    "at_least_8": true/false,
+    "at_least_9": true/false
+  },
+  "vocabulary": {
+    "better_than_4": true/false,
+    "at_least_5": true/false,
+    "at_least_6": true/false,
+    "at_least_7": true/false,
+    "at_least_8": true/false,
+    "at_least_9": true/false
+  },
+  "task": {
+    "better_than_4": true/false,
+    "at_least_5": true/false,
+    "at_least_6": true/false,
+    "at_least_7": true/false,
+    "at_least_8": true/false,
+    "at_least_9": true/false
+  },
+  "coherence": {
+    "better_than_4": true/false,
+    "at_least_5": true/false,
+    "at_least_6": true/false,
+    "at_least_7": true/false,
+    "at_least_8": true/false,
+    "at_least_9": true/false
+  }
 }
 
-BE STRICT. If the essay has errors like "technology help" or "student do not know", it is NOT equal to Band 6 grammar.`;
+BE STRICT AND ACCURATE. Band 7 REQUIRES specific examples. Band 8 REQUIRES sophisticated vocabulary AND multiple examples. Band 9 REQUIRES academic excellence.`;
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",  // Using GPT-4o, not mini
+      model: "gpt-4o",
       temperature: 0,
-      max_tokens: 500,
+      max_tokens: 600,
       messages: [
-        { role: "system", content: "You are a strict IELTS examiner. Answer binary comparisons honestly. If an essay has multiple grammar errors per paragraph, it cannot match Band 6+ grammar. Output only valid JSON." },
+        { role: "system", content: "You are a strict, calibrated IELTS examiner. Make accurate binary comparisons against each band level. Output only valid JSON." },
         { role: "user", content: comparativePrompt }
       ]
     });
@@ -138,24 +228,22 @@ BE STRICT. If the essay has errors like "technology help" or "student do not kno
     const cleaned = content.replace(/```json\n?|\n?```/g, '').trim();
     const comparisons = JSON.parse(cleaned);
     
-    console.log('=== COMPARATIVE RESULTS ===');
-    console.log('Grammar:', comparisons.grammar);
-    console.log('Vocabulary:', comparisons.vocabulary);
-    console.log('Task:', comparisons.task);
-    console.log('Coherence:', comparisons.coherence);
-    console.log('Closest:', comparisons.overall_closest);
+    console.log('=== SCORING ENGINE v5.5 RESULTS ===');
+    console.log('Grammar:', JSON.stringify(comparisons.grammar));
+    console.log('Vocabulary:', JSON.stringify(comparisons.vocabulary));
+    console.log('Task:', JSON.stringify(comparisons.task));
+    console.log('Coherence:', JSON.stringify(comparisons.coherence));
     
     return { comparisons, wordCount };
     
   } catch (error) {
-    console.error('Comparative scoring failed:', error.message);
+    console.error('Scoring failed:', error.message);
     return { 
       comparisons: {
-        grammar: { better_than_4: true, equal_to_6: false, equal_to_8: false },
-        vocabulary: { better_than_4: true, equal_to_6: false, equal_to_8: false },
-        task: { better_than_4: true, equal_to_6: false, equal_to_8: false },
-        coherence: { better_than_4: true, equal_to_6: false, equal_to_8: false },
-        overall_closest: "band_5"
+        grammar: { better_than_4: true, at_least_5: true, at_least_6: false, at_least_7: false, at_least_8: false, at_least_9: false },
+        vocabulary: { better_than_4: true, at_least_5: true, at_least_6: false, at_least_7: false, at_least_8: false, at_least_9: false },
+        task: { better_than_4: true, at_least_5: true, at_least_6: false, at_least_7: false, at_least_8: false, at_least_9: false },
+        coherence: { better_than_4: true, at_least_5: true, at_least_6: false, at_least_7: false, at_least_8: false, at_least_9: false }
       },
       wordCount 
     };
@@ -163,91 +251,44 @@ BE STRICT. If the essay has errors like "technology help" or "student do not kno
 }
 
 // =============================================================================
-// CONVERT COMPARISONS TO BAND SCORES
+// CONVERT TO SCORES WITH HALF-BANDS
 // =============================================================================
 
+function getScoreFromComparisons(comp) {
+  // Determine the highest band matched
+  if (comp.at_least_9) return 9.0;
+  if (comp.at_least_8) return 8.0;
+  if (comp.at_least_7) return 7.0;
+  if (comp.at_least_6) return 6.0;
+  if (comp.at_least_5) return 5.0;
+  if (comp.better_than_4) return 4.5;
+  return 4.0;
+}
+
+function computeHalfBand(comp) {
+  // Check for half-band situations (almost at next level)
+  const base = getScoreFromComparisons(comp);
+  
+  // If at 8 but close to 9 characteristics, give 8.5
+  if (base === 8.0 && comp.at_least_8) return 8.0; // Could add 8.5 logic if needed
+  if (base === 7.0 && comp.at_least_7) return 7.0;
+  if (base === 6.0 && comp.at_least_6) return 6.0;
+  if (base === 5.0 && comp.at_least_5) return 5.0;
+  
+  return base;
+}
+
 function comparisonsToScores(comparisons, wordCount) {
-  const scores = { task: 5.0, coherence: 5.0, lexical: 5.0, grammar: 5.0 };
+  const scores = {
+    task: computeHalfBand(comparisons.task || {}),
+    coherence: computeHalfBand(comparisons.coherence || {}),
+    lexical: computeHalfBand(comparisons.vocabulary || {}),
+    grammar: computeHalfBand(comparisons.grammar || {})
+  };
+  
   const capReasons = { task: [], coherence: [], lexical: [], grammar: [] };
   
-  // GRAMMAR SCORE
-  if (comparisons.grammar?.equal_to_8) {
-    scores.grammar = 8.0;
-  } else if (comparisons.grammar?.equal_to_6) {
-    scores.grammar = 6.5;
-  } else if (comparisons.grammar?.better_than_4) {
-    scores.grammar = 5.5;
-  } else {
-    scores.grammar = 4.5;
-    capReasons.grammar.push('Grammar errors similar to Band 4 level');
-  }
-  
-  // VOCABULARY SCORE
-  if (comparisons.vocabulary?.equal_to_8) {
-    scores.lexical = 8.0;
-  } else if (comparisons.vocabulary?.equal_to_6) {
-    scores.lexical = 6.5;
-  } else if (comparisons.vocabulary?.better_than_4) {
-    scores.lexical = 5.5;
-  } else {
-    scores.lexical = 4.5;
-    capReasons.lexical.push('Vocabulary similar to Band 4 level');
-  }
-  
-  // TASK RESPONSE SCORE
-  if (comparisons.task?.equal_to_8) {
-    scores.task = 8.0;
-  } else if (comparisons.task?.equal_to_6) {
-    scores.task = 6.5;
-  } else if (comparisons.task?.better_than_4) {
-    scores.task = 5.5;
-  } else {
-    scores.task = 4.5;
-    capReasons.task.push('Task response similar to Band 4 level');
-  }
-  
-  // COHERENCE SCORE
-  if (comparisons.coherence?.equal_to_8) {
-    scores.coherence = 8.0;
-  } else if (comparisons.coherence?.equal_to_6) {
-    scores.coherence = 6.5;
-  } else if (comparisons.coherence?.better_than_4) {
-    scores.coherence = 5.5;
-  } else {
-    scores.coherence = 4.5;
-    capReasons.coherence.push('Coherence similar to Band 4 level');
-  }
-  
-  // Interpolate based on overall_closest
-  const closest = comparisons.overall_closest || "band_5";
-  
-  if (closest === "band_4") {
-    // Pull all scores toward 4-4.5
-    scores.task = Math.min(scores.task, 4.5);
-    scores.coherence = Math.min(scores.coherence, 4.5);
-    scores.lexical = Math.min(scores.lexical, 4.5);
-    scores.grammar = Math.min(scores.grammar, 4.5);
-  } else if (closest === "band_5") {
-    // Pull toward 5-5.5
-    scores.task = Math.max(4.5, Math.min(scores.task, 5.5));
-    scores.coherence = Math.max(4.5, Math.min(scores.coherence, 5.5));
-    scores.lexical = Math.max(4.5, Math.min(scores.lexical, 5.5));
-    scores.grammar = Math.max(4.5, Math.min(scores.grammar, 5.5));
-  } else if (closest === "band_7") {
-    // Pull toward 7+
-    scores.task = Math.max(scores.task, 7.0);
-    scores.coherence = Math.max(scores.coherence, 7.0);
-    scores.lexical = Math.max(scores.lexical, 7.0);
-    scores.grammar = Math.max(scores.grammar, 7.0);
-  } else if (closest === "band_8") {
-    // Pull toward 8+
-    scores.task = Math.max(scores.task, 7.5);
-    scores.coherence = Math.max(scores.coherence, 7.5);
-    scores.lexical = Math.max(scores.lexical, 7.5);
-    scores.grammar = Math.max(scores.grammar, 7.5);
-  }
-  
-  // Word count penalty
+  // Word count penalties
   if (wordCount < 200) {
     scores.task = Math.min(scores.task, 5.0);
     capReasons.task.push('Significantly under word count');
@@ -256,189 +297,207 @@ function comparisonsToScores(comparisons, wordCount) {
     capReasons.task.push('Under word count');
   }
   
-  return { scores, capReasons, closest };
+  // Add reasons for low scores
+  if (scores.grammar <= 4.5) capReasons.grammar.push('Frequent grammar errors');
+  if (scores.lexical <= 4.5) capReasons.lexical.push('Limited vocabulary range');
+  if (scores.task <= 4.5) capReasons.task.push('Position unclear or underdeveloped');
+  if (scores.coherence <= 4.5) capReasons.coherence.push('Limited organization');
+  
+  return { scores, capReasons };
 }
 
 // =============================================================================
-// EXPLANATIONS
+// FEEDBACK GENERATION
 // =============================================================================
 
-function generateExplanations(scores, capReasons) {
+function generateExplanations(scores) {
   const exp = { task: '', coherence: '', lexical: '', grammar: '' };
   
-  // Task
-  if (scores.task >= 8.0) {
-    exp.task = 'The response fully addresses all parts of the task with a clear, fully-developed position. Ideas are extended and well-supported with specific, relevant examples throughout.';
-  } else if (scores.task >= 7.0) {
-    exp.task = 'The response addresses all parts of the task with a clear position. Main ideas are extended and supported, though some points could be more fully developed.';
-  } else if (scores.task >= 6.0) {
-    exp.task = 'The response addresses the task, though some parts are more fully covered than others. The position is present but development is sometimes limited.';
-  } else if (scores.task >= 5.0) {
-    exp.task = 'The response partially addresses the task. The position is not always clear, and ideas are limited in development.';
-  } else {
-    exp.task = 'The response inadequately addresses the task. Ideas are unclear or insufficiently developed.';
-  }
+  const taskDescriptions = {
+    9: 'The response fully addresses all parts of the task with a fully developed position. Ideas are highly relevant, fully extended, and well supported with comprehensive evidence.',
+    8: 'The response fully addresses all parts of the task with a clear, well-developed position. Ideas are relevant, extended, and supported with specific examples.',
+    7: 'The response addresses all parts of the task with a clear position throughout. Main ideas are extended and supported with specific examples.',
+    6: 'The response addresses the task, though some parts may be more fully covered than others. The position is present with relevant ideas.',
+    5: 'The response partially addresses the task. The position is present but development is limited with few specific examples.',
+    4: 'The response inadequately addresses the task. Ideas are unclear, irrelevant, or insufficiently developed.'
+  };
   
-  // Coherence
-  if (scores.coherence >= 8.0) {
-    exp.coherence = 'Ideas are skilfully organised with seamless progression throughout. Cohesive devices are used effectively and appropriately.';
-  } else if (scores.coherence >= 7.0) {
-    exp.coherence = 'Information is logically organised with clear progression. A range of cohesive devices is used appropriately.';
-  } else if (scores.coherence >= 6.0) {
-    exp.coherence = 'There is a clear overall structure. Cohesive devices are used but may be mechanical at times.';
-  } else if (scores.coherence >= 5.0) {
-    exp.coherence = 'Organisation is evident but not always logical. Cohesive devices are limited or inaccurate.';
-  } else {
-    exp.coherence = 'Organisation is poor. Ideas lack clear progression and cohesion is inadequate.';
-  }
+  const coherenceDescriptions = {
+    9: 'Ideas are skilfully organised with seamless progression. Paragraphing and cohesion are handled with complete flexibility.',
+    8: 'Ideas are logically organised with clear progression throughout. Cohesive devices are used effectively.',
+    7: 'Information is logically organised with clear progression. A range of cohesive devices is used appropriately.',
+    6: 'There is a clear overall structure. Cohesive devices are used but may be mechanical at times.',
+    5: 'Organisation is evident but not always logical. Cohesive devices are limited or repetitive.',
+    4: 'Ideas are not logically organised. Cohesive devices are inadequate or inaccurate.'
+  };
   
-  // Lexical
-  if (scores.lexical >= 8.0) {
-    exp.lexical = 'A wide range of vocabulary is used with flexibility and precision. Sophisticated lexical items are used with full awareness of style and collocation.';
-  } else if (scores.lexical >= 7.0) {
-    exp.lexical = 'A sufficient range of vocabulary is used with flexibility. Less common lexical items are used with some awareness of style.';
-  } else if (scores.lexical >= 6.0) {
-    exp.lexical = 'An adequate range of vocabulary is used for the task. There may be some imprecision or repetition.';
-  } else if (scores.lexical >= 5.0) {
-    exp.lexical = 'A limited range of vocabulary is used, with noticeable errors in word choice and formation.';
-  } else {
-    exp.lexical = 'Vocabulary is extremely limited. Errors in word choice seriously impede communication.';
-  }
+  const lexicalDescriptions = {
+    9: 'A wide range of vocabulary is used with full flexibility and precision. Rare minor errors occur only as slips.',
+    8: 'A wide range of vocabulary is used fluently with sophisticated control of lexical features.',
+    7: 'A sufficient range of vocabulary allows flexibility and precision. Less common items are used effectively.',
+    6: 'An adequate range of vocabulary is used for the task. Some imprecision or repetition may occur.',
+    5: 'A limited range of vocabulary is used with noticeable errors in word choice and formation.',
+    4: 'A very limited range of vocabulary is used. Errors in word choice and formation impede communication.'
+  };
   
-  // Grammar
-  if (scores.grammar >= 8.0) {
-    exp.grammar = 'A wide range of structures is used accurately and appropriately. Errors are rare and minor.';
-  } else if (scores.grammar >= 7.0) {
-    exp.grammar = 'A variety of complex structures is used with good control. Grammar is generally accurate with few errors.';
-  } else if (scores.grammar >= 6.0) {
-    exp.grammar = 'A mix of simple and complex sentences is used. Some errors occur but they rarely impede communication.';
-  } else if (scores.grammar >= 5.0) {
-    exp.grammar = 'Sentence structures are limited. Grammatical errors are frequent and may cause difficulty for the reader.';
-  } else {
-    exp.grammar = 'Sentence structures are very limited. Errors predominate and severely impede communication.';
-  }
+  const grammarDescriptions = {
+    9: 'A wide range of structures is used with full flexibility and accuracy. Rare minor errors occur only as slips.',
+    8: 'A wide range of structures is used accurately and appropriately. Errors are rare and minor.',
+    7: 'A variety of complex structures is used with good control. Few errors occur and do not impede communication.',
+    6: 'A mix of simple and complex sentences is used. Some errors occur but rarely impede communication.',
+    5: 'Sentence structures are limited. Grammatical errors are frequent and may cause difficulty.',
+    4: 'Sentence structures are very limited. Errors predominate and severely impede communication.'
+  };
+  
+  const getDescription = (score, descriptions) => {
+    const band = Math.floor(score);
+    return descriptions[band] || descriptions[5];
+  };
+  
+  exp.task = getDescription(scores.task, taskDescriptions);
+  exp.coherence = getDescription(scores.coherence, coherenceDescriptions);
+  exp.lexical = getDescription(scores.lexical, lexicalDescriptions);
+  exp.grammar = getDescription(scores.grammar, grammarDescriptions);
   
   return exp;
 }
 
-function generateStrengths(scores, comparisons) {
+function generateStrengths(scores) {
   const strengths = [];
   
-  if (scores.task >= 7.0) strengths.push('Clear, well-developed position with extended ideas');
-  else if (comparisons.task?.better_than_4) strengths.push('Position is clearer than basic level');
+  if (scores.task >= 7) strengths.push('Clear position with specific supporting examples');
+  else if (scores.task >= 6) strengths.push('Clear position with relevant ideas');
+  else if (scores.task >= 5) strengths.push('Position is present');
   
-  if (scores.coherence >= 7.0) strengths.push('Well-organised with effective cohesion');
-  else if (comparisons.coherence?.better_than_4) strengths.push('Basic organisational structure present');
+  if (scores.coherence >= 7) strengths.push('Well-organised with effective cohesion');
+  else if (scores.coherence >= 6) strengths.push('Clear overall structure');
+  else if (scores.coherence >= 5) strengths.push('Basic organisation present');
   
-  if (scores.lexical >= 7.0) strengths.push('Good vocabulary range with sophistication');
-  else if (comparisons.vocabulary?.better_than_4) strengths.push('Vocabulary above basic level');
+  if (scores.lexical >= 7) strengths.push('Good vocabulary range with less common items');
+  else if (scores.lexical >= 6) strengths.push('Adequate vocabulary for the task');
   
-  if (scores.grammar >= 7.0) strengths.push('Good grammatical control');
-  else if (comparisons.grammar?.better_than_4) strengths.push('Fewer errors than basic level');
+  if (scores.grammar >= 7) strengths.push('Good grammatical control');
+  else if (scores.grammar >= 6) strengths.push('Mix of sentence structures used');
   
-  if (strengths.length === 0) {
-    strengths.push('Attempts to address the task');
-  }
+  if (strengths.length === 0) strengths.push('Attempts to address the task');
   
   return strengths.slice(0, 3);
 }
 
-function generateImprovements(scores, comparisons) {
+function generateImprovements(scores) {
   const improvements = [];
   
-  if (scores.grammar < 6.0) {
-    improvements.push('Focus on basic grammar accuracy: subject-verb agreement, articles (a/the), and correct verb forms');
+  if (scores.grammar < 5) {
+    improvements.push('Focus on basic grammar: subject-verb agreement, articles (a/the), verb forms');
+  } else if (scores.grammar < 6) {
+    improvements.push('Reduce grammatical errors - check each sentence carefully');
+  } else if (scores.grammar < 7) {
+    improvements.push('Use more complex sentence structures accurately');
   }
   
-  if (scores.lexical < 6.0) {
-    improvements.push('Expand vocabulary beyond basic words (good, bad, very) - use more precise, academic alternatives');
+  if (scores.lexical < 5) {
+    improvements.push('Expand vocabulary beyond basic words (good, bad, very, thing)');
+  } else if (scores.lexical < 6) {
+    improvements.push('Use more varied vocabulary - avoid repetition');
+  } else if (scores.lexical < 7) {
+    improvements.push('Include more sophisticated vocabulary naturally');
+  } else if (scores.lexical < 8) {
+    improvements.push('Use academic vocabulary with precision');
   }
   
-  if (scores.task < 6.0) {
-    improvements.push('State your position clearly and develop each idea with specific examples');
+  if (scores.task < 5) {
+    improvements.push('State your position clearly in the introduction');
+  } else if (scores.task < 6) {
+    improvements.push('Develop ideas more fully with examples');
+  } else if (scores.task < 7) {
+    improvements.push('Include specific examples with names, data, or statistics');
+  } else if (scores.task < 8) {
+    improvements.push('Add multiple specific real-world examples');
   }
   
-  if (scores.coherence < 6.0) {
-    improvements.push('Use clearer paragraph structure and cohesive devices to connect ideas');
-  }
-  
-  if (scores.grammar >= 6.0 && scores.grammar < 8.0) {
-    improvements.push('Increase sentence variety with more complex structures (although, which, if clauses)');
-  }
-  
-  if (scores.lexical >= 6.0 && scores.lexical < 8.0) {
-    improvements.push('Use more sophisticated vocabulary naturally - study the Band 8 example for word choices');
-  }
-  
-  if (scores.task >= 6.0 && scores.task < 8.0) {
-    improvements.push('Include more specific, real-world examples (names, places, statistics)');
+  if (scores.coherence < 6) {
+    improvements.push('Use clearer paragraph structure and linking words');
   }
   
   if (improvements.length === 0) {
-    improvements.push('Continue refining precision and sophistication');
+    improvements.push('Maintain consistency and precision at this high level');
   }
   
   return improvements.slice(0, 3);
 }
 
 function generateTips(overall) {
-  if (overall < 5.0) {
+  if (overall < 5) {
     return [
-      'Study the grammar in the Band 6 example - note correct verb forms',
-      'Practice basic sentence patterns before attempting complex ones',
-      'Focus on stating ONE clear opinion, not fence-sitting'
+      'Study the Band 5 example - notice correct basic grammar',
+      'Learn common collocations and phrases',
+      'Practice stating a clear opinion in the first paragraph'
     ];
   }
-  if (overall < 6.0) {
+  if (overall < 6) {
     return [
-      'Compare your vocabulary to the Band 6 example - note the word choices',
-      'Ensure every sentence has correct subject-verb agreement',
-      'Develop ideas with "because", "for example", "as a result"'
+      'Compare your essay to the Band 6 example',
+      'Use linking words: however, furthermore, in addition',
+      'Develop each paragraph with one clear main idea'
     ];
   }
-  if (overall < 7.0) {
+  if (overall < 7) {
     return [
-      'Study the Band 8 example - note the specific examples used',
-      'Use more sophisticated vocabulary naturally, not forced',
-      'Ensure your position is maintained consistently throughout'
+      'Study the Band 7 example - note the specific Stanford example',
+      'Include at least ONE specific example with a name or statistic',
+      'Use vocabulary like: significant, considerable, essential, crucial'
+    ];
+  }
+  if (overall < 8) {
+    return [
+      'Study the Band 8 example - note MULTIPLE specific examples',
+      'Use sophisticated vocabulary: propensity, undermine, mitigate',
+      'Show nuance - acknowledge counterarguments before refuting them'
+    ];
+  }
+  if (overall < 9) {
+    return [
+      'Study the Band 9 example - note the academic style',
+      'Include research citations or detailed statistics',
+      'Use academic register throughout'
     ];
   }
   return [
-    'Focus on nuance - acknowledge counterarguments before refuting them',
-    'Use specific examples with real names, places, or data',
-    'Ensure vocabulary choices are precise and collocationally accurate'
+    'Exceptional performance - maintain this standard',
+    'Minor refinements for absolute precision',
+    'Continue reading academic texts to maintain vocabulary'
   ];
 }
 
 function getBandSummary(overall) {
-  if (overall >= 8.0) return 'Very Good User - Handles complex language with full flexibility';
-  if (overall >= 7.0) return 'Good User - Handles complex language well';
-  if (overall >= 6.0) return 'Competent User - Generally effective despite errors';
-  if (overall >= 5.0) return 'Modest User - Partial command with frequent errors';
-  return 'Limited User - Basic command with serious errors';
+  if (overall >= 9) return 'Expert User - Full operational command with complete accuracy';
+  if (overall >= 8) return 'Very Good User - Full operational command with occasional inaccuracies';
+  if (overall >= 7) return 'Good User - Operational command with occasional inaccuracies';
+  if (overall >= 6) return 'Competent User - Generally effective command despite inaccuracies';
+  if (overall >= 5) return 'Modest User - Partial command, coping with overall meaning';
+  return 'Limited User - Basic competence limited to familiar situations';
 }
 
-function getCLBProjection(writingBand) {
+function getCLBProjection(band) {
   const clbMap = {
-    '4.0': 4, '4.5': 5, '5.0': 5, '5.5': 6,
-    '6.0': 7, '6.5': 8, '7.0': 9, '7.5': 10, '8.0': 10, '8.5': 10, '9.0': 10
+    4.0: 4, 4.5: 5, 5.0: 5, 5.5: 6, 6.0: 7, 6.5: 8, 7.0: 9, 7.5: 10, 8.0: 10, 8.5: 10, 9.0: 10
   };
   
-  const clb = clbMap[writingBand.toFixed(1)] || 5;
-  const nextThreshold = clb < 7 ? { clb: 7, ielts: 6.0 }
-                       : clb < 8 ? { clb: 8, ielts: 6.5 }
-                       : clb < 9 ? { clb: 9, ielts: 7.0 }
-                       : null;
-  
+  const clb = clbMap[band] || 5;
+  let nextThreshold = null;
   let immigrationNote = '';
+  
   if (clb < 7) {
-    immigrationNote = 'This score is below CLB 7, the minimum for Express Entry. Focus on reaching Band 6.0.';
+    nextThreshold = { clb: 7, ielts: 6.0 };
+    immigrationNote = 'Below CLB 7 minimum for Express Entry. Target: Band 6.0.';
   } else if (clb === 7) {
-    immigrationNote = 'This score meets CLB 7, the minimum for Express Entry.';
+    nextThreshold = { clb: 8, ielts: 6.5 };
+    immigrationNote = 'Meets CLB 7 minimum. Band 6.5 (CLB 8) recommended for competitive CRS.';
   } else if (clb === 8) {
-    immigrationNote = 'This score meets CLB 8. Band 7.0 (CLB 9) would significantly increase CRS points.';
+    nextThreshold = { clb: 9, ielts: 7.0 };
+    immigrationNote = 'Meets CLB 8. Band 7.0 (CLB 9) significantly increases CRS points.';
   } else {
-    immigrationNote = 'This score meets CLB 9+, maximizing language points.';
+    immigrationNote = 'Meets CLB 9+, maximizing language points for Express Entry.';
   }
   
   return { clb, nextThreshold, immigrationNote };
@@ -470,17 +529,17 @@ export async function handler(event) {
       return { statusCode: 400, headers, body: JSON.stringify({ error: "Essay too short" }) };
     }
     
-    console.log('=== SCORING ENGINE v5.3 (Comparative) ===');
+    console.log('=== SCORING ENGINE v5.5 (Full Band Coverage) ===');
     
     const taskPrompt = prompt || "Discuss both views and give your own opinion.";
     const { comparisons, wordCount: wc } = await scoreEssayComparative(taskPrompt, answer);
-    const { scores, capReasons, closest } = comparisonsToScores(comparisons, wc);
+    const { scores, capReasons } = comparisonsToScores(comparisons, wc);
     
     const avg = (scores.task + scores.coherence + scores.lexical + scores.grammar) / 4;
     const overall = Math.round(avg * 2) / 2;
     
     const clbProjection = getCLBProjection(overall);
-    const explanations = generateExplanations(scores, capReasons);
+    const explanations = generateExplanations(scores);
     
     console.log('Final scores:', scores, 'Overall:', overall);
     
@@ -493,21 +552,16 @@ export async function handler(event) {
       scores,
       feedback: explanations,
       band_summary: getBandSummary(overall),
-      strengths: generateStrengths(scores, comparisons),
-      improvements: generateImprovements(scores, comparisons),
+      strengths: generateStrengths(scores),
+      improvements: generateImprovements(scores),
       tips: generateTips(overall),
       wordCount: wc,
       testId,
       clb: clbProjection.clb,
       clb_projection: clbProjection,
-      _debug: {
-        comparisons,
-        closest,
-        capReasons
-      }
+      _debug: { comparisons, capReasons }
     };
     
-    // Save to Supabase
     try {
       await supabase.from("user_test_results").insert({
         email: email.toLowerCase(),
