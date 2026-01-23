@@ -1,8 +1,8 @@
 // =============================================================================
-// EVOLVE IELTS WRITING SCORING ENGINE v7.2
+// EVOLVE IELTS WRITING SCORING ENGINE v7.2.1
 // =============================================================================
-// STRICT ENFORCEMENT: Server-side caps + Grammar-focused calibration
-// Two-phase approach: Error counting THEN scoring
+// UNIVERSAL: Same error-counting logic for ALL writing - essays, letters, any format
+// Grammar errors are grammar errors. Period.
 // =============================================================================
 
 import OpenAI from "openai";
@@ -22,10 +22,28 @@ const headers = {
 };
 
 // =============================================================================
-// CALIBRATION ESSAYS - NOW INCLUDES GRAMMAR-FOCUSED BAND 4
+// CALIBRATION EXAMPLES - ESSAYS AND LETTERS
 // =============================================================================
+// Grammar errors are grammar errors regardless of format.
+// These examples show what Band 4-5 writing looks like in any format.
 
-// Band 4 with GRAMMAR errors (not just spelling) - matches the pattern we're seeing
+// BAND 4 LETTER (Grammar errors in almost every sentence)
+const BAND_4_LETTER = `Dear Sir,
+
+Hello my name is Alex and I hope you remember me. I was working in your company some years ago in the office. I did many jobs like answering phone, helping customers and sometimes cleaning the files. I was there for one year and you was my boss at that time. I am writing this letter because I need help from you now.
+
+I need a letter of recomendation for a new job I am trying to get. The job ask me to bring a letter from old manager and you are the only manager I had before. This letter is important because without it I cannot apply properly. I hope you can say good things about me because I tried my best when I was working there, even if sometimes I was late or confused.
+
+The job I am applying for is in another office. It is a basic job where I help people, use computer and do simple tasks. I think this job is good for me and I really want it. If you write the letter, it will help me a lot and I will be very happy.
+
+Thank you for reading my letter. I hope you can help me.
+
+Yours faithfully,
+Alex`;
+// KEY ERRORS: "you was" (subject-verb), "answering phone" (missing article), "The job ask" (subject-verb), 
+// "old manager" (missing article), "use computer" (missing article), basic vocabulary throughout
+
+// Band 4 with GRAMMAR errors (essay format)
 const BAND_4_GRAMMAR_ESSAY = `Technology is very big today and students use it every day in school and home. Some people think technology make learning more easy, but other people think it make more distraction. I will talk about both side and give my opinion also.
 
 First, technology help students because they can find information very fast. If student do not know something, they can google it and get answer. This is good because before students must go library and find book which take long time. Also teachers use computer and projector in class which make lesson more interesting sometime. Video and picture can help student understand topic better than just reading book.
@@ -82,9 +100,11 @@ In conclusion, although team sports are a great method to teach children how to 
 // =============================================================================
 
 function buildErrorCountingPrompt(essay) {
-  return `You are a grammar error detector. Your ONLY job is to count errors in this essay. Do NOT score it. Do NOT be lenient. Count EVERY error.
+  return `You are a grammar error detector. Your ONLY job is to count errors in this text. Do NOT score it. Do NOT be lenient. Count EVERY error.
 
-## ESSAY TO ANALYZE:
+This applies to ANY text - essays, letters, reports, anything. Grammar errors are grammar errors regardless of format.
+
+## TEXT TO ANALYZE:
 "${essay}"
 
 ## COUNT THESE ERROR TYPES:
@@ -198,11 +218,11 @@ function buildScoringPrompt(essay, taskPrompt, wordCount, errorAnalysis) {
     capBand = 6.5;
   }
 
-  return `You are an IELTS Writing Task 2 examiner. Score this essay.
+  return `You are an IELTS Writing examiner. Score this response.
 
 ## ⚠️ MANDATORY SCORING CAP ⚠️
 
-An independent error analysis has already been conducted on this essay:
+An independent error analysis has already been conducted:
 
 **Total Errors Found: ${totalErrors}**
 **Error Density: ${errorDensity}**
@@ -215,54 +235,50 @@ An independent error analysis has already been conducted on this essay:
 **MAXIMUM SCORE ALLOWED: ${capBand}**
 
 You CANNOT score above ${capBand} for ANY criterion. This is non-negotiable.
+Grammar errors are grammar errors - whether this is a letter, essay, or any other format.
 
 ---
 
-## CALIBRATION REFERENCE
+## CALIBRATION REFERENCE (Same standards apply to ALL formats)
 
-### BAND 4.0 (Grammar-focused) - 25+ errors, errors in almost every sentence:
-"Technology is very big today and students use it every day... Some people think technology make learning more easy... technology help students because they can find information... If student do not know something... students must go library and find book which take long time... Many student cannot control themself..."
+### BAND 4.0 LETTER - 20+ errors:
+"Hello my name is Alex and I hope you remember me. I was working in your company some years ago... you was my boss at that time... The job ask me to bring a letter from old manager... I hope you can say good things about me because I tried my best..."
+ERRORS: "you was," "The job ask," "old manager" (missing article), basic vocabulary
 
-### BAND 5.0 - 15-20 errors, frequent errors but some control:
-"There's an opinion around the ideal way to encourage and teach youngesters how to develop cooperetion skills... engrossing with teammates will naturally result in the evolvment in the infant's cooperation..."
+### BAND 4.0 ESSAY - 25+ errors:
+"Technology is very big today... Some people think technology make learning more easy... technology help students because they can find information... If student do not know something... students must go library and find book which take long time..."
+ERRORS: "make learning more easy," "technology help," "If student do not know," "must go library"
 
-### BAND 6.0 - 10-14 errors, noticeable but doesn't impede communication:
-"It is often argued that some countries invist in devolping highly specialised training centers... In my opinion i think both ideas together can contribue..."
+### BAND 5.0 - 15-20 errors, frequent but some control:
+"There's an opinion around the ideal way to encourage and teach youngesters how to develop cooperetion skills..."
+ERRORS: Spelling errors, basic vocabulary, ideas present but thin
 
-### BAND 7.0 - 5-9 errors, occasional errors only:
-"It is a serious problem that there is an inadequate number of students who tend to select science... students may see science as something unpractical..."
+### BAND 6.0 - 10-14 errors, noticeable but communication clear:
+"It is often argued that some countries invist in devolping highly specialised training centers..."
+ERRORS: Some spelling, adequate vocabulary, ideas developed
+
+### BAND 7.0+ - Under 10 errors:
+"It is a serious problem that there is an inadequate number of students who tend to select science..."
+Rare errors, good vocabulary, well-developed ideas
 
 ---
 
-## ESSAY TO SCORE
+## TEXT TO SCORE
 
 **Task:** ${taskPrompt}
 **Word count:** ${wordCount}
 
-**Essay:**
+**Response:**
 "${essay}"
 
 ---
 
-## SCORING CRITERIA (Apply cap of ${capBand} maximum)
+## SCORING (Apply cap of ${capBand} maximum to ALL criteria)
 
-**Task Achievement** (max ${capBand}):
-- Does it address the prompt?
-- Is position clear?
-- Are ideas developed?
-
-**Coherence & Cohesion** (max ${capBand}):
-- Logical organization?
-- Paragraph structure?
-- Linking devices?
-
-**Lexical Resource** (max ${capBand}):
-- Vocabulary range?
-- Word choice accuracy?
-- Repetition level?
-
-**Grammatical Range & Accuracy** (max ${Math.min(capBand, 4.5 + (10 - Math.min(totalErrors, 20)) * 0.25)}):
-- With ${totalErrors} errors, grammar score MUST be ${totalErrors >= 20 ? "4.0-4.5" : totalErrors >= 15 ? "4.5-5.0" : totalErrors >= 10 ? "5.0-5.5" : "5.5-6.5"}
+With ${totalErrors} errors found:
+- **Grammar MUST be**: ${totalErrors >= 20 ? "4.0-4.5" : totalErrors >= 15 ? "4.5-5.0" : totalErrors >= 10 ? "5.0-5.5" : "5.5+"}
+- **Lexical MUST be**: ${totalErrors >= 20 ? "4.0-4.5" : totalErrors >= 15 ? "4.5-5.5" : "based on vocabulary range"}
+- **All criteria capped at**: ${capBand}
 
 ---
 
@@ -448,7 +464,7 @@ export async function handler(event) {
     const cleanedAnswer = cleanEssayText(answer);
     const wordCount = cleanedAnswer.trim().split(/\s+/).filter(w => w.length > 0).length;
     
-    console.log("v7.2 Scoring request:", { email, testId, wordCount });
+    console.log("v7.2.1 Scoring request:", { email, testId, wordCount });
 
     // =========================================================================
     // PHASE 1: ERROR COUNTING (Separate API call)
@@ -506,7 +522,7 @@ export async function handler(event) {
       messages: [
         {
           role: "system",
-          content: `You are an IELTS examiner. The essay has been analyzed and contains ${errorAnalysis.total_errors} errors with ${errorAnalysis.error_density} error density. You MUST respect the scoring caps. An essay with ${errorAnalysis.total_errors} errors CANNOT score above ${errorAnalysis.total_errors >= 20 ? '4.5' : errorAnalysis.total_errors >= 15 ? '5.5' : errorAnalysis.total_errors >= 10 ? '6.5' : '7.5'}. Return only valid JSON.`
+          content: `You are an IELTS examiner. Grammar errors are grammar errors - whether it's a letter, essay, or any format. The text has ${errorAnalysis.total_errors} errors with ${errorAnalysis.error_density} density. You MUST respect the scoring caps. A text with ${errorAnalysis.total_errors} errors CANNOT score above ${errorAnalysis.total_errors >= 20 ? '4.5' : errorAnalysis.total_errors >= 15 ? '5.5' : errorAnalysis.total_errors >= 10 ? '6.5' : '7.5'}. Return only valid JSON.`
         },
         {
           role: "user",
@@ -588,7 +604,7 @@ export async function handler(event) {
       clb: clbProjection.clb,
       clb_projection: clbProjection,
       _debug: {
-        version: "v7.2",
+        version: "v7.2.1",
         model: "gpt-4o",
         raw_scores: rawScores,
         capped_scores: cappedScores,
