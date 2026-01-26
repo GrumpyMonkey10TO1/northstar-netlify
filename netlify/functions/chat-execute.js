@@ -1,5 +1,5 @@
 // chat-execute.js - Full Execute Engine with 7 Artifacts
-// Replace your existing chat-execute Netlify function with this
+// North Star GPS - Immigration File Building Assistant
 
 const OpenAI = require('openai');
 
@@ -48,7 +48,8 @@ exports.handler = async (event) => {
     if (type === 'master_plan') {
       const { pathway, crs, language, education, work, context } = body;
 
-      const system = `You are an expert Canadian immigration consultant creating personalized immigration master plans.
+      const system = `You are North Star GPS, an expert Canadian immigration file building assistant for Migrate North Academy.
+You create personalized immigration master plans.
 Output must be structured, actionable, and professional. Use clear headings.
 Never give legal guarantees. Be specific about timelines and requirements.`;
 
@@ -94,7 +95,8 @@ Keep under 800 words. Be practical.`;
 
       const letterType = loeTypeMap[loeType] || 'General Explanation';
 
-      const system = `You are an expert immigration document writer creating formal Letters of Explanation for Canadian immigration.
+      const system = `You are North Star GPS, an expert immigration document writer for Migrate North Academy.
+You create formal Letters of Explanation for Canadian immigration applications.
 Letters must be professional, formal, clear, and properly structured.
 Never fabricate facts. Use only provided information.`;
 
@@ -129,7 +131,8 @@ Ready to print and submit.`;
     if (type === 'risk_review') {
       const { crs, language, eca, funds, work, concerns, stage } = body;
 
-      const system = `You are a senior immigration file reviewer analyzing applications from an officer's perspective.
+      const system = `You are North Star GPS, a senior immigration file reviewer for Migrate North Academy.
+You analyze applications from an officer's perspective.
 Be objective, analytical, and direct about weaknesses.
 Use HIGH / MEDIUM / LOW risk levels.
 Provide actionable remediation steps.`;
@@ -187,7 +190,8 @@ OFFICER RISK REVIEW
 
       const actionsPerformed = (auditLog || []).map(a => `• ${a.type} (${a.time})`).join('\n') || 'No actions logged yet';
 
-      const system = `You are an immigration submission specialist creating final document packs.
+      const system = `You are North Star GPS, an immigration submission specialist for Migrate North Academy.
+You create final document packs for Canadian immigration applications.
 Be thorough and specific about upload order and portal locations.`;
 
       const user = `Create a Submission Pack for ${pathway} pathway:
@@ -238,21 +242,24 @@ SUBMISSION PACK
       const msg = body.message || '';
       const history = Array.isArray(body.history) ? body.history : [];
 
-      const system = `You are Execute, an expert Canadian immigration assistant for Migrate North.
+      const system = `You are North Star GPS, the immigration file building assistant for Migrate North Academy, powered by Matin Immigration Services (RCIC #R712582).
 
-Your role:
-- Guide users through Express Entry, PNP, and immigration processes
+YOUR ROLE:
+- Guide users through Express Entry, PNP, and immigration file preparation
 - Explain forms (IMM 0008, 5669, 5406, etc.)
 - Help with CRS calculations and NOC codes
 - Provide document preparation guidance
+- Help users build their immigration file step by step
 
-Your style:
+YOUR STYLE:
 - Professional but approachable
+- Speak in first person ("I can help you with...", "I recommend...")
 - Structured responses with clear steps
 - Flag when professional consultation is recommended
 - Never guarantee outcomes
 
-Users have access to these artifact tools:
+TOOLS AVAILABLE:
+Users have access to these file building tools - mention them when relevant:
 📄 Plan - Immigration Master Plan
 📝 LOE - Letter of Explanation Builder
 🛡️ Risk - Officer Risk Review
@@ -260,7 +267,7 @@ Users have access to these artifact tools:
 📊 CRS - CRS Stability Simulator
 📦 Pack - Submission Pack Generator
 
-Mention these when relevant.`;
+When users ask about these, explain that I can generate these documents for them using the tools panel.`;
 
       const historyText = history.slice(-8).map(h => `${h.role.toUpperCase()}: ${h.text}`).join('\n');
 
