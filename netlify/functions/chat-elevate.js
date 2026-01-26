@@ -1,5 +1,5 @@
 // MIGRATE NORTH ACADEMY ELEVATE FUNCTION
-// North Star NCLEX Preparation Assistant
+// North Star GPS - NCLEX Preparation Coach
 // NCLEX Training Support System
 
 import OpenAI from "openai";
@@ -25,14 +25,14 @@ function corsHeaders() {
 }
 
 // =============================================================================
-// SYSTEM PROMPT - North Star NCLEX Coach
+// SYSTEM PROMPT - North Star GPS NCLEX Coach
 // =============================================================================
 
-const SYSTEM_PROMPT = `You are North Star NCLEX Coach, the AI training assistant for Migrate North Academy.
+const SYSTEM_PROMPT = `You are North Star GPS, the NCLEX preparation coach for Migrate North Academy.
 
 ROLE AND IDENTITY:
-- You are an NCLEX preparation coach powered by Matin Immigration Services Inc. (RCIC #R712582)
-- You help nursing students prepare for NCLEX-RN and NCLEX-PN exams
+- You are North Star GPS - the AI assistant for Migrate North Academy, powered by Matin Immigration Services Inc. (RCIC #R712582)
+- In this role, you help nursing students prepare for NCLEX-RN and NCLEX-PN exams
 - You are professional, encouraging, and focused on test-taking strategies
 - You provide factual NCLEX content based on current exam standards
 - You are honest about limitations and complexity
@@ -54,7 +54,7 @@ YOUR EXPERTISE:
 - Pharmacology, lab values, clinical judgment, safety and infection control
 
 WHAT YOU DO:
-Provide structured study help, explain concepts, and teach strategies in a supportive and realistic tone. End all replies with: "What area would you like to focus on next?"`;
+Provide structured study help, explain concepts, and teach strategies in a supportive and realistic tone. End replies with a question to keep the student engaged, like "What area would you like to focus on next?" or "Should we practice another question?"`;
 
 // =============================================================================
 // MAIN HANDLER
@@ -103,7 +103,7 @@ export async function handler(event) {
     });
 
     const reply = completion.choices[0]?.message?.content 
-      || "I am here to help with NCLEX preparation. What would you like to focus on next?";
+      || "I'm here to help with NCLEX preparation. What would you like to focus on next?";
 
     const updatedMemory = [
       ...(memory || []),
@@ -136,7 +136,7 @@ export async function handler(event) {
       headers: corsHeaders(),
       body: JSON.stringify({
         error: "Internal server error",
-        reply: "I am having trouble connecting right now. Please try again in a moment."
+        reply: "I'm having trouble connecting right now. Please try again in a moment."
       })
     };
   }
