@@ -3,6 +3,7 @@
 // Phase 2 Complete: Funnel state tracking, tier recommendations, soft gates
 // v9 Updates: Better system prompt, more FAQ responses, direct answers
 // v10 Updates: INTENT ROUTER - Deterministic product routing, no more guessing
+// v11 Updates: NAMING FIX - Use "Language Training/Licensing Support/Immigration Pathway" not "Evolve/Elevate/Execute"
 
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
@@ -23,6 +24,21 @@ const supabaseAuth = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
 );
+
+// ==============================================================================
+// TIER NAME MAPPING - Internal codes to user-facing names
+// ==============================================================================
+// Internal: evolve, elevate, execute (used in code/database)
+// User-facing: Language Training, Licensing Support, Immigration Pathway
+
+function getTierDisplayName(internalName) {
+  const mapping = {
+    "evolve": "Language Training",
+    "elevate": "Licensing Support",
+    "execute": "Immigration Pathway"
+  };
+  return mapping[internalName] || internalName;
+}
 
 // ==============================================================================
 // IDENTITY LAYER - Phase 1B
@@ -202,8 +218,9 @@ function mapLimiterToTier(limiter, profile) {
   if (limiter === "language") {
     return {
       tier: "evolve",
+      tierDisplayName: "Language Training",
       reason: "Your language scores are your biggest opportunity for improvement",
-      pitch: "Evolve includes AI-powered IELTS practice with real-time feedback to help you reach CLB 9+."
+      pitch: "I can help you with AI-powered IELTS practice and real-time feedback to help you reach CLB 9+."
     };
   }
   
@@ -216,17 +233,19 @@ function mapLimiterToTier(limiter, profile) {
   if (isHealthcare) {
     return {
       tier: "elevate",
+      tierDisplayName: "Licensing Support",
       reason: "Healthcare professionals have specific licensing requirements in Canada",
-      pitch: "Elevate includes NCLEX preparation and Canadian licensing guidance for healthcare workers."
+      pitch: "I can help you with NCLEX preparation and Canadian licensing guidance for healthcare workers."
     };
   }
   
   return {
     tier: "execute",
+    tierDisplayName: "Immigration Pathway",
     reason: limiter 
       ? `Your ${limiter} status needs strategic planning to optimize your pathway`
       : "You're ready to move forward with your immigration application",
-    pitch: "Execute provides step-by-step guidance through Express Entry, PNP selection, and application preparation."
+    pitch: "I can provide step-by-step guidance through Express Entry, PNP selection, and application preparation."
   };
 }
 
@@ -256,14 +275,14 @@ function generateEscalationPrompt(profile, promptLevel) {
   if (promptLevel === 0) return null;
   
   const recommendation = mapLimiterToTier(profile.primary_limiter, profile);
-  const tierName = recommendation.tier.charAt(0).toUpperCase() + recommendation.tier.slice(1);
+  const tierName = recommendation.tierDisplayName;
   
   const prompts = {
-    1: `\n\n---\n💡 **Quick tip:** ${recommendation.reason}. When you're ready to take the next step, our **${tierName}** tier can help accelerate your progress.`,
+    1: `\n\n---\n💡 **Quick tip:** ${recommendation.reason}. When you're ready to take the next step, subscribe to **${tierName}** and I can help accelerate your progress.`,
     
-    2: `\n\n---\n🎯 **Personalized recommendation:** Based on your profile, ${recommendation.pitch}\n\nClick **💳 Subscribe** to unlock ${tierName} features, or keep exploring - I'm here to help either way.`,
+    2: `\n\n---\n🎯 **Personalized recommendation:** Based on your profile, ${recommendation.pitch}\n\nClick **💳 Subscribe** to unlock ${tierName}, or keep exploring - I'm here to help either way.`,
     
-    3: `\n\n---\n🚀 **Ready to accelerate?**\n\nYou've done great work understanding your immigration pathway. ${recommendation.pitch}\n\n**${tierName}** is designed specifically for people in your situation. [Learn more about ${tierName} →]\n\nNo pressure - I'll keep helping you here in Explore regardless.`
+    3: `\n\n---\n🚀 **Ready to accelerate?**\n\nYou've done great work understanding your immigration pathway. ${recommendation.pitch}\n\n**${tierName}** unlocks the full toolkit for people in your situation.\n\nNo pressure - I'll keep helping you here regardless.`
   };
   
   return prompts[promptLevel] || null;
@@ -271,34 +290,34 @@ function generateEscalationPrompt(profile, promptLevel) {
 
 function buildTierRecommendation(profile, crsResult) {
   const recommendation = mapLimiterToTier(profile.primary_limiter, profile);
-  const tierName = recommendation.tier.charAt(0).toUpperCase() + recommendation.tier.slice(1);
+  const tierName = recommendation.tierDisplayName;
   
   let message = `\n\n---\n\n### Your Personalized Next Step\n\n`;
   message += `**${recommendation.reason}.**\n\n`;
   message += `${recommendation.pitch}\n\n`;
   
   if (recommendation.tier === "evolve") {
-    message += `**What's included in Evolve ($250 CAD/year):**\n`;
+    message += `**What you get with ${tierName} ($250 CAD/year):**\n`;
     message += `• AI-powered IELTS & CELPIP Reading & Writing practice\n`;
     message += `• Real-time scoring and detailed feedback\n`;
     message += `• Vocabulary tracking and personalized drills\n`;
     message += `• Progress tracking toward your target scores\n`;
     message += `• Speaking & Listening packages available separately\n`;
   } else if (recommendation.tier === "elevate") {
-    message += `**What's included in Elevate ($350 CAD/year):**\n`;
+    message += `**What you get with ${tierName} ($350 CAD/year):**\n`;
     message += `• Comprehensive NCLEX question bank (400+ questions)\n`;
     message += `• Canadian nursing licensing guidance\n`;
     message += `• NNAS credential assessment support\n`;
     message += `• Provincial registration pathways\n`;
   } else {
-    message += `**What's included in Execute ($450 CAD/year):**\n`;
+    message += `**What you get with ${tierName} ($450 CAD/year):**\n`;
     message += `• Step-by-step Express Entry guidance\n`;
     message += `• PNP selection and application support\n`;
     message += `• Document preparation checklists\n`;
     message += `• CRS optimization strategies\n`;
   }
   
-  message += `\nThese tools are available 24/7 - use them to work for you!\n`;
+  message += `\nI'm available 24/7 - subscribe and let's get to work!\n`;
   message += `\nClick **💳 Subscribe** to get started, or continue exploring - I'm happy to answer more questions.`;
   
   return message;
@@ -993,11 +1012,11 @@ Couple + 1 child = ~$8,000-10,000 fees + $22,500 proof of funds
 • Test prep: $100-500
 • Translations: $50-200
 
-**OUR TOOLS SAVE YOU MONEY:**
+**OUR SUBSCRIPTIONS SAVE YOU MONEY:**
 • Language Training: $250/year (vs $500+ prep courses)
 • Immigration Pathway: $450/year (vs $2,000+ consultants)
 
-These tools are available 24/7 to work for you!`
+I'm available 24/7 to help you through this!`
     },
     "documents_needed": {
       response: `**Express Entry Document Checklist**
@@ -1084,67 +1103,67 @@ We believe that with the right tools, **you can do anything.**
 
 Our mission is to **empower you** on your immigration journey. We want to make this whole process feel easier - less overwhelming, more achievable.
 
-**Think of our platforms as your 24/7 support system.** These tools are here to work for YOU, whenever you need them.
+**I'm North Star GPS** - your 24/7 immigration assistant. I'm here to work for YOU, whenever you need me.
 
 **WHO WE ARE**
 Matin Immigration Services Inc. operates under **RCIC License R712582**, issued by the College of Immigration and Citizenship Consultants of Canada.
 
-**OUR PLATFORMS:**
+**SUBSCRIPTION TIERS:**
 
-📚 **Language Training (Evolve)** - $250 CAD/year
+📚 **Language Training** - $250 CAD/year
 Reading & Writing practice on migratenorth.ca
 Speaking & Listening packages available separately
 
-🩺 **Licensing Support (Elevate)** - $350 CAD/year
+🩺 **Licensing Support** - $350 CAD/year
 NCLEX preparation for internationally educated nurses
 
-🛫 **Immigration Pathway (Execute)** - $450 CAD/year
+🛫 **Immigration Pathway** - $450 CAD/year
 Express Entry & PNP step-by-step guidance
 
 **OUR PHILOSOPHY:**
-You are capable. You just need the right guidance and tools. We are here to help you succeed - available 24/7, working around your schedule, at a fraction of traditional consulting costs.
+You are capable. You just need the right guidance and tools. I'm here to help you succeed - available 24/7, working around your schedule, at a fraction of traditional consulting costs.
 
 **Contact:** info@migratenorth.ca`
     },
     "pricing_services": {
       response: `**Matin Immigration Services Pricing**
 
-**CORE SUBSCRIPTIONS:**
+**SUBSCRIPTION TIERS:**
 
-📚 **Language Training (Evolve)** - **$250 CAD/year**
+📚 **Language Training** - **$250 CAD/year**
 • 66 IELTS/CELPIP Reading & Writing practice tests
 • Real-time feedback and scoring
 • Vocabulary tracking and review
 • Speaking & Listening packages - contact info@migratenorth.ca
 
-🩺 **Licensing Support (Elevate)** - **$350 CAD/year**
+🩺 **Licensing Support** - **$350 CAD/year**
 • 400+ NCLEX practice questions (NGN format)
 • NNAS credential guidance
 • Provincial licensing pathways
 • Progress tracking
 
-🛫 **Immigration Pathway (Execute)** - **$450 CAD/year**
+🛫 **Immigration Pathway** - **$450 CAD/year**
 • Express Entry step-by-step guidance
 • CRS optimization strategies
 • Document preparation support
 • 80+ PNP stream tracking
 
 **BUNDLE OFFERS:**
-• Nurse Success Pack (Evolve + Elevate): **$550/year** - Save $50
-• Skilled Worker Pack (Evolve + Execute): **$625/year** - Save $75
-• Complete Migration Pack (Elevate + Execute): **$725/year** - Save $75
+• Nurse Success Pack (Language + Licensing): **$550/year** - Save $50
+• Skilled Worker Pack (Language + Immigration): **$625/year** - Save $75
+• Complete Migration Pack (Licensing + Immigration): **$725/year** - Save $75
 • All Access Pack (All three): **$900/year** - Save $150
 
 **PROFESSIONAL SERVICES:**
 • Application Audit: $300 CAD
 • Full Representation: Starting at $2,000 CAD
 
-All platforms available 24/7 - use them to work for you!
+I'm available 24/7 - subscribe and let's get to work!
 
 Click 💳 Subscribe to get started.`
     },
     "language_training": {
-      response: `📚 **Language Training (Evolve)**
+      response: `📚 **Language Training**
 
 **What You Get on migratenorth.ca:**
 ✓ 66 full-length Reading & Writing practice tests
@@ -1161,12 +1180,12 @@ Anyone preparing for Canadian immigration language requirements. Most Express En
 
 **Pricing:** $250 CAD/year
 
-These tools are available 24/7 - use them to work for you!
+I'm available 24/7 - subscribe and let's get started!
 
 Click 💳 Subscribe to get started.`
     },
     "licensing_support": {
-      response: `🩺 **Licensing Support (Elevate)**
+      response: `🩺 **Licensing Support**
 
 **What You Get:**
 ✓ 400+ NCLEX practice questions (NGN format)
@@ -1181,12 +1200,12 @@ Internationally Educated Nurses (IENs) seeking to practice in Canada. Covers the
 
 **Pricing:** $350 CAD/year
 
-These tools are available 24/7 - use them to work for you!
+I'm available 24/7 - subscribe and let's get started!
 
 Click 💳 Subscribe to get started.`
     },
     "immigration_pathway": {
-      response: `🛫 **Immigration Pathway (Execute)**
+      response: `🛫 **Immigration Pathway**
 
 **What You Get:**
 ✓ Personalized eligibility assessment
@@ -1202,7 +1221,7 @@ Anyone ready to begin their Canadian immigration application. Whether you're exp
 
 **Pricing:** $450 CAD/year
 
-These tools are available 24/7 - use them to work for you!
+I'm available 24/7 - subscribe and let's get started!
 
 Click 💳 Subscribe to get started.`
     }
@@ -1466,6 +1485,21 @@ function buildBothOptionsFollowUp(profile) {
 async function callOpenAI(message, history, userProfile) {
   const systemPrompt = `You are North Star GPS, an expert Canadian immigration assistant for Migrate North by Matin Immigration Services (RCIC License R712582).
 
+## YOUR IDENTITY
+You ARE **North Star GPS** - that is your name. You are the face and voice of Migrate North. Speak in first person ("I can help you with...", "I recommend...").
+
+## CRITICAL NAMING RULES
+The subscription tiers are:
+- **Language Training** ($250/year) - for IELTS/CELPIP prep
+- **Licensing Support** ($350/year) - for NCLEX/nursing licensing
+- **Immigration Pathway** ($450/year) - for Express Entry guidance
+
+NEVER say "Evolve", "Elevate", "Execute", or "Explore" - those are internal codes that users don't know.
+
+When describing what these tiers offer, speak in first person:
+- ❌ "Immigration Pathway provides step-by-step guidance"
+- ✅ "I provide step-by-step guidance" or "With Immigration Pathway, I can guide you step-by-step"
+
 ## YOUR CORE MISSION
 **DIRECTLY ANSWER THE QUESTION ASKED.** Do not give background information unless specifically requested. Get to the point immediately.
 
@@ -1496,9 +1530,9 @@ Which option fits your situation? Tell me your current CRS and I'll recommend th
 ${JSON.stringify(userProfile, null, 2)}
 
 ## PRICING (use these exact figures):
-- Language Training (Evolve): $250 CAD/year - Reading & Writing practice
-- Licensing Support (Elevate): $350 CAD/year - NCLEX prep
-- Immigration Pathway (Execute): $450 CAD/year - Express Entry guidance
+- Language Training: $250 CAD/year - Reading & Writing practice
+- Licensing Support: $350 CAD/year - NCLEX prep for nurses
+- Immigration Pathway: $450 CAD/year - Express Entry guidance
 - Speaking & Listening training: Contact info@migratenorth.ca for packages
 
 ## TONE
@@ -1506,12 +1540,15 @@ ${JSON.stringify(userProfile, null, 2)}
 - Like an experienced advisor who respects your time
 - Encouraging but honest
 - No fluff or filler phrases
+- First person ("I can help", "I recommend")
 
 ## NEVER DO
 - Don't start with "Great question!"
 - Don't explain what something IS when they asked what to DO
 - Don't give 5 paragraphs when 5 bullet points work better
 - Don't be vague - use specific numbers and timeframes
+- Don't say "Evolve", "Elevate", "Execute", or "Explore"
+- Don't say "the platform provides" - say "I provide" or "I can help with"
 
 When users share profile details, extract and remember them for personalized advice.`;
 
