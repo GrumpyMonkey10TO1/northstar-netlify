@@ -1,9 +1,8 @@
 // /netlify/functions/chat-explore.js
-// North Star Explore server function v10 - INTENT ROUTING ENGINE
-// Phase 2 Complete: Funnel state tracking, tier recommendations, soft gates
-// v9 Updates: Better system prompt, more FAQ responses, direct answers
-// v10 Updates: INTENT ROUTER - Deterministic product routing, no more guessing
-// v11 Updates: NAMING FIX - Use "Language Training/Licensing Support/Immigration Pathway" not "Evolve/Elevate/Execute"
+// North Star Explore server function v12 - SMART INTENT DETECTION
+// v10: Intent router for button clicks
+// v11: Naming fix (Language Training, not Evolve)
+// v12: SMART FREE-TEXT INTENT DETECTION - fixes mismatched answers
 
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
@@ -298,8 +297,8 @@ function buildTierRecommendation(profile, crsResult) {
   
   if (recommendation.tier === "evolve") {
     message += `**What you get with ${tierName} ($250 CAD/year):**\n`;
-    message += `• AI-powered IELTS & CELPIP Reading & Writing practice\n`;
-    message += `• Real-time scoring and detailed feedback\n`;
+    message += `• AI-powered IELTS & CELPIP Reading practice tests\n`;
+    message += `• Real-time feedback on reading comprehension\n`;
     message += `• Vocabulary tracking and personalized drills\n`;
     message += `• Progress tracking toward your target scores\n`;
     message += `• Speaking & Listening packages available separately\n`;
@@ -526,7 +525,7 @@ Tell me your age, education, work experience, and IELTS scores - I'll calculate 
 
 → **Choose CELPIP if:** You're in Canada, comfortable with computers, want fastest results
 
-**Our Language Training ($250/year) covers both formats with 66 Reading & Writing practice tests!**`
+**Our Language Training ($250/year) has Reading practice tests to help you prepare!**`
     },
     "eca": {
       response: `**Educational Credential Assessment (ECA) - What You Need to Know**
@@ -766,7 +765,7 @@ We empower you to do it yourself (90%+ of cases don't need a consultant). For co
    • Each CLB level = ~20-30 points
    • CLB 7 → 9 can add **50+ points**
    • Book your test NOW
-   • Our Language Training has 66 practice tests
+   • Our Language Training has Reading practice tests
 
 2. **Get French Tested**
    • French + strong English = **25-50 bonus points**
@@ -840,7 +839,7 @@ We empower you to do it yourself (90%+ of cases don't need a consultant). For co
 **1. Language (up to +50 points)**
 → Target IELTS 8+ in each band
 → Consider French for 25-50 bonus
-→ Our Language Training: 66 practice tests
+→ Our Language Training: Reading practice tests
 
 **2. Education (up to +30 points)**
 → Canadian degree/diploma adds extra
@@ -1111,7 +1110,7 @@ Matin Immigration Services Inc. operates under **RCIC License R712582**, issued 
 **SUBSCRIPTION TIERS:**
 
 📚 **Language Training** - $250 CAD/year
-Reading & Writing practice on migratenorth.ca
+Reading practice tests on migratenorth.ca
 Speaking & Listening packages available separately
 
 🩺 **Licensing Support** - $350 CAD/year
@@ -1131,8 +1130,8 @@ You are capable. You just need the right guidance and tools. I'm here to help yo
 **SUBSCRIPTION TIERS:**
 
 📚 **Language Training** - **$250 CAD/year**
-• 66 IELTS/CELPIP Reading & Writing practice tests
-• Real-time feedback and scoring
+• IELTS/CELPIP Reading practice tests
+• Real-time feedback on comprehension
 • Vocabulary tracking and review
 • Speaking & Listening packages - contact info@migratenorth.ca
 
@@ -1165,10 +1164,12 @@ Click 💳 Subscribe to get started.`
     "language_training": {
       response: `📚 **Language Training**
 
+Prepare for IELTS General or CELPIP-General with structured, AI-powered practice.
+
 **What You Get on migratenorth.ca:**
-✓ 66 full-length Reading & Writing practice tests
+✓ Reading comprehension practice tests
 ✓ Personalized study plans (30, 60, 90 days)
-✓ Real-time scoring and detailed feedback
+✓ Real-time feedback on your answers
 ✓ Grammar and vocabulary drills
 ✓ Progress tracking across sessions
 
@@ -1180,7 +1181,7 @@ Anyone preparing for Canadian immigration language requirements. Most Express En
 
 **Pricing:** $250 CAD/year
 
-I'm available 24/7 - subscribe and let's get started!
+These tools are available 24/7 - use them to work for you!
 
 Click 💳 Subscribe to get started.`
     },
@@ -1235,45 +1236,245 @@ Click 💳 Subscribe to get started.`
   return null;
 }
 
-// Legacy keyword-based FAQ matching (fallback for free-text messages)
-function getFAQResponseByKeyword(message) {
-  const lowerMessage = message.toLowerCase();
-  
-  const keywordMap = {
-    "express_entry": ["what is express entry", "explain express entry", "how express entry works", "express entry system"],
-    "crs_scoring": ["crs score", "crs scoring", "how crs works", "comprehensive ranking", "crs points"],
-    "ielts_celpip": ["ielts vs celpip", "ielts or celpip", "language test", "ielts celpip difference", "which test"],
-    "eca": ["what is eca", "educational credential", "credential assessment", "eca explained", "wes assessment"],
-    "cec_fsw_fst": ["cec fsw fst", "three programs", "express entry programs", "which program"],
-    "ita_pr_process": ["ita", "invitation to apply", "pr process", "process stages", "after ita"],
-    "eligibility": ["am i eligible", "eligible for express entry", "do i qualify", "check eligibility"],
-    "calculate_crs": ["how to calculate crs", "crs calculation explained", "crs formula", "calculate my crs", "what's my crs"],
-    "consultant_lawyer": ["consultant", "lawyer", "rcic", "do i need", "immigration help", "hire consultant", "consultant or lawyer"],
-    "low_crs_options": ["crs too low", "low crs", "low score", "increase crs", "boost crs", "improve score", "my options", "what are my options"],
-    "boost_fast": ["boost fast", "quick points", "fast improvement", "50 points", "quickly improve"],
-    "common_mistakes": ["mistakes", "common mistakes", "avoid mistakes", "application errors", "kill applications"],
-    "improve_profile": ["improve profile", "strengthen profile", "boost profile", "100 points"],
-    "job_offer_vs_pnp": ["job offer vs pnp", "job offer or pnp", "job offer or apply for pnp", "should i get a job offer", "lmia or nomination", "which better job offer"],
-    "pnp": ["pnp explained", "provincial nominee", "provincial nomination", "how pnp works", "explain pnp"],
-    "timeline": ["how long", "timeline", "processing time", "how fast", "when will i"],
-    "costs": ["cost", "costs", "how much", "total cost", "fees", "money", "expensive"],
-    "documents_needed": ["documents", "document checklist", "what documents", "need documents", "required documents"],
-    "strategy": ["personalized strategy", "my strategy", "custom strategy", "immigration strategy"],
-    "about_matin": ["about matin", "who are you", "matin immigration", "your company", "about company"],
-    "pricing_services": ["pricing", "services", "your pricing", "matin services", "matin pricing"],
-    "language_training": ["language training", "evolve", "ielts practice", "celpip practice", "what is evolve"],
-    "licensing_support": ["licensing support", "elevate", "nclex", "nursing", "what is elevate"],
-    "immigration_pathway": ["immigration pathway", "execute", "immigration support", "what is execute"]
-  };
+// ==============================================================================
+// v12 NEW: SMART INTENT DETECTION FOR FREE-TEXT QUESTIONS
+// ==============================================================================
+// This replaces the simple keyword matching with smarter pattern detection
+// that considers WHAT the user is asking (action vs definition vs checklist)
 
-  for (const [faqKey, keywords] of Object.entries(keywordMap)) {
-    for (const keyword of keywords) {
-      if (lowerMessage.includes(keyword)) {
-        return getFAQResponse(faqKey);
-      }
+function detectUserIntent(message) {
+  const lower = message.toLowerCase().trim();
+  
+  // ===========================================================================
+  // PRIORITY 1: Action-oriented questions (HOW TO / IMPROVE / BOOST / INCREASE)
+  // These ALWAYS take priority over definitional questions
+  // ===========================================================================
+  
+  // "How can I improve/boost/increase my CRS?"
+  if (/\b(how|ways?|tips?|strategies?)\b.{0,20}\b(improve|boost|increase|raise|higher)\b.{0,20}\b(crs|score|points)/i.test(lower) ||
+      /\b(improve|boost|increase|raise)\b.{0,20}\b(crs|score|points)/i.test(lower)) {
+    return "boost_fast";
+  }
+  
+  // "My CRS is low" / "CRS too low" / "low score"
+  if (/\b(crs|score)\b.{0,10}\b(too\s*)?(low|not enough|isn't enough)/i.test(lower) ||
+      /\b(low|weak)\b.{0,10}\b(crs|score)/i.test(lower) ||
+      /what.{0,10}(options|can i do).{0,20}(crs|score)/i.test(lower)) {
+    return "low_crs_options";
+  }
+  
+  // "Quickly improve" / "fast improvement"  
+  if (/\b(quick|fast|fastest|rapid)\b.{0,15}\b(improve|boost|increase|way|points)/i.test(lower)) {
+    return "boost_fast";
+  }
+  
+  // ===========================================================================
+  // PRIORITY 2: Document/checklist questions
+  // ===========================================================================
+  
+  // "What documents do I need?" / "document checklist" / "required documents"
+  if (/\b(what|which)\b.{0,10}\b(documents?|papers?|files?)\b.{0,15}\b(need|required|necessary)/i.test(lower) ||
+      /\b(documents?|papers?)\b.{0,10}\b(need|required|checklist|list)/i.test(lower) ||
+      /\b(checklist|list)\b.{0,10}\b(documents?|papers?)/i.test(lower) ||
+      /\bneed.{0,15}documents?\b/i.test(lower)) {
+    return "documents_needed";
+  }
+  
+  // ===========================================================================
+  // PRIORITY 3: Comparison questions
+  // ===========================================================================
+  
+  // "IELTS vs CELPIP" / "which test"
+  if (/\bielts\b.{0,10}\b(vs|versus|or|compared)\b.{0,10}\bcelpip/i.test(lower) ||
+      /\bcelpip\b.{0,10}\b(vs|versus|or|compared)\b.{0,10}\bielts/i.test(lower) ||
+      /\b(which|what)\b.{0,10}\b(language\s*)?(test|exam)\b.{0,10}\b(should|better|choose)/i.test(lower)) {
+    return "ielts_celpip";
+  }
+  
+  // "Job offer vs PNP" / "should I get job offer or PNP"
+  if (/\bjob\s*offer\b.{0,15}\b(vs|versus|or|compared|better)\b.{0,15}\bpnp/i.test(lower) ||
+      /\bpnp\b.{0,15}\b(vs|versus|or|compared|better)\b.{0,15}\bjob\s*offer/i.test(lower) ||
+      /\b(should i|better to)\b.{0,15}\b(job offer|pnp)/i.test(lower)) {
+    return "job_offer_vs_pnp";
+  }
+  
+  // ===========================================================================
+  // PRIORITY 4: Cost/money questions
+  // ===========================================================================
+  
+  // "How much does it cost?" / "total cost" / "fees"
+  if (/\bhow\s*much\b.{0,15}\b(cost|spend|pay|fees?)/i.test(lower) ||
+      /\b(total|all)\b.{0,10}\b(costs?|fees?|expenses?)/i.test(lower) ||
+      /\b(costs?|fees?|expenses?)\b.{0,10}\b(express entry|immigration|pr)/i.test(lower)) {
+    return "costs";
+  }
+  
+  // ===========================================================================
+  // PRIORITY 5: Timeline questions
+  // ===========================================================================
+  
+  // "How long does it take?" / "processing time" / "timeline"
+  if (/\bhow\s*long\b.{0,15}\b(take|process|wait)/i.test(lower) ||
+      /\b(processing|wait)\s*(time|period)/i.test(lower) ||
+      /\btimeline\b/i.test(lower) ||
+      /\bwhen\s*(will|can)\s*i\b.{0,15}\b(get|receive|land)/i.test(lower)) {
+    return "timeline";
+  }
+  
+  // ===========================================================================
+  // PRIORITY 6: Eligibility questions
+  // ===========================================================================
+  
+  // "Am I eligible?" / "do I qualify?"
+  if (/\b(am i|do i|can i)\b.{0,10}\b(eligible|qualify|qualified)/i.test(lower) ||
+      /\bcheck.{0,10}eligib/i.test(lower) ||
+      /\beligib.{0,10}(check|test|see)/i.test(lower)) {
+    return "eligibility";
+  }
+  
+  // ===========================================================================
+  // PRIORITY 7: Consultant/lawyer questions (be specific - not just "do i need")
+  // ===========================================================================
+  
+  // "Do I need a consultant/lawyer?" (NOT "do I need documents")
+  if (/\b(need|hire|get|use)\b.{0,10}\b(consultant|lawyer|rcic|immigration\s*help)/i.test(lower) ||
+      /\b(consultant|lawyer|rcic)\b.{0,10}\b(need|necessary|required|should)/i.test(lower)) {
+    return "consultant_lawyer";
+  }
+  
+  // ===========================================================================
+  // PRIORITY 8: Calculate CRS (user wants calculation, not explanation)
+  // ===========================================================================
+  
+  // "Calculate my CRS" / "what's my CRS" / "estimate my score"
+  if (/\b(calculate|estimate|what'?s|tell me)\b.{0,10}\bmy\b.{0,10}\b(crs|score)/i.test(lower) ||
+      /\bmy\s*crs\b.{0,10}\b(score|is|would be)/i.test(lower)) {
+    return "calculate_crs";
+  }
+  
+  // ===========================================================================
+  // PRIORITY 9: "What is X?" questions (definitional)
+  // ===========================================================================
+  
+  // "What is Express Entry?" / "Explain Express Entry"
+  if (/\b(what is|what's|explain|tell me about)\b.{0,10}\bexpress\s*entry\b/i.test(lower) ||
+      /\bexpress\s*entry\b.{0,10}\b(explain|work|mean)/i.test(lower)) {
+    return "express_entry";
+  }
+  
+  // "What is CRS?" / "How does CRS work?" / "CRS explained"
+  if (/\b(what is|what's|explain|how does)\b.{0,10}\bcrs\b/i.test(lower) ||
+      /\bcrs\b.{0,10}\b(work|calculated|explained|system|mean)/i.test(lower)) {
+    // But NOT if they're asking how to improve it
+    if (!/\b(improve|boost|increase|raise)\b/i.test(lower)) {
+      return "crs_scoring";
     }
   }
-
+  
+  // "What is ECA?" / "ECA explained"
+  if (/\b(what is|what's|explain)\b.{0,10}\beca\b/i.test(lower) ||
+      /\beca\b.{0,10}\b(mean|stand for|explained)/i.test(lower) ||
+      /\beducational\s*credential\s*assessment\b/i.test(lower)) {
+    return "eca";
+  }
+  
+  // "What is PNP?" / "Provincial nominee"
+  if (/\b(what is|what's|explain)\b.{0,10}\bpnp\b/i.test(lower) ||
+      /\bpnp\b.{0,10}\b(mean|explained|work)/i.test(lower) ||
+      /\bprovincial\s*nomin/i.test(lower)) {
+    return "pnp";
+  }
+  
+  // "What is Language Training?" / "What is Evolve?"
+  if (/\b(what is|what's|tell me about)\b.{0,15}\b(language\s*training|evolve)\b/i.test(lower)) {
+    return "language_training";
+  }
+  
+  // "What is Licensing Support?" / "What is Elevate?"
+  if (/\b(what is|what's|tell me about)\b.{0,15}\b(licensing\s*support|elevate|nclex)\b/i.test(lower)) {
+    return "licensing_support";
+  }
+  
+  // "What is Immigration Pathway?" / "What is Execute?"
+  if (/\b(what is|what's|tell me about)\b.{0,15}\b(immigration\s*pathway|execute)\b/i.test(lower)) {
+    return "immigration_pathway";
+  }
+  
+  // ===========================================================================
+  // PRIORITY 10: Programs questions
+  // ===========================================================================
+  
+  // "FSW vs CEC" / "Express Entry programs" / "Which program"
+  if (/\b(fsw|cec|fst)\b.{0,10}\b(vs|versus|or|difference)/i.test(lower) ||
+      /\b(express entry|ee)\b.{0,10}\bprograms?\b/i.test(lower) ||
+      /\bwhich\b.{0,10}\bprogram\b/i.test(lower) ||
+      /\bthree\s*programs?\b/i.test(lower)) {
+    return "cec_fsw_fst";
+  }
+  
+  // ===========================================================================
+  // PRIORITY 11: Process/stages questions
+  // ===========================================================================
+  
+  // "What happens after ITA?" / "PR process" / "stages"
+  if (/\bafter\s*ita\b/i.test(lower) ||
+      /\b(pr|permanent resident)\s*process\b/i.test(lower) ||
+      /\b(stages?|steps?)\b.{0,10}\b(process|application)/i.test(lower)) {
+    return "ita_pr_process";
+  }
+  
+  // ===========================================================================
+  // PRIORITY 12: Common mistakes
+  // ===========================================================================
+  
+  // "Common mistakes" / "mistakes to avoid"
+  if (/\b(common|typical|frequent)\s*mistakes?\b/i.test(lower) ||
+      /\bmistakes?\s*(to\s*)?(avoid|prevent)/i.test(lower) ||
+      /\bwhat\s*(not\s*to|to\s*avoid)\b/i.test(lower)) {
+    return "common_mistakes";
+  }
+  
+  // ===========================================================================
+  // PRIORITY 13: Strategy questions
+  // ===========================================================================
+  
+  // "My strategy" / "personalized strategy" / "what should I do"
+  if (/\b(my|personalized|custom)\b.{0,10}\bstrategy\b/i.test(lower) ||
+      /\bwhat\s*should\s*i\s*do\b/i.test(lower) ||
+      /\bbest\s*(path|approach|strategy)\b.{0,10}\bfor\s*me\b/i.test(lower)) {
+    return "strategy";
+  }
+  
+  // ===========================================================================
+  // PRIORITY 14: About/pricing questions
+  // ===========================================================================
+  
+  // "About Matin" / "Who are you"
+  if (/\babout\s*(matin|you|this)\b/i.test(lower) ||
+      /\bwho\s*(are|is)\s*(you|matin)/i.test(lower) ||
+      /\bwhat\s*is\s*matin\b/i.test(lower)) {
+    return "about_matin";
+  }
+  
+  // "Pricing" / "How much do you charge"
+  if (/\b(your|matin)\s*(pricing|prices|cost)/i.test(lower) ||
+      /\bhow\s*much\s*(do\s*you|does\s*matin)\s*charge/i.test(lower) ||
+      /\bsubscription\s*(cost|price)/i.test(lower)) {
+    return "pricing_services";
+  }
+  
+  // ===========================================================================
+  // PRIORITY 15: Improve profile (general)
+  // ===========================================================================
+  
+  // "Improve my profile" / "strengthen profile"
+  if (/\b(improve|strengthen|boost)\b.{0,10}\b(my\s*)?(profile|application)/i.test(lower)) {
+    return "improve_profile";
+  }
+  
+  // ===========================================================================
+  // No match - return null to fall through to AI
+  // ===========================================================================
   return null;
 }
 
@@ -1490,7 +1691,7 @@ You ARE **North Star GPS** - that is your name. You are the face and voice of Mi
 
 ## CRITICAL NAMING RULES
 The subscription tiers are:
-- **Language Training** ($250/year) - for IELTS/CELPIP prep
+- **Language Training** ($250/year) - for IELTS/CELPIP prep (Reading practice)
 - **Licensing Support** ($350/year) - for NCLEX/nursing licensing
 - **Immigration Pathway** ($450/year) - for Express Entry guidance
 
@@ -1530,7 +1731,7 @@ Which option fits your situation? Tell me your current CRS and I'll recommend th
 ${JSON.stringify(userProfile, null, 2)}
 
 ## PRICING (use these exact figures):
-- Language Training: $250 CAD/year - Reading & Writing practice
+- Language Training: $250 CAD/year - Reading practice tests
 - Licensing Support: $350 CAD/year - NCLEX prep for nurses
 - Immigration Pathway: $450 CAD/year - Express Entry guidance
 - Speaking & Listening training: Contact info@migratenorth.ca for packages
@@ -1676,7 +1877,7 @@ export async function handler(event) {
     }
 
     // ==============================================================================
-    // v10 NEW: INTENT ROUTING (DETERMINISTIC PRODUCT BRAIN)
+    // v10: INTENT ROUTING (DETERMINISTIC PRODUCT BRAIN) - BUTTON CLICKS
     // ==============================================================================
     // If frontend sent an intent, route directly to the correct response
     // This bypasses AI guessing and gives consistent, product-like behavior
@@ -1757,26 +1958,35 @@ export async function handler(event) {
     }
 
     // ==============================================================================
-    // CHECK FOR FAQ RESPONSE BY KEYWORD (fallback for free-text)
+    // v12 NEW: SMART INTENT DETECTION FOR FREE-TEXT QUESTIONS
     // ==============================================================================
-    const faqResponse = getFAQResponseByKeyword(message);
-    if (faqResponse) {
-      if (user) {
-        await logActivity(user, "explore_faq", message.substring(0, 100));
-      }
+    // This replaces the old keyword matching with smarter pattern detection
+    
+    const detectedIntent = detectUserIntent(message);
+    
+    if (detectedIntent) {
+      console.log("Smart intent detected:", detectedIntent);
       
-      let finalResponse = faqResponse;
-      if (user && updatedProfile.funnel_state) {
-        const gateStatus = checkGateStatus(updatedProfile, updatedProfile.messages_since_diagnosis || 0);
-        const escalationPrompt = generateEscalationPrompt(updatedProfile, gateStatus.promptLevel);
-        if (escalationPrompt) {
-          finalResponse += escalationPrompt;
+      const faqResponse = getFAQResponse(detectedIntent);
+      
+      if (faqResponse) {
+        if (user) {
+          await logActivity(user, "explore_smart_intent", `${detectedIntent}: ${message.substring(0, 100)}`);
         }
         
-        await saveProfile(user, updatedProfile);
+        let finalResponse = faqResponse;
+        if (user && updatedProfile.funnel_state) {
+          const gateStatus = checkGateStatus(updatedProfile, updatedProfile.messages_since_diagnosis || 0);
+          const escalationPrompt = generateEscalationPrompt(updatedProfile, gateStatus.promptLevel);
+          if (escalationPrompt) {
+            finalResponse += escalationPrompt;
+          }
+          
+          await saveProfile(user, updatedProfile);
+        }
+        
+        return ok({ reply: finalResponse, userProfile: updatedProfile });
       }
-      
-      return ok({ reply: finalResponse, userProfile: updatedProfile });
     }
 
     // ==============================================================================
