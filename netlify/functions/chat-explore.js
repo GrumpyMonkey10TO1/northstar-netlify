@@ -380,7 +380,10 @@ If your CRS meets the cutoff, you get an ITA (Invitation to Apply) and have 60 d
 - Sibling in Canada: 15 points
 - French language bonus: 25-50 points
 - **Provincial nomination: 600 points** ← Game changer!
-- Valid job offer: 50-200 points
+- ~~Job offer points~~ **REMOVED as of March 25, 2025**
+  - Previously: 50 points for most jobs, 200 for senior management
+  - Now: **0 points** — IRCC removed this to combat LMIA fraud
+  - Job offers can still help with PNP eligibility, just no direct CRS points
 
 **Competitive Score Ranges:**
 - Below 450: Need PNP or major improvements
@@ -420,6 +423,8 @@ If your CRS meets the cutoff, you get an ITA (Invitation to Apply) and have 60 d
 6. **Canadian Work Experience** — +50-80 points
 
 **If CRS is below 450:** Focus 100% on PNP — it's your fastest path to PR.
+
+**Note:** Job offers NO LONGER give CRS points (removed March 2025). Don't waste time chasing a job offer for CRS — focus on language, PNP, and other factors.
 
 ---
 
@@ -464,25 +469,28 @@ PNP is how provinces nominate immigrants who meet their needs. A nomination adds
 
 ## JOB OFFER VS PNP
 
-**Short answer: PNP is usually better for most people.**
+**Short answer: PNP is now the ONLY way to get bonus CRS points from employment.**
 
-**PNP Nomination: +600 points**
+**⚠️ MAJOR CHANGE (March 25, 2025):**
+Job offers no longer give ANY CRS points. IRCC removed this to combat LMIA fraud.
+
+**PNP Nomination: +600 points** ← Still works!
 - Virtually guarantees ITA
 - Many streams don't require job offer
 - Can apply to multiple provinces
 - Some process in weeks (BC Tech, Ontario)
 
-**Job Offer: +50-200 points**
-- 50 points for standard offer
-- 200 points for senior management with LMIA
-- Most employers won't sponsor
-- LMIA is expensive and time-consuming
-- Job must match NOC exactly
+**Job Offer: 0 points** (as of March 2025)
+- Previously gave 50-200 points — NOW REMOVED
+- Job offers still help with PNP eligibility in some streams
+- Job offers still required for some programs (FST, some PNPs)
+- No direct CRS benefit anymore
 
-**Recommendation by CRS:**
-- Below 470: Focus 100% on PNP
-- 470-500: PNP gives certainty
-- 500+: May get ITA without either
+**What This Means For You:**
+- Don't chase a job offer just for CRS points — it won't help
+- Focus on PNP, language scores, and other factors
+- If you already have a job offer, it may still help with PNP eligibility
+- This change is described as "temporary" but no end date given
 
 ---
 
