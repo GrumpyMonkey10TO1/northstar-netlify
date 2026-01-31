@@ -125,20 +125,22 @@ function detectRelevantTopics(message) {
 
 // 2. LIVE FETCH - Get content from a URL
 async function fetchPageContent(url) {
+  // Skip live fetching entirely for now - use fallback data
+  // This ensures the chatbot always works even if external sites are slow/blocked
+  console.log(`[FETCH] Skipping live fetch for ${url} - using fallback if available`);
+  return null;
+  
+  /* LIVE FETCH DISABLED - uncomment when ready to test
   try {
     console.log(`[FETCH] Attempting to fetch: ${url}`);
     
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
     
     const response = await fetch(url, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Connection": "keep-alive",
-        "Upgrade-Insecure-Requests": "1"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "Accept": "text/html"
       },
       signal: controller.signal
     });
@@ -150,39 +152,26 @@ async function fetchPageContent(url) {
       return null;
     }
 
-    console.log(`[FETCH] Success for ${url}: HTTP ${response.status}`);
     const html = await response.text();
     
     // Strip HTML tags and clean up
     let text = html
-      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "") // Remove scripts
-      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")   // Remove styles
-      .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, "")       // Remove nav
-      .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, "") // Remove header
-      .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, "") // Remove footer
-      .replace(/<[^>]+>/g, " ")                          // Remove remaining tags
-      .replace(/\s+/g, " ")                              // Collapse whitespace
-      .replace(/&nbsp;/g, " ")
-      .replace(/&amp;/g, "&")
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
       .trim();
 
-    // Limit to ~3000 chars to not overwhelm the prompt
     if (text.length > 3000) {
       text = text.substring(0, 3000) + "...";
     }
 
-    console.log(`[FETCH] Extracted ${text.length} chars from ${url}`);
     return text;
   } catch (err) {
-    if (err.name === 'AbortError') {
-      console.error(`[FETCH] Timeout for ${url}`);
-    } else {
-      console.error(`[FETCH] Error for ${url}:`, err.message);
-    }
+    console.error(`[FETCH] Error for ${url}:`, err.message);
     return null;
   }
+  */
 }
 
 // 3. CHECK CACHE - Get from cache, fetch fresh, or use fallback
@@ -1157,7 +1146,19 @@ async function callOpenAI(message, history, userProfile) {
   const systemPrompt = buildSystemPrompt(userProfile);
 
   // Fetch relevant live content based on the user's question
-  const liveContent = await getRelevantContent(message);
+  // Wrapped in try-catch with timeout so fetch failures don't crash or delay the response
+  let liveContent = null;
+  try {
+    // Give live fetch max 5 seconds, then skip it
+    const fetchPromise = getRelevantContent(message);
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Live fetch timeout')), 5000)
+    );
+    liveContent = await Promise.race([fetchPromise, timeoutPromise]);
+  } catch (fetchErr) {
+    console.error("[LIVE FETCH] Skipped:", fetchErr.message);
+    // Continue without live content - this is fine
+  }
   
   // Build the full system prompt (with live data if available)
   let fullSystemPrompt = systemPrompt;
