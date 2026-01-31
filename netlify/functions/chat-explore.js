@@ -1,10 +1,206 @@
 // /netlify/functions/chat-explore.js
-// North Star Explore server function v13 - AI-FIRST ARCHITECTURE
-// No more regex pattern matching or FAQ lookups
-// All knowledge lives in the system prompt - AI answers everything naturally
+// North Star Explore server function v14 - AI-FIRST + LIVE FETCH
+// AI answers everything naturally, with live data from official sources
+// Features: Topic detection, live fetching, 24-hour caching
 
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
+
+// ==============================================================================
+// LIVE FETCH SYSTEM - Get real-time info from official sources
+// ==============================================================================
+
+// Resource links mapped to topics
+const RESOURCE_LINKS = {
+  languageTests: {
+    keywords: ["ielts", "celpip", "pte", "language test", "english test", "clb", "which test"],
+    links: [
+      { url: "https://www.ielts.org/for-test-takers/ielts-general-training", name: "IELTS" },
+      { url: "https://www.celpip.ca/take-celpip/celpip-general/", name: "CELPIP" },
+      { url: "https://www.pearsonpte.com/pte-core", name: "PTE Core" }
+    ]
+  },
+  proofOfFunds: {
+    keywords: ["proof of funds", "how much money", "funds required", "settlement funds", "bank statement", "savings"],
+    links: [
+      { url: "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/proof-funds.html", name: "IRCC Proof of Funds" }
+    ]
+  },
+  crsCalculator: {
+    keywords: ["crs calculator", "calculate crs", "crs tool", "points calculator"],
+    links: [
+      { url: "https://ircc.canada.ca/english/immigrate/skilled/crs-tool.asp", name: "CRS Calculator" }
+    ]
+  },
+  nocFinder: {
+    keywords: ["noc", "occupation code", "job code", "noc code", "teer", "find my noc", "what noc"],
+    links: [
+      { url: "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/eligibility/find-national-occupation-code.html", name: "NOC Finder" }
+    ]
+  },
+  eca: {
+    keywords: ["eca", "wes", "credential assessment", "education assessment", "foreign degree", "degree evaluation"],
+    links: [
+      { url: "https://www.wes.org/ca/", name: "WES Canada" }
+    ]
+  },
+  expressEntry: {
+    keywords: ["express entry", "how to apply", "ee process", "ircc"],
+    links: [
+      { url: "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry.html", name: "IRCC Express Entry" }
+    ]
+  },
+  verifyConsultant: {
+    keywords: ["rcic", "consultant", "verify", "licensed", "immigration lawyer", "fraud", "scam"],
+    links: [
+      { url: "https://college-ic.ca/protecting-the-public/find-an-immigration-consultant", name: "CICC Verify" }
+    ]
+  },
+  jobBank: {
+    keywords: ["job bank", "find job", "lmia", "job offer", "canadian job"],
+    links: [
+      { url: "https://www.jobbank.gc.ca/home", name: "Job Bank" }
+    ]
+  }
+};
+
+// In-memory cache (resets when function cold starts, but persists for ~15 min on Netlify)
+const fetchCache = new Map();
+const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+// 1. TOPIC DETECTION - Figure out which links are relevant
+function detectRelevantTopics(message) {
+  const lower = message.toLowerCase();
+  const relevantTopics = [];
+
+  for (const [topicKey, topicData] of Object.entries(RESOURCE_LINKS)) {
+    for (const keyword of topicData.keywords) {
+      if (lower.includes(keyword)) {
+        relevantTopics.push(topicKey);
+        break; // Found match, move to next topic
+      }
+    }
+  }
+
+  return relevantTopics;
+}
+
+// 2. LIVE FETCH - Get content from a URL
+async function fetchPageContent(url) {
+  try {
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; MigrateNorthBot/1.0)",
+        "Accept": "text/html,application/xhtml+xml"
+      },
+      timeout: 5000
+    });
+
+    if (!response.ok) {
+      console.log(`Fetch failed for ${url}: ${response.status}`);
+      return null;
+    }
+
+    const html = await response.text();
+    
+    // Strip HTML tags and clean up
+    let text = html
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "") // Remove scripts
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")   // Remove styles
+      .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, "")       // Remove nav
+      .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, "") // Remove header
+      .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, "") // Remove footer
+      .replace(/<[^>]+>/g, " ")                          // Remove remaining tags
+      .replace(/\s+/g, " ")                              // Collapse whitespace
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .trim();
+
+    // Limit to ~3000 chars to not overwhelm the prompt
+    if (text.length > 3000) {
+      text = text.substring(0, 3000) + "...";
+    }
+
+    return text;
+  } catch (err) {
+    console.error(`Fetch error for ${url}:`, err.message);
+    return null;
+  }
+}
+
+// 3. CHECK CACHE - Get from cache or fetch fresh
+async function getCachedOrFetch(url, name) {
+  const cached = fetchCache.get(url);
+  const now = Date.now();
+
+  // If cached and not expired, use it
+  if (cached && (now - cached.timestamp) < CACHE_DURATION_MS) {
+    console.log(`Cache hit for ${name}`);
+    return cached.content;
+  }
+
+  // Otherwise fetch fresh
+  console.log(`Fetching fresh: ${name}`);
+  const content = await fetchPageContent(url);
+  
+  if (content) {
+    fetchCache.set(url, { content, timestamp: now });
+  }
+
+  return content;
+}
+
+// 4. GET RELEVANT CONTENT - Main function to get all relevant info
+async function getRelevantContent(message) {
+  const topics = detectRelevantTopics(message);
+  
+  if (topics.length === 0) {
+    return null; // No relevant topics found
+  }
+
+  console.log(`Detected topics: ${topics.join(", ")}`);
+
+  // Collect all links to fetch
+  const linksToFetch = [];
+  for (const topic of topics) {
+    const topicData = RESOURCE_LINKS[topic];
+    if (topicData) {
+      linksToFetch.push(...topicData.links);
+    }
+  }
+
+  // Limit to 3 links max to keep response fast
+  const limitedLinks = linksToFetch.slice(0, 3);
+
+  // Fetch all in parallel
+  const fetchPromises = limitedLinks.map(async (link) => {
+    const content = await getCachedOrFetch(link.url, link.name);
+    return { name: link.name, url: link.url, content };
+  });
+
+  const results = await Promise.all(fetchPromises);
+
+  // Build the injection text
+  let injectedContent = "\n\n## LIVE DATA FROM OFFICIAL SOURCES (fetched today)\n";
+  let hasContent = false;
+
+  for (const result of results) {
+    if (result.content) {
+      hasContent = true;
+      injectedContent += `\n### From ${result.name} (${result.url}):\n${result.content}\n`;
+    }
+  }
+
+  if (!hasContent) {
+    return null;
+  }
+
+  injectedContent += "\n---\nUse this live data to answer the user's question. Include the relevant official link(s) in your response.\n";
+
+  return injectedContent;
+}
 
 // OpenAI client
 const client = new OpenAI({
@@ -496,25 +692,27 @@ Job offers no longer give ANY CRS points. IRCC removed this to combat LMIA fraud
 
 ## LANGUAGE TESTS FOR IMMIGRATION
 
-**Two main tests accepted for Express Entry:**
+**Three tests accepted for Express Entry:**
 
-| Feature | IELTS General | CELPIP General |
-|---------|---------------|----------------|
-| Format | Paper or Computer | Computer only |
-| Speaking | Face-to-face | To computer |
-| Results | 13 days (5-7 computer) | 4-5 days |
-| Cost | $300-350 CAD | $280-320 CAD |
-| Availability | 1,600+ centers in 140+ countries | Canada + international locations (India, Philippines, UAE, Singapore, Hong Kong, and others) |
+| Feature | IELTS General | CELPIP General | PTE Core |
+|---------|---------------|----------------|----------|
+| Format | Paper or Computer | Computer only | Computer only |
+| Speaking | Face-to-face | To computer | To computer |
+| Results | 13 days (5-7 computer) | 4-5 days | 1-2 days |
+| Cost | $300-350 CAD | $280-320 CAD | $380-420 CAD |
+| Availability | 1,600+ centers in 140+ countries | Canada + select international | 400+ centers worldwide |
 
 **CLB Conversion:**
-- CLB 7 = IELTS 6.0 = CELPIP 7
-- CLB 8 = IELTS 6.5 = CELPIP 8
-- CLB 9 = IELTS 7.0 = CELPIP 9
-- CLB 10 = IELTS 7.5-8.0 = CELPIP 10
+- CLB 7 = IELTS 6.0 = CELPIP 7 = PTE 50
+- CLB 8 = IELTS 6.5 = CELPIP 8 = PTE 60
+- CLB 9 = IELTS 7.0 = CELPIP 9 = PTE 70
+- CLB 10 = IELTS 7.5-8.0 = CELPIP 10 = PTE 79+
 
-**For applicants abroad:** Both tests are available internationally. IELTS has far more test centers worldwide. CELPIP has expanded internationally and is available in select countries including India, Philippines, UAE, and others - check celpip.ca for locations in your country. Either test is equally valid for immigration.
+**PTE Core:** Accepted for Express Entry since late 2023. Computer-based test with fastest results (often within 48 hours). Good option if you prefer typing over handwriting and want quick results. Available at Pearson test centers worldwide.
 
-**Choose based on:** Test center availability in your area, your comfort with computer-based vs paper testing, and how quickly you need results
+**IMPORTANT:** PTE Academic is NOT the same as PTE Core. For Canadian immigration, you need **PTE Core** specifically.
+
+**Choose based on:** Test center availability in your area, your comfort with computer-based vs paper testing, and how quickly you need results. All three tests are equally valid for immigration.
 
 ---
 
@@ -878,8 +1076,17 @@ Never use unlicensed 'ghost consultants.' If they're not in the registry, don't 
 async function callOpenAI(message, history, userProfile) {
   const systemPrompt = buildSystemPrompt(userProfile);
 
+  // Fetch relevant live content based on the user's question
+  const liveContent = await getRelevantContent(message);
+  
+  // Build the full system prompt (with live data if available)
+  let fullSystemPrompt = systemPrompt;
+  if (liveContent) {
+    fullSystemPrompt += liveContent;
+  }
+
   const messages = [
-    { role: "system", content: systemPrompt },
+    { role: "system", content: fullSystemPrompt },
     ...history.slice(-10).map(h => ({ 
       role: h.role === "bot" ? "assistant" : h.role, 
       content: h.text || h.content 
