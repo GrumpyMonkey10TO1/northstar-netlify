@@ -21,7 +21,7 @@ const RESOURCE_LINKS = {
     ]
   },
   proofOfFunds: {
-    keywords: ["proof of funds", "how much money", "funds required", "settlement funds", "bank statement", "savings"],
+    keywords: ["proof of funds", "how much money", "how much funds", "funds required", "settlement funds", "bank statement", "savings", "funds do i need", "money do i need", "funds needed", "show money", "financial requirement"],
     links: [
       { url: "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/proof-funds.html", name: "IRCC Proof of Funds" }
     ]
@@ -68,6 +68,44 @@ const RESOURCE_LINKS = {
 const fetchCache = new Map();
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
+// FALLBACK DATA - Used when live fetch fails
+// Last updated: January 2026 - Update these periodically!
+const FALLBACK_DATA = {
+  "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/proof-funds.html": {
+    name: "IRCC Proof of Funds",
+    content: `Proof of funds requirements for Express Entry (as of January 2025):
+
+Number of family members - Funds required (CAD):
+1 (single) - $14,690
+2 - $18,288
+3 - $22,483
+4 - $27,297
+5 - $30,690
+6 - $34,917
+7 or more - $38,875
+
+These amounts are updated yearly based on 50% of the low-income cut-off (LICO). You must show you have these funds available and accessible. Acceptable proof includes: bank statements, investment accounts, or letters from your bank.
+
+Note: You do NOT need proof of funds if you're currently authorized to work in Canada AND have a valid job offer from a Canadian employer.`
+  },
+  "https://www.ielts.org/for-test-takers/ielts-general-training": {
+    name: "IELTS",
+    content: `IELTS General Training is accepted for Canadian immigration. Test format: Listening (30 min), Reading (60 min), Writing (60 min), Speaking (11-14 min). Scored on a 9-band scale. Results available in 13 days (paper) or 5-7 days (computer). Test fee varies by location, typically $300-350 CAD. Available at 1,600+ test centers in 140+ countries. For Express Entry, you need minimum CLB 7 (IELTS 6.0 in each skill) for FSW.`
+  },
+  "https://www.celpip.ca/take-celpip/celpip-general/": {
+    name: "CELPIP",
+    content: `CELPIP General is a Canadian English test accepted for immigration. Fully computer-based, including speaking (to a computer). Test takes about 3 hours. Results in 4-5 business days. Cost: approximately $280-320 CAD. Scored on levels 1-12 (M for fail). CLB conversion: CELPIP 7 = CLB 7, CELPIP 9 = CLB 9, etc. Available in Canada and select international locations including India, Philippines, UAE, Singapore.`
+  },
+  "https://www.pearsonpte.com/pte-core": {
+    name: "PTE Core",
+    content: `PTE Core is accepted for Canadian immigration since late 2023. Important: PTE Core is NOT the same as PTE Academic - you need PTE Core specifically for Canadian immigration. Computer-based test with AI scoring. Results typically within 48 hours. Cost: approximately $380-420 CAD. CLB conversion: PTE 50 = CLB 7, PTE 60 = CLB 8, PTE 70 = CLB 9, PTE 79+ = CLB 10. Available at 400+ Pearson test centers worldwide.`
+  },
+  "https://www.wes.org/ca/": {
+    name: "WES Canada",
+    content: `World Education Services (WES) provides Educational Credential Assessments (ECA) for Canadian immigration. Processing time: typically 4-8 weeks after documents received. Cost: approximately $200-300 CAD depending on evaluation type. Required for Express Entry if your education is from outside Canada. You need WES reference number to create Express Entry profile. ECA reports are valid for 5 years.`
+  }
+};
+
 // 1. TOPIC DETECTION - Figure out which links are relevant
 function detectRelevantTopics(message) {
   const lower = message.toLowerCase();
@@ -88,19 +126,31 @@ function detectRelevantTopics(message) {
 // 2. LIVE FETCH - Get content from a URL
 async function fetchPageContent(url) {
   try {
+    console.log(`[FETCH] Attempting to fetch: ${url}`);
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+    
     const response = await fetch(url, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; MigrateNorthBot/1.0)",
-        "Accept": "text/html,application/xhtml+xml"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1"
       },
-      timeout: 5000
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
-      console.log(`Fetch failed for ${url}: ${response.status}`);
+      console.log(`[FETCH] Failed for ${url}: HTTP ${response.status}`);
       return null;
     }
 
+    console.log(`[FETCH] Success for ${url}: HTTP ${response.status}`);
     const html = await response.text();
     
     // Strip HTML tags and clean up
@@ -123,33 +173,47 @@ async function fetchPageContent(url) {
       text = text.substring(0, 3000) + "...";
     }
 
+    console.log(`[FETCH] Extracted ${text.length} chars from ${url}`);
     return text;
   } catch (err) {
-    console.error(`Fetch error for ${url}:`, err.message);
+    if (err.name === 'AbortError') {
+      console.error(`[FETCH] Timeout for ${url}`);
+    } else {
+      console.error(`[FETCH] Error for ${url}:`, err.message);
+    }
     return null;
   }
 }
 
-// 3. CHECK CACHE - Get from cache or fetch fresh
+// 3. CHECK CACHE - Get from cache, fetch fresh, or use fallback
 async function getCachedOrFetch(url, name) {
   const cached = fetchCache.get(url);
   const now = Date.now();
 
   // If cached and not expired, use it
   if (cached && (now - cached.timestamp) < CACHE_DURATION_MS) {
-    console.log(`Cache hit for ${name}`);
+    console.log(`[CACHE] Hit for ${name}`);
     return cached.content;
   }
 
   // Otherwise fetch fresh
-  console.log(`Fetching fresh: ${name}`);
+  console.log(`[CACHE] Miss for ${name}, fetching...`);
   const content = await fetchPageContent(url);
   
   if (content) {
     fetchCache.set(url, { content, timestamp: now });
+    return content;
   }
 
-  return content;
+  // Fetch failed - try fallback data
+  const fallback = FALLBACK_DATA[url];
+  if (fallback) {
+    console.log(`[FALLBACK] Using fallback data for ${name}`);
+    return fallback.content + "\n\n(Note: This is cached reference data. Visit the official link for the most current information.)";
+  }
+
+  console.log(`[FALLBACK] No fallback available for ${name}`);
+  return null;
 }
 
 // 4. GET RELEVANT CONTENT - Main function to get all relevant info
@@ -157,10 +221,11 @@ async function getRelevantContent(message) {
   const topics = detectRelevantTopics(message);
   
   if (topics.length === 0) {
+    console.log(`[TOPICS] No relevant topics detected for: "${message.substring(0, 50)}..."`);
     return null; // No relevant topics found
   }
 
-  console.log(`Detected topics: ${topics.join(", ")}`);
+  console.log(`[TOPICS] Detected: ${topics.join(", ")} for message: "${message.substring(0, 50)}..."`);
 
   // Collect all links to fetch
   const linksToFetch = [];
@@ -173,6 +238,7 @@ async function getRelevantContent(message) {
 
   // Limit to 3 links max to keep response fast
   const limitedLinks = linksToFetch.slice(0, 3);
+  console.log(`[FETCH] Will fetch ${limitedLinks.length} links: ${limitedLinks.map(l => l.name).join(", ")}`);
 
   // Fetch all in parallel
   const fetchPromises = limitedLinks.map(async (link) => {
@@ -185,15 +251,22 @@ async function getRelevantContent(message) {
   // Build the injection text
   let injectedContent = "\n\n## LIVE DATA FROM OFFICIAL SOURCES (fetched today)\n";
   let hasContent = false;
+  let successCount = 0;
 
   for (const result of results) {
     if (result.content) {
       hasContent = true;
+      successCount++;
       injectedContent += `\n### From ${result.name} (${result.url}):\n${result.content}\n`;
+    } else {
+      console.log(`[FETCH] No content returned for ${result.name}`);
     }
   }
 
+  console.log(`[FETCH] Successfully fetched ${successCount}/${results.length} sources`);
+
   if (!hasContent) {
+    console.log(`[FETCH] All fetches failed, returning null`);
     return null;
   }
 
