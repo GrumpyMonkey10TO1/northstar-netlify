@@ -980,17 +980,24 @@ Not required if you have valid Canadian job offer or are applying under CEC.
 RCIC License R712582
 
 📚 **Language Training — $250 CAD/year**
-- IELTS/CELPIP Reading practice tests
-- Real-time feedback
-- Vocabulary tracking
-- Progress analytics
+Prepare for IELTS General or CELPIP-General with AI-powered practice.
+- Reading modules with full practice tests
+- Writing modules with AI essay scoring and feedback
+- Grammar and vocabulary training drills
+- Progress tracking across sessions
 - Speaking & Listening packages available separately (contact info@migratenorth.ca)
 
+Who it's for: Anyone preparing for Canadian immigration language requirements. Most Express Entry candidates need CLB 7+ (IELTS 6.0 in each skill) to be competitive.
+
 🩺 **Licensing Support — $350 CAD/year**
-- 400+ NCLEX practice questions (NGN format)
-- 30/60/90-day study plans
+For internationally educated nurses preparing for Canadian licensure.
+- 400+ NCLEX practice questions in Next Generation (NGN) format
+- Questions organized by category and difficulty
+- AI coaching and explanations
 - NNAS credential guidance
-- Provincial licensing pathways
+- Provincial licensing pathway information
+
+Who it's for: Nurses who need to pass NCLEX-RN and navigate Canadian nursing credentials.
 
 🛫 **Immigration Pathway — $450 CAD/year**
 - Personalized eligibility assessment
